@@ -90,17 +90,14 @@ def check_model(model_id: str, path: str) -> int:
     dep_types = Counter(p.DepType for p in m.ManufacturingProcess.values())
     print(f'  DepType distribution          : {dict(dep_types)}')
 
-    # ── 3) group_to_workstation 커버리지
-    groups_in_process = {p.GroupIdShort for p in m.ManufacturingProcess.values()}
-    uncovered = groups_in_process - set(m.group_to_workstation.keys())
-    if uncovered:
-        print(f'[FAIL] groups without workstation : {uncovered}'); fail += 1
-
-    # ── 4) ProcessNode.WorkstationId ∈ WWM keys
-    ws_keys = set(m.WorkstationWorkerMatchingData.keys())
-    bad_ws = [(p.ProcessCode, p.WorkstationId)
-              for p in m.ManufacturingProcess.values()
-              if p.WorkstationId and p.WorkstationId not in ws_keys]
+    # ── 3) 모든 ProcessNode.WorkstationId 가 채워졌고 WWM keys 안에 존재하는가
+    ws_keys  = set(m.WorkstationWorkerMatchingData.keys())
+    empty_ws = [p.ProcessCode for p in m.ManufacturingProcess.values() if not p.WorkstationId]
+    bad_ws   = [(p.ProcessCode, p.WorkstationId)
+                for p in m.ManufacturingProcess.values()
+                if p.WorkstationId and p.WorkstationId not in ws_keys]
+    if empty_ws:
+        print(f'[FAIL] ProcessNode.WorkstationId empty ({len(empty_ws)}) : {empty_ws[:5]}'); fail += 1
     if bad_ws:
         print(f'[FAIL] ProcessNode.WorkstationId not in WWM : {bad_ws[:5]}'); fail += 1
 
