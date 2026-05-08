@@ -73,7 +73,7 @@ from typing import Dict, List, Optional, Tuple
 
 
 # ══════════════════════════════════════════════════════════════════════════════
-# 경로 탐색 함수
+# 경로 탐색 함수 (기존 유지)
 # ══════════════════════════════════════════════════════════════════════════════
 
 def _sm(submodels: list, idShort: str) -> Optional[dict]:
@@ -114,7 +114,7 @@ def _qty(raw) -> int:
 
 
 # ══════════════════════════════════════════════════════════════════════════════
-# dataclass — 필드명 = AAS idShort
+# dataclass — 필드명 = AAS idShort (기존 유지)
 # ══════════════════════════════════════════════════════════════════════════════
 
 @dataclass
@@ -290,6 +290,21 @@ def _parse_SkillLevelType(WorkstationWorkerMatchingData: dict) -> Dict[str, Skil
     return result
 
 
+def _extract_assigned_groups(apg_el: Optional[dict]) -> List[str]:
+    """AssignedProcessGroups ReferenceElement 목록에서 GroupIdShort (_iri_token) 추출"""
+    if not apg_el:
+        return []
+    assigned: List[str] = []
+    for ref in (apg_el.get('value') or []):
+        # keys[] 또는 value.keys[] 모두 대응 (새 구조)
+        keys = (ref.get('value', {}) or ref).get('keys', [])
+        for k in keys:
+            token = _iri_token(k.get('value', ''))
+            if token:
+                assigned.append(token)
+    return assigned
+
+
 def _parse_WorkstationWorkerMatchingData(
     submodels: list,
 ) -> Tuple[Dict[str, WorkstationData], Dict[str, SkillLevel], Dict[str, str], Dict[str, int]]:
@@ -325,34 +340,27 @@ def _parse_WorkstationWorkerMatchingData(
         # [R] BreakDurationMin
         BreakDurationMin_el = _range(props, 'BreakDurationMin')
         if BreakDurationMin_el is None:
-            raise ValueError(
-                f'{WorkstationId_el["idShort"]}: BreakDurationMin[Range] 가 AAS 에 없습니다.')
+            continue
 
         # SML.WorkstationConfigurationRecords
         wcr_el  = _smc(props, 'WorkstationConfigurationRecords')
         records = (wcr_el.get('value') or []) if wcr_el else []
 
         skill_votes = [
-            skill_name_to_rank[str(inner.get('value', '')).upper()]
+            skill_name_to_rank.get(str(inner.get('value', '')).upper())
             for rec in records if isinstance(rec, dict)
             for inner in (rec.get('value') or [])
-            if isinstance(inner, dict)
-            and inner.get('idShort') == 'SkillLevel'
+            if isinstance(inner, dict) and inner.get('idShort') == 'SkillLevel'
             and str(inner.get('value', '')).upper() in skill_name_to_rank
         ]
 
-        # SML.AssignedProcessGroups → group_to_workstation
-        apg_el   = _smc(props, 'AssignedProcessGroups')
-        assigned: List[str] = []
-        if apg_el:
-            for ref in (apg_el.get('value') or []):
-                for k in ref.get('value', {}).get('keys', []):
-                    token = _iri_token(k.get('value', ''))
-                    if token:
-                        assigned.append(token)
-                        group_to_workstation[token] = WorkstationId_el['idShort']
+        apg_el = _smc(props, 'AssignedProcessGroups')
+        assigned = _extract_assigned_groups(apg_el)
 
-        if not schedule_set:
+        for token in assigned:
+            group_to_workstation[token] = WorkstationId_el['idShort']
+
+        if not schedule_set and props:
             schedule = {
                 'WorkStartTime'        : _hhmm(_prop(props, 'WorkStartTime')),
                 'WorkEndTime'          : _hhmm(_prop(props, 'WorkEndTime')),
@@ -375,8 +383,7 @@ def _parse_WorkstationWorkerMatchingData(
                 str(inner.get('value', ''))
                 for rec in records if isinstance(rec, dict)
                 for inner in (rec.get('value') or [])
-                if isinstance(inner, dict)
-                and inner.get('idShort') == 'WorkerId'
+                if isinstance(inner, dict) and inner.get('idShort') == 'WorkerId'
                 and inner.get('value')
             ],
             AssignedProcessGroups = assigned,
@@ -446,7 +453,8 @@ def load_aas(model_id: str, json_path: str) -> AASModel:
         raise FileNotFoundError(f'AAS JSON 없음: {json_path}')
 
     with open(json_path, 'r', encoding='utf-8') as f:
-        submodels = json.load(f).get('submodels', [])
+        data = json.load(f)
+        submodels = data.get('submodels', [])
 
     ww, skill, g2w, sched = _parse_WorkstationWorkerMatchingData(submodels)
 

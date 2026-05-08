@@ -14,14 +14,30 @@
   9) WorkstationData.SkillLevel 이 SkillLevelType 의 rank 값 안에 들어있는지
  10) schedule 이 채워져있는지
 """
-import json, sys, traceback
+import json, os, sys, tempfile, traceback
 from collections import Counter
 from path_extractor import load_aas
 
+PKG = r'C:\Users\KangTaehui\KG\keti\CPRO_조립공정\시뮬레이션\Package'
+WWM_PATH = os.path.join(PKG, 'WorkstationWorkerMatchingDataAAS.json')
+
 MODELS = [
-    ('MODEL_A', r'C:\Users\KangTaehui\KG\keti\CPRO_조립공정\시뮬레이션\Package\MODEL_A.json'),
-    ('MODEL_B', r'C:\Users\KangTaehui\KG\keti\CPRO_조립공정\시뮬레이션\Package\MODEL_B.json'),
+    ('MODEL_A', os.path.join(PKG, 'MODEL_A.json')),
+    ('MODEL_C', os.path.join(PKG, 'MODEL_C.json')),
 ]
+
+
+def _merged_json(model_path: str) -> str:
+    """model JSON + WWM JSON 의 submodels 를 합친 임시 JSON 파일을 만들어 경로를 돌려준다.
+    path_extractor.load_aas 는 한 파일만 받으므로 병합본으로 검증한다."""
+    a = json.load(open(model_path, 'r', encoding='utf-8'))
+    b = json.load(open(WWM_PATH,    'r', encoding='utf-8'))
+    a['submodels'] = (a.get('submodels') or []) + (b.get('submodels') or [])
+    fd, tmp = tempfile.mkstemp(prefix='aas_merged_', suffix='.json')
+    os.close(fd)
+    with open(tmp, 'w', encoding='utf-8') as f:
+        json.dump(a, f, ensure_ascii=False)
+    return tmp
 
 
 def looks_like_iri(s: str) -> bool:
@@ -34,12 +50,16 @@ def check_model(model_id: str, path: str) -> int:
     print('=' * 78)
 
     fail = 0
+    merged = _merged_json(path)
     try:
-        m = load_aas(model_id, path)
+        m = load_aas(model_id, merged)
     except Exception as e:
         print(f'[FAIL] load_aas raised: {type(e).__name__}: {e}')
         traceback.print_exc()
         return 1
+    finally:
+        try: os.remove(merged)
+        except OSError: pass
 
     # ── 1) 비어있지 않음
     print(f'  ManufacturingProcess          : {len(m.ManufacturingProcess):3d} processes')
@@ -138,6 +158,9 @@ def check_model(model_id: str, path: str) -> int:
     print(f'   InputBOM(n={len(sample.InputBOM)}) head={[(b.item_code, b.Quantity) for b in sample.InputBOM[:3]]}')
 
     print('\n  ── sample WorkstationData ──')
+    if not m.WorkstationWorkerMatchingData:
+        print('   (empty)')
+        return fail
     ws = next(iter(m.WorkstationWorkerMatchingData.values()))
     print(f'   WorkstationId={ws.WorkstationId!r}')
     print(f'   Work={ws.WorkStartTime}~{ws.WorkEndTime}  Break={ws.BreakDurationMin.min}~{ws.BreakDurationMin.max}')
