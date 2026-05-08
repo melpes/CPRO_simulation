@@ -237,7 +237,7 @@ def _parse_ManufacturingProcess(
                 ProcessCode   = ProcessCode_el['idShort'],
                 GroupIdShort  = GroupIdShort,
                 ProcessGroup  = _qualifier(GroupIdShort_el, 'ProcessGroup') or '',
-                WorkstationId = group_to_workstation.get(ProcessCode, ''),
+                WorkstationId = group_to_workstation.get(ProcessCode_el['idShort'], ''),
                 DepType       = str(_prop(elems, 'DepType') or 'SEQUENCE').upper(),
                 DepPrev       = [p.strip()
                                  for p in str(_prop(elems, 'DepPrev') or '').split(';')
