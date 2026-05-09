@@ -62,9 +62,6 @@ SOLDER_USE_G       = 0.07
 CT_STD_RATIO       = 0.10
 DEFECT_FLOOR       = 0.00001
 
-SKILL_CT_FACTOR = {1: 1.20, 2: 1.00, 3: 0.80}
-SKILL_DR_FACTOR = {1: 1.50, 2: 1.00, 3: 0.60}
-
 MIN_STOCK                  = 100
 CRITICAL_STOCK             = 5
 REPLENISH_LEAD_DAY         = 1
@@ -102,7 +99,6 @@ THT_PCB_BY_MODEL = {
     'MODEL_B': ['03902608', '03902730'],
     'MODEL_C': ['03903388', '03903391'],
 }
-THT_PCB = {c for codes in THT_PCB_BY_MODEL.values() for c in codes}
 THT_RAW_SUFFIX = '_RAW'
 def tht_raw_code(pcb_code):
     return f'{pcb_code}{THT_RAW_SUFFIX}'
@@ -149,10 +145,6 @@ def get_rated_power_kw(process_code: str, process_group: str = '',
     if base is None:
         base = RATED_POWER_KW.get(str(process_group), 0.0)
     return base / max(int(capacity), 1)
-WORKER_DEFAULT_CAP = {
-    'WORKER_RMA': 6,
-}
-
 SET_INSP_HEADCOUNT = 3
 PROCESS_GROUP_TO_WORKER_GROUP = {
     'MODULE':       None,
@@ -384,11 +376,13 @@ class CombinedDataLoader:
                 wgrp = self._ws_to_worker(ws_id)
                 if wgrp:
                     self.workers[wgrp] = ws.WorkstationConfigurationRecords
-        for wgrp, cap in WORKER_DEFAULT_CAP.items():
-            self.workers.setdefault(wgrp, cap)
-        set_total = self.workers.get('WORKER_SET', 0)
-        set_insp  = max(int(set_total * 0.2), SET_INSP_HEADCOUNT) if set_total else SET_INSP_HEADCOUNT
-        self.workers.setdefault('WORKER_SET_INSP', set_insp)
+        missing = [w for w in WORKER_GROUPS
+                   if w != 'WORKER_SET_INSP' and w not in self.workers]
+        if missing:
+            raise RuntimeError(
+                f'AAS WorkstationWorkerMatchingData 에서 미매핑 worker group: {missing}')
+        set_total = self.workers['WORKER_SET']
+        self.workers['WORKER_SET_INSP'] = max(int(set_total * 0.2), SET_INSP_HEADCOUNT)
 
         self.worker_skill = {}
         self.skill_ct     = {}
@@ -401,48 +395,31 @@ class CombinedDataLoader:
             for name, sl in aas.SkillLevelType.items():
                 self.skill_ct[sl.rank] = sl.ct_factor
                 self.skill_dr[sl.rank] = sl.dr_factor
-            break
         if not self.skill_ct:
-            self.skill_ct = dict(SKILL_CT_FACTOR)
-            self.skill_dr = dict(SKILL_DR_FACTOR)
+            raise RuntimeError('AAS SkillLevelType 누락 — SkillLevel 의 ct/dr factor 추출 실패')
 
         self.worker_groups  = set(self.workers.keys())
         self.location_order = [ws for ws in LOCATION_ORDER if ws in self.worker_groups]
         self.location_label = dict(LOCATION_LABEL)
 
-        self.pcb_map          = {}
-        self.tht_pcb_by_model = {}
-        for model_id, aas in aas_models.items():
-            main_pcbs = [
-                pcb_id[4:] for pcb_id, pcb in aas.HierarchicalStructures.pcb_entries.items()
-                if pcb.components
-            ]
-            tht_pcbs = [
-                pcb_id[4:] for pcb_id, pcb in aas.HierarchicalStructures.pcb_entries.items()
-                if not pcb.components
-            ]
-            if main_pcbs:
-                self.pcb_map[model_id] = main_pcbs[0]
-            if tht_pcbs:
-                self.tht_pcb_by_model[model_id] = tht_pcbs
-        if not self.pcb_map:
-            self.pcb_map = dict(PCB_MAP)
-        if not self.tht_pcb_by_model:
-            self.tht_pcb_by_model = dict(THT_PCB_BY_MODEL)
+        self.pcb_map          = dict(PCB_MAP)
+        self.tht_pcb_by_model = dict(THT_PCB_BY_MODEL)
 
         self.schedule = {}
         for aas in aas_models.values():
             s = aas.schedule
             if s:
                 self.schedule = {
-                    'work_start_sec'    : s.get('WorkStartTime', 32400),
-                    'work_end_sec'      : s.get('WorkEndTime', 64800),
-                    'lunch_start_sec'   : s.get('BreakDurationMin_min', 43200),
-                    'lunch_end_sec'     : s.get('BreakDurationMin_max', 46800),
-                    'break_duration_sec': s.get('BreakDurationMin_max', 46800)
-                                        - s.get('BreakDurationMin_min', 43200),
+                    'work_start_sec'    : s['WorkStartTime'],
+                    'work_end_sec'      : s['WorkEndTime'],
+                    'lunch_start_sec'   : s['BreakDurationMin_min'],
+                    'lunch_end_sec'     : s['BreakDurationMin_max'],
+                    'break_duration_sec': s['BreakDurationMin_max']
+                                        - s['BreakDurationMin_min'],
                 }
                 break
+        if not self.schedule:
+            raise RuntimeError('AAS schedule 누락 — WorkstationWorkerMatchingData 확인')
 
         self.bom        = static_loader.bom
         self.bom_struct = static_loader.bom_struct
@@ -682,13 +659,13 @@ class Warehouse:
             self._initial_stocks[str(code)] = init
 
         for model_id, qty in order.items():
-            main_pcb = PCB_MAP.get(model_id)
+            main_pcb = self.data.pcb_map.get(model_id)
             if main_pcb is not None:
                 self.stock[str(main_pcb)] = float(int(qty * PCB_INITIAL_RATIO))
-            for tht_pcb in THT_PCB_BY_MODEL.get(model_id, []):
+            for tht_pcb in self.data.tht_pcb_by_model.get(model_id, []):
                 self.stock[str(tht_pcb)] = float(int(qty * PCB_INITIAL_RATIO))
 
-        for pcb_code in THT_PCB:
+        for pcb_code in {c for codes in self.data.tht_pcb_by_model.values() for c in codes}:
             self.stock[tht_raw_code(pcb_code)] = 0.0
 
         self.consumed        = defaultdict(int)
@@ -700,7 +677,9 @@ class Warehouse:
         self.reorder_log     = []
         self.reorder_count   = defaultdict(int)
 
-        self._pcb_codes          = set(PCB_MAP.values()) | set(THT_PCB)
+        self._pcb_codes          = (set(self.data.pcb_map.values())
+                                    | {c for codes in self.data.tht_pcb_by_model.values()
+                                       for c in codes})
         self.outsource_log       = []
         self.unit_completions    = {}
         self.smt_per_model       = defaultdict(int)
@@ -1245,7 +1224,7 @@ class SMTLine:
                 'reason': 'double_pcb_flushed_without_second_pass',
             })
 
-        if pcb_code in THT_PCB:
+        if pcb_code in {c for codes in self.data.tht_pcb_by_model.values() for c in codes}:
             if self.outsource_pool is not None:
                 self.outsource_pool.add_board(self.sfx, pcb_code, model_id, board_id)
             else:
@@ -1958,7 +1937,7 @@ def monitor(env, progress, energy, wh, idle, wip, stats,
 
     def _pcb_label(model_id, pcb_code):
         m_short = (model_id or '?').replace('MODEL_', '')
-        is_main = (PCB_MAP.get(model_id) == pcb_code)
+        is_main = (wh.data.pcb_map.get(model_id) == pcb_code)
         kind = '메인' if is_main else '수삽'
         try:
             side_raw = wh.data.smt_side(pcb_code)
@@ -2035,7 +2014,7 @@ def monitor(env, progress, energy, wh, idle, wip, stats,
                   f'│  운송 중: {in_transit_n}대 ({in_transit_boards}보드)  '
                   f'│  누적 출발: {pool.dispatched_count}대')
         for model in progress:
-            for tht_code in THT_PCB_BY_MODEL.get(model, []):
+            for tht_code in wh.data.tht_pcb_by_model.get(model, []):
                 flow     = wh.pcb_flow.get(tht_code, {})
                 fired    = int(flow.get('outsource_in', 0))
                 returned = int(flow.get('outsource_returned', 0))
@@ -2048,7 +2027,7 @@ def monitor(env, progress, energy, wh, idle, wip, stats,
 
         print('\n[ PCB 인벤토리 ]   (그래프 max = 주문 수량)')
         for model, (_done, total) in progress.items():
-            for pcb in [PCB_MAP.get(model)] + THT_PCB_BY_MODEL.get(model, []):
+            for pcb in [wh.data.pcb_map.get(model)] + wh.data.tht_pcb_by_model.get(model, []):
                 if not pcb:
                     continue
                 stock = int(wh.stock.get(pcb, 0))
@@ -2488,7 +2467,7 @@ class ManufacturingEnv:
 
         def _shortage(m):
             order_qty = self.order[m]
-            codes = [PCB_MAP[m]] + THT_PCB_BY_MODEL.get(m, [])
+            codes = [self.data.pcb_map[m]] + self.data.tht_pcb_by_model.get(m, [])
             stock = sum(self.wh.stock.get(c, 0) for c in codes)
             completed = self.stats.get(f'{m}_done', 0)
             return order_qty - stock - completed
@@ -2515,8 +2494,8 @@ class ManufacturingEnv:
                         continue
                     model = remaining[0]
                 line.assigned_model = model
-                pcb_codes = ([PCB_MAP[model]] +
-                             THT_PCB_BY_MODEL.get(model, []))
+                pcb_codes = ([self.data.pcb_map[model]] +
+                             self.data.tht_pcb_by_model.get(model, []))
                 target_total = self.order[model]
                 target_make = target_total - int(target_total * PCB_INITIAL_RATIO)
                 while True:
@@ -2774,7 +2753,8 @@ class ExperimentRunner:
     def save_results(self, inference_summary=None, path=RESULT_PATH):
         from cpro_visualization import save_results as _impl
         _impl(runner=self, inference_summary=inference_summary, path=path,
-              min_stock=MIN_STOCK, pcb_map=PCB_MAP, tht_pcb_by_model=THT_PCB_BY_MODEL)
+              min_stock=MIN_STOCK, pcb_map=self.data.pcb_map,
+              tht_pcb_by_model=self.data.tht_pcb_by_model)
 
     def save_figures(self, inference_summary=None, ep_rewards=None):
         from cpro_visualization import save_figures as _impl
