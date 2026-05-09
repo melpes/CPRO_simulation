@@ -64,46 +64,10 @@ def _find_pack_entry(data, model_id):
 
 class FallbackDataLoader:
 
-    _PF_COLS = ('process_code', 'process_group', 'dep_type', 'dep_prev_codes',
-                'worker_group', 'worker_count', 'cycle_time_sec', 'defect_rate',
-                'transfer_qty', 'transport_mode', 'transfer_time_sec')
-
-    _PF_ALL_ROWS = [
-        ('RMA_REPAIR',       'RMA', 'SEQUENCE', '',                 'WORKER_RMA', 6, 600.0, 0.0,   0, '',         0.0),
-        ('SMT_LOADER_L1',    'SMT', 'SEQUENCE', '',                 'OPERATOR',   2,   2.0, 0.001, 1, 'CONVEYOR', 5.0),
-        ('SMT_LOADER_L2',    'SMT', 'SEQUENCE', '',                 'OPERATOR',   2,   2.0, 0.001, 1, 'CONVEYOR', 5.0),
-        ('SMT_PRINTER_L1',   'SMT', 'SEQUENCE', 'SMT_LOADER_L1',    'OPERATOR',   2,  43.0, 0.001, 1, 'CONVEYOR', 5.0),
-        ('SMT_PRINTER_L2',   'SMT', 'SEQUENCE', 'SMT_LOADER_L2',    'OPERATOR',   2,  43.0, 0.001, 1, 'CONVEYOR', 5.0),
-        ('SMT_SPI_L1',       'SMT', 'SEQUENCE', 'SMT_PRINTER_L1',   'OPERATOR',   2,  15.0, 0.001, 1, 'CONVEYOR', 5.0),
-        ('SMT_SPI_L2',       'SMT', 'SEQUENCE', 'SMT_PRINTER_L2',   'OPERATOR',   2,  15.0, 0.001, 1, 'CONVEYOR', 5.0),
-        ('SMT_MOUNTER_H_L1', 'SMT', 'SEQUENCE', 'SMT_SPI_L1',       'OPERATOR',   2,  80.0, 0.003, 1, 'CONVEYOR', 5.0),
-        ('SMT_MOUNTER_H_L2', 'SMT', 'SEQUENCE', 'SMT_SPI_L2',       'OPERATOR',   2,  80.0, 0.003, 1, 'CONVEYOR', 5.0),
-        ('SMT_MOUNTER_M_L1', 'SMT', 'SEQUENCE', 'SMT_MOUNTER_H_L1', 'OPERATOR',   2,  45.0, 0.005, 1, 'CONVEYOR', 5.0),
-        ('SMT_MOUNTER_M_L2', 'SMT', 'SEQUENCE', 'SMT_MOUNTER_H_L2', 'OPERATOR',   2,  45.0, 0.005, 1, 'CONVEYOR', 5.0),
-        ('SMT_REFLOW_L1',    'SMT', 'SEQUENCE', 'SMT_MOUNTER_M_L1', 'OPERATOR',   2, 410.0, 0.001, 1, 'CONVEYOR', 5.0),
-        ('SMT_REFLOW_L2',    'SMT', 'SEQUENCE', 'SMT_MOUNTER_M_L2', 'OPERATOR',   2, 410.0, 0.001, 1, 'CONVEYOR', 5.0),
-        ('SMT_UNLOADER_L1',  'SMT', 'SEQUENCE', 'SMT_REFLOW_L1',    'OPERATOR',   2,   5.0, 0.001, 0, 'CART',     7.0),
-        ('SMT_UNLOADER_L2',  'SMT', 'SEQUENCE', 'SMT_REFLOW_L2',    'OPERATOR',   2,   5.0, 0.001, 0, 'CART',     7.0),
-        ('SMT_AOI', 'SMT', 'JOIN', 'SMT_UNLOADER_L1;SMT_UNLOADER_L2', 'OPERATOR', 2,  30.0, 0.003, 1, '',         0.0),
-    ]
-
-    _RESOURCE_MTTR_HR = {
-        'SMT_AOI':          3.3,
-        'SMT_MOUNTER_H_L1': 1.5,
-        'SMT_MOUNTER_H_L2': 1.4,
-        'SMT_MOUNTER_M_L1': 1.5,
-        'SMT_MOUNTER_M_L2': 1.5,
-        'SMT_PRINTER_L1':   4.0,
-        'SMT_PRINTER_L2':   4.5,
-        'SMT_REFLOW_L1':    8.0,
-        'SMT_REFLOW_L2':    8.0,
-        'SMT_SPI_L2':       2.3,
-    }
-
     def __init__(self):
         rows = []
-        for tup in self._PF_ALL_ROWS:
-            rec = dict(zip(self._PF_COLS, tup))
+        for tup in PF_ALL_ROWS:
+            rec = dict(zip(PF_COLS, tup))
             rec['model_id']    = 'ALL'
             rec['ref_no']      = ''
             rec['process_name']= ''
@@ -125,7 +89,7 @@ class FallbackDataLoader:
 
         self._pc_map = {str(r['process_code']): r for _, r in self.pf.iterrows()}
         self._grp_kw = defaultdict(float)
-        self._mttr   = {pc: hr * 3600 for pc, hr in self._RESOURCE_MTTR_HR.items()}
+        self._mttr   = {pc: hr * 3600 for pc, hr in RESOURCE_MTTR_HR.items()}
         self._bom_idx = defaultdict(list)
         self._min_stock_cache      = {}
         self._lot_size_cache       = {}
@@ -292,20 +256,8 @@ class CombinedDataLoader:
         self.resources  = static_loader.resources
         self._pf_combined = self._build_combined_pf()
 
-    _WWM_LINE_TO_WORKER = {
-        'WWM_FwInputLine'      : 'WORKER_FW',
-        'WWM_LensHolderLine'   : 'WORKER_LENS_HOLDER',
-        'WWM_FocusLine'        : 'WORKER_SENSOR_FOCUS',
-        'WWM_SemiAssemblyLine' : 'WORKER_SEMI',
-        'WWM_SetAssemblyLine'  : 'WORKER_SET',
-        'WWM_AgingLine'        : 'WORKER_AGING',
-        'WWM_OqcLine'          : 'WORKER_OQC',
-        'WWM_RMALine'          : 'WORKER_RMA',
-        'WWM_PackagingLine'    : 'WORKER_PACK',
-    }
-
     def _ws_to_worker(self, ws_id: str):
-        return self._WWM_LINE_TO_WORKER.get(ws_id)
+        return WWM_LINE_TO_WORKER.get(ws_id)
 
     def _resolve_worker(self, node: ProcessNode, aas: AASModel):
         ws_id = self._process_to_workstation.get(node.ProcessCode)

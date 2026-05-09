@@ -26,14 +26,24 @@ CPRO 조립공정 시뮬레이션 패키지.
 - AAS 누락 시 글로벌 default 값으로 떨어지는 fallback 을 두지 말 것 (`dict.get(key, default)` 의 default, `if not x: x = HARDCODED_DICT` 등).
 - 누락은 입력 데이터 문제이므로 `raise RuntimeError` 로 즉시 실패시켜 원인을 드러낸다.
 
-## 정책 상수
+## 정책 상수와 정적 데이터
 
-`OQC_RATE`, `RATED_POWER_KW`, `MIN_STOCK`, `PCB_MAP`/`THT_PCB_BY_MODEL`, `LOCATION_ORDER` 등 **AAS 템플릿에 미반영된 시뮬 정책 데이터**는 `cpro_config.py` 에 모은다. 시뮬 코드(`cpro_simulation_ver3.py`)는 `from cpro_config import *` 로 가져와 사용한다.
+AAS 템플릿에 미반영된 데이터는 모두 **`cpro_config.py`** 한 파일에 섹션 구분으로 모은다. 시뮬 코드(`cpro_simulation_ver3.py`)는 `from cpro_config import *` 한 줄로 사용한다.
 
-- 시뮬 코드 본문에는 정책 상수를 정의하지 않는다.
-- 새 정책 상수가 필요하면 `cpro_config.py` 에 추가.
-- AAS 템플릿이 확장되어 어떤 정책이 AAS 에서 추출 가능해지면 `cpro_config.py` 에서 제거하고 `path_extractor` 가 추출하도록 수정.
-- 임시 글로벌을 **AAS 에서 가져온 것처럼 위장하기 위한 prefix 추론 등 우회 로직은 만들지 말 것**. 차라리 명시적 `cpro_config.py` 항목이 낫다.
+`cpro_config.py` 의 섹션 구성:
+
+- 시간 / 진입점 (`RANDOM_SEED`, `DAY_SEC`, `MAX_DAYS`)
+- 시뮬 정책 상수 (`OQC_RATE`, `MIN_STOCK`, `RMA_*`, `THT_*` 등)
+- PCB / SMT 라인 매핑 (`PCB_MAP`, `THT_PCB_BY_MODEL`, `SMT_LINE_IDS`)
+- 워커 그룹 / 라벨 매핑 (`WWM_LINE_TO_WORKER`, `PROCESS_GROUP_TO_WORKER_GROUP`, `LOCATION_*`)
+- 정격 전력 (`RATED_POWER_KW`, `get_rated_power_kw`)
+- SMT / RMA 정적 공정 데이터 (`PF_COLS`, `PF_ALL_ROWS`, `RESOURCE_MTTR_HR`)
+
+규칙:
+- 시뮬 코드 본문(클래스/함수 안)에는 정책 상수나 정적 데이터 dict 를 정의하지 않는다.
+- 새 항목은 적절한 섹션에 추가.
+- AAS 템플릿이 확장되어 어떤 항목이 AAS 에서 추출 가능해지면 `cpro_config.py` 에서 제거하고 `path_extractor` 가 추출하도록 수정.
+- 임시 글로벌을 **AAS 에서 가져온 것처럼 위장하기 위한 prefix 추론 등 우회 로직은 만들지 말 것**.
 
 ## 시각화 분리
 
