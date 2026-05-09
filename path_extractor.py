@@ -199,7 +199,7 @@ class AASModel:
     WorkstationWorkerMatchingData : Dict[str, WorkstationData]
     SkillLevelType                : Dict[str, SkillLevel]
     HierarchicalStructures        : HierarchicalStructuresData
-    group_to_workstation          : Dict[str, str] = field(default_factory=dict)
+    process_to_workstation          : Dict[str, str] = field(default_factory=dict)
     schedule                      : Dict[str, int] = field(default_factory=dict)
 
 
@@ -209,7 +209,7 @@ class AASModel:
 
 def _parse_ManufacturingProcess(
     submodels: list,
-    group_to_workstation: Dict[str, str],
+    process_to_workstation: Dict[str, str],
 ) -> Dict[str, ProcessNode]:
 
     ManufacturingProcess = _sm(submodels, 'ManufacturingProcess')
@@ -237,7 +237,7 @@ def _parse_ManufacturingProcess(
                 ProcessCode   = ProcessCode_el['idShort'],
                 GroupIdShort  = GroupIdShort,
                 ProcessGroup  = _qualifier(GroupIdShort_el, 'ProcessGroup') or '',
-                WorkstationId = group_to_workstation.get(ProcessCode_el['idShort'], ''),
+                WorkstationId = process_to_workstation.get(ProcessCode_el['idShort'], ''),
                 DepType       = str(_prop(elems, 'DepType') or 'SEQUENCE').upper(),
                 DepPrev       = [p.strip()
                                  for p in str(_prop(elems, 'DepPrev') or '').split(';')
@@ -327,7 +327,7 @@ def _parse_WorkstationWorkerMatchingData(
         return {}, SkillLevelType, {}, {}
 
     workstations:         Dict[str, WorkstationData] = {}
-    group_to_workstation: Dict[str, str]             = {}
+    process_to_workstation: Dict[str, str]             = {}
     schedule:             Dict[str, int]             = {}
     schedule_set = False
 
@@ -358,7 +358,7 @@ def _parse_WorkstationWorkerMatchingData(
         assigned = _extract_assigned_groups(apg_el)
 
         for token in assigned:
-            group_to_workstation[token] = WorkstationId_el['idShort']
+            process_to_workstation[token] = WorkstationId_el['idShort']
 
         if not schedule_set and props:
             schedule = {
@@ -389,7 +389,7 @@ def _parse_WorkstationWorkerMatchingData(
             AssignedProcessGroups = assigned,
         )
 
-    return workstations, SkillLevelType, group_to_workstation, schedule
+    return workstations, SkillLevelType, process_to_workstation, schedule
 
 
 # ══════════════════════════════════════════════════════════════════════════════
@@ -464,6 +464,6 @@ def load_aas(model_id: str, json_path: str) -> AASModel:
         WorkstationWorkerMatchingData = ww,
         SkillLevelType                = skill,
         HierarchicalStructures        = _parse_HierarchicalStructures(submodels),
-        group_to_workstation          = g2w,
+        process_to_workstation          = g2w,
         schedule                      = sched,
     )

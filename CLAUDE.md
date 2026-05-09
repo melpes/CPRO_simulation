@@ -28,11 +28,12 @@ CPRO 조립공정 시뮬레이션 패키지.
 
 ## 정책 상수
 
-`OQC_RATE`, `RATED_POWER_KW`, `MIN_STOCK`, `PCB_MAP`/`THT_PCB_BY_MODEL` 같이 **현재 AAS 템플릿에 미반영된 데이터**는 잠정적으로 `cpro_simulation_ver3.py` 글로벌에 둔다.
+`OQC_RATE`, `RATED_POWER_KW`, `MIN_STOCK`, `PCB_MAP`/`THT_PCB_BY_MODEL`, `LOCATION_ORDER` 등 **AAS 템플릿에 미반영된 시뮬 정책 데이터**는 `cpro_config.py` 에 모은다. 시뮬 코드(`cpro_simulation_ver3.py`)는 `from cpro_config import *` 로 가져와 사용한다.
 
-- 다음 턴에 별도 설정 파일(또는 AAS 템플릿 확장)로 분리 예정.
-- 분리 전까지 임시 글로벌로 유지하는 것은 OK 이다.
-- 단, 이 임시 글로벌을 **AAS 에서 가져온 것처럼 위장하기 위한 prefix 추론 등 우회 로직은 만들지 말 것**. 차라리 명시적 글로벌이 낫다.
+- 시뮬 코드 본문에는 정책 상수를 정의하지 않는다.
+- 새 정책 상수가 필요하면 `cpro_config.py` 에 추가.
+- AAS 템플릿이 확장되어 어떤 정책이 AAS 에서 추출 가능해지면 `cpro_config.py` 에서 제거하고 `path_extractor` 가 추출하도록 수정.
+- 임시 글로벌을 **AAS 에서 가져온 것처럼 위장하기 위한 prefix 추론 등 우회 로직은 만들지 말 것**. 차라리 명시적 `cpro_config.py` 항목이 낫다.
 
 ## 시각화 분리
 
