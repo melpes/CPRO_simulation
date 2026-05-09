@@ -15,6 +15,10 @@ from path_extractor import (
     ProcessNode, SkillLevel,
 )
 
+# ████████████████████████████████████████████████████████████████████
+# §A. DATA LOADERS
+# ████████████████████████████████████████████████████████████████████
+
 try:
     BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 except NameError:
@@ -32,12 +36,6 @@ RANDOM_SEED = 42
 DAY_SEC     = 24 * 3600
 MAX_DAYS    = 365
 _active_schedule: dict = {}
-
-_EVENT_BUF = []
-def _log_event(t, msg):
-    _EVENT_BUF.append((float(t), str(msg)))
-    if len(_EVENT_BUF) > 100:
-        del _EVENT_BUF[:-100]
 
 def _apply_schedule(schedule_dict: dict):
 
@@ -91,6 +89,7 @@ TRAIN_MONITOR_INTERVAL = DAY_SEC
 INFER_MONITOR_STEP_HR  = 0.1
 INFER_MONITOR_INTERVAL = int(INFER_MONITOR_STEP_HR * 3600)
 MONITOR_MIN_WALL_SEC   = 0.05
+
 
 PCB_MAP = {
     'MODEL_A': '03203204',
@@ -167,6 +166,7 @@ PROCESS_GROUP_TO_WORKER_GROUP = {
     'RMA':          'WORKER_RMA',
 }
 
+
 def _find_pack_entry(data, model_id):
     try:
         procs = data.get_model_procs(model_id)
@@ -207,6 +207,11 @@ LOCATION_ORDER = [
     'WORKER_SET', 'WORKER_SET_INSP', 'WORKER_SEMI',
     'WORKER_RMA', 'WORKER_OQC', 'WORKER_AGING', 'WORKER_PACK',
 ]
+
+
+# ══════════════════════════════════════════════════════════
+# M02. 정적 데이터 로더 (FallbackDataLoader)
+# ══════════════════════════════════════════════════════════
 
 class FallbackDataLoader:
 
@@ -298,6 +303,7 @@ class FallbackDataLoader:
         return self._min_stock_cache.get(str(item_code), float(MIN_STOCK))
 
     def get_critical_stock(self, item_code):
+        """페널티(violation) 임계. min_stock(reorder point) 와 분리."""
         return self._critical_stock_cache.get(str(item_code), float(CRITICAL_STOCK))
 
     def get_lot_size(self, item_code):
@@ -311,6 +317,12 @@ class FallbackDataLoader:
         return self._bom_idx.get((model_id, str(parent_code)), [])
 
     def get_pcb_parts(self, pcb_code):
+        """PCB 코드 → BOM 부품 목록. fallback 은 PCB BOM 을 보유하지 않으므로 빈 리스트.
+
+        실제 PCB 부품 데이터는 AAS HierarchicalStructures (PCB_xxxxx Entity 의
+        HasPart_yyyy RelationshipElement) 가 단일 출처이며, CombinedDataLoader.
+        get_pcb_parts 에서 _hs_bom_idx 를 통해 조회한다.
+        """
         return []
 
     def get_item_name(self, item_code):
@@ -320,6 +332,7 @@ class FallbackDataLoader:
         return 'double'
 
     def iter_all_bom_items(self):
+        """fallback 자체는 BOM item 미보유 (AAS 가 단일 출처)."""
         return set()
 
     def get_all_bom_codes(self):
@@ -333,7 +346,25 @@ class FallbackDataLoader:
                   & ~df['process_group'].isin(
                       ['SMT', 'LOGISTICS', 'SMT_SHARED', 'RMA'])].copy()
 
+# ══════════════════════════════════════════════════════════
+# M02b. AAS 데이터 통합 로더
+# ══════════════════════════════════════════════════════════
+
 class CombinedDataLoader:
+    """path_extractor.load_aas() 결과(AASModel)를 소비하는 통합 인터페이스.
+
+    데이터 흐름:
+      path_extractor.load_aas(model_id, path) → AASModel
+        .ManufacturingProcess  {ProcessCode: ProcessNode}
+        .WorkstationWorkerMatchingData {WorkstationId: WorkstationData}
+        .SkillLevelType        {name: SkillLevel}
+        .HierarchicalStructures HierarchicalStructuresData
+        .schedule              {WorkStartTime, WorkEndTime, ...}
+        .group_to_workstation  {GroupIdShort: WorkstationId}
+
+    FallbackDataLoader (SMT/RMA 정적 데이터) 와 AASModel 을 통합하여
+    시뮬레이션 전체에서 단일 data 객체로 접근 가능하게 한다.
+    """
 
     def __init__(self, static_loader: 'FallbackDataLoader', aas_models: dict):
         self.static   = static_loader
@@ -539,7 +570,84 @@ class CombinedDataLoader:
             & ~df['process_group'].isin(['SMT','LOGISTICS','SMT_SHARED','RMA'])
         ].copy()
 
+# ══════════════════════════════════════════════════════════
+# M03. 공정 지식 그래프
+# ══════════════════════════════════════════════════════════
+
+# ══════════════════════════════════════════════════════════
+# M03. 공정 지식 그래프 & Ready 게이트
+# ══════════════════════════════════════════════════════════
+
+class ReadyStatus(Enum):
+    READY       = 'ready'
+    WAIT_PRED   = 'wait_pred'
+    WAIT_STOCK  = 'wait_stock'
+    WAIT_WORKER = 'wait_worker'
+    UNKNOWN_PC  = 'unknown_pc'
+
+
+@dataclass
+class ReadyContext:
+    """ready 판정에 필요한 런타임 핸들 묶음."""
+    kg       : 'ProcessKnowledgeGraph'
+    done_set : set
+    wh       : 'Warehouse'
+    wres     : dict
+    data     : object
+    model_id : str
+
+
+def resolve_worker_group(pc: str, node: dict) -> str:
+    """SET 공정 중 process_code 접미사가 INSP 인 경우 WORKER_SET_INSP 로 매핑."""
+    wgrp = str(node.get('worker_group', '') or '')
+    grp  = str(node.get('process_group', '') or '')
+    if wgrp == 'WORKER_SET' and grp == 'SET':
+        if str(pc).rsplit('_', 1)[-1].upper() == 'INSP':
+            wgrp = 'WORKER_SET_INSP'
+    return wgrp
+
+
+def _bom_satisfied(pc: str, ctx: ReadyContext) -> bool:
+    for code, qty in ctx.data.get_bom_parts(ctx.model_id, pc):
+        if ctx.wh.stock[str(code)] < qty:
+            return False
+    return True
+
+
+def is_process_ready(pc: str, ctx: ReadyContext) -> ReadyStatus:
+    pc = str(pc)
+    if pc not in ctx.kg.nodes:
+        return ReadyStatus.UNKNOWN_PC
+
+    node  = ctx.kg.nodes[pc]
+    preds = [p for (p, t, _) in ctx.kg.edges if t == pc]
+
+    if preds:
+        if not all(p in ctx.done_set for p in preds):
+            return ReadyStatus.WAIT_PRED
+        if not _bom_satisfied(pc, ctx):
+            return ReadyStatus.WAIT_STOCK
+    else:
+        if not _bom_satisfied(pc, ctx):
+            return ReadyStatus.WAIT_STOCK
+
+    wgrp = resolve_worker_group(pc, node)
+    if wgrp:
+        res = ctx.wres.get(wgrp)
+        if res is None or res.count >= res.capacity:
+            return ReadyStatus.WAIT_WORKER
+
+    return ReadyStatus.READY
+
+
 class ProcessKnowledgeGraph:
+    """공정 DAG.
+
+    노드 특징 벡터 (6차원):
+      [cycle_time 정규화, defect_rate×1000 클리핑,
+       worker_count/20, rated_kw/100, is_fork, is_join]
+    """
+
     def __init__(self, data, model_id: str):
         self.model_id = model_id
         self._data    = data
@@ -549,20 +657,20 @@ class ProcessKnowledgeGraph:
         max_ct = max(df['cycle_time_sec'].max(), 1)
         for _, r in df.iterrows():
             pc   = str(r['process_code'])
-            wgrp = str(r.get('worker_group','') or '')
-            kw   = data.get_kw(pc, str(r.get('process_group','') or ''))
-            dt   = str(r.get('dep_type','SEQUENCE') or 'SEQUENCE').upper()
+            wgrp = str(r.get('worker_group', '') or '')
+            kw   = data.get_kw(pc, str(r.get('process_group', '') or ''))
+            dt   = str(r.get('dep_type', 'SEQUENCE') or 'SEQUENCE').upper()
             self.nodes[pc] = {
-                'process_code' : pc,
-                'process_group': str(r.get('process_group','') or ''),
+                'process_code'  : pc,
+                'process_group' : str(r.get('process_group', '') or ''),
                 'cycle_time_sec': float(r['cycle_time_sec'] or 0),
-                'defect_rate'  : float(r['defect_rate'] or DEFECT_FLOOR),
-                'dep_wait_hr'  : float(r['dep_wait_hr'] or 0),
-                'worker_group' : wgrp,
-                'worker_count' : data.workers.get(wgrp, 1),
-                'rated_kw'     : kw,
-                'transfer_time': float(r['transfer_time_sec'] or 0),
-                'dep_type'     : dt,
+                'defect_rate'   : float(r['defect_rate'] or DEFECT_FLOOR),
+                'dep_wait_hr'   : float(r['dep_wait_hr'] or 0),
+                'worker_group'  : wgrp,
+                'worker_count'  : data.workers.get(wgrp, 1),
+                'rated_kw'      : kw,
+                'transfer_time' : float(r['transfer_time_sec'] or 0),
+                'dep_type'      : dt,
                 'feat': np.array([
                     float(r['cycle_time_sec'] or 0) / max_ct,
                     min(float(r['defect_rate'] or DEFECT_FLOOR) * 1000, 1.0),
@@ -573,7 +681,7 @@ class ProcessKnowledgeGraph:
                 ], dtype=np.float32)
             }
             for prev in [p.strip() for p in
-                         str(r.get('dep_prev_codes','') or '').split(';') if p.strip()]:
+                         str(r.get('dep_prev_codes', '') or '').split(';') if p.strip()]:
                 if prev != pc:
                     self.edges.append((prev, pc, dt))
 
@@ -591,64 +699,19 @@ class ProcessKnowledgeGraph:
                 adj[idx[f]][idx[t]] = 1.0
         return adj
 
-    def ready_processes(self, ctx) -> list:
+    def ready_processes(self, ctx: ReadyContext) -> list:
+        """is_process_ready 를 통과한 공정 코드 목록을 반환.
+
+        에이전트는 이 목록 중에서 최적 공정을 선택한다.
+        """
         return [pc for pc in self.nodes
                 if pc not in ctx.done_set
                 and is_process_ready(pc, ctx) == ReadyStatus.READY]
 
-class ReadyStatus(Enum):
-    READY       = 'ready'
-    WAIT_PRED   = 'wait_pred'
-    WAIT_STOCK  = 'wait_stock'
-    WAIT_WORKER = 'wait_worker'
-    UNKNOWN_PC  = 'unknown_pc'
 
-@dataclass
-class ReadyContext:
-    kg       : 'ProcessKnowledgeGraph'
-    done_set : set
-    wh       : 'Warehouse'
-    wres     : dict
-    data     : object
-    model_id : str
-
-def resolve_worker_group(pc: str, node: dict) -> str:
-    wgrp = str(node.get('worker_group', '') or '')
-    grp  = str(node.get('process_group', '') or '')
-    if wgrp == 'WORKER_SET' and grp == 'SET':
-        if str(pc).rsplit('_', 1)[-1].upper() == 'INSP':
-            wgrp = 'WORKER_SET_INSP'
-    return wgrp
-
-def is_process_ready(pc: str, ctx: ReadyContext) -> ReadyStatus:
-    pc = str(pc)
-    if pc not in ctx.kg.nodes:
-        return ReadyStatus.UNKNOWN_PC
-    node = ctx.kg.nodes[pc]
-
-    preds = [p for (p, t, _) in ctx.kg.edges if t == pc]
-    if not all(p in ctx.done_set for p in preds):
-        return ReadyStatus.WAIT_PRED
-
-    for code, qty in ctx.data.get_bom_parts(ctx.model_id, pc):
-        if ctx.wh.stock[str(code)] < qty:
-            return ReadyStatus.WAIT_STOCK
-
-    wgrp = resolve_worker_group(pc, node)
-    if wgrp:
-        res = ctx.wres.get(wgrp)
-        if res is None or res.count >= res.capacity:
-            return ReadyStatus.WAIT_WORKER
-
-    return ReadyStatus.READY
-
-def ready_processes_with_status(ctx: ReadyContext) -> dict:
-    out = {st: [] for st in ReadyStatus}
-    for pc in ctx.kg.nodes:
-        if pc in ctx.done_set:
-            continue
-        out[is_process_ready(pc, ctx)].append(pc)
-    return out
+# ══════════════════════════════════════════════════════════
+# M04. 창고 / WIPTracker
+# ══════════════════════════════════════════════════════════
 
 class Warehouse:
     def __init__(self, data, order: dict):
@@ -682,13 +745,13 @@ class Warehouse:
             self._initial_stocks[str(code)] = init
 
         for model_id, qty in order.items():
-            main_pcb = PCB_MAP.get(model_id)
+            main_pcb = self.data.pcb_map.get(model_id)
             if main_pcb is not None:
                 self.stock[str(main_pcb)] = float(int(qty * PCB_INITIAL_RATIO))
-            for tht_pcb in THT_PCB_BY_MODEL.get(model_id, []):
+            for tht_pcb in self.data.tht_pcb_by_model.get(model_id, []):
                 self.stock[str(tht_pcb)] = float(int(qty * PCB_INITIAL_RATIO))
 
-        for pcb_code in THT_PCB:
+        for pcb_code in {c for codes in self.data.tht_pcb_by_model.values() for c in codes}:
             self.stock[tht_raw_code(pcb_code)] = 0.0
 
         self.consumed        = defaultdict(int)
@@ -700,7 +763,7 @@ class Warehouse:
         self.reorder_log     = []
         self.reorder_count   = defaultdict(int)
 
-        self._pcb_codes          = set(PCB_MAP.values()) | set(THT_PCB)
+        self._pcb_codes = set(self.data.pcb_map.values()) | {c for codes in self.data.tht_pcb_by_model.values() for c in codes}
         self.outsource_log       = []
         self.unit_completions    = {}
         self.smt_per_model       = defaultdict(int)
@@ -738,6 +801,11 @@ class Warehouse:
         self._notify_waiters(c)
 
     def wait_stock(self, env, item_code, qty, max_wait_sec=None):
+        """item_code 재고가 qty 이상이 될 때까지 대기 후 consume.
+
+        max_wait_sec 초 이내에 재고가 확보되지 않으면 데드락 탈출을 위해
+        clamp consume 으로 진행한다 (stuck_wait_log 에 기록).
+        """
         if max_wait_sec is None:
             max_wait_sec = MAX_DAYS * (
                 _active_schedule['work_end_sec']
@@ -780,6 +848,11 @@ class Warehouse:
         return sum(self.violations.values())
 
     def _lot_for(self, item_code):
+        """부품별 발주 lot_size — 예상 demand × BOM_LOT_RATIO.
+
+        demand 정보 없으면 (BOM 외 부품 등) data.get_lot_size 로 fallback.
+        floor 는 WAREHOUSE_BOM_LOT_FLOOR (소량 부품도 너무 잦은 발주 방지).
+        """
         c = str(item_code)
         d = self._demand.get(c, 0.0)
         if d > 0:
@@ -816,6 +889,10 @@ class Warehouse:
         self._notify_waiters(c)
 
     def snapshot_loop(self, env, interval=3600):
+        """1시간마다 추적 대상 부품의 재고를 스냅샷으로 찍는 SimPy 프로세스.
+        추적 대상: (a) 현재 stock dict 에 등장한 부품 + (b) BOM 마스터 전체 item_code.
+        소비·입고가 한 번도 없었던 부품도 초기재고로 행에 나와야 하므로 BOM 마스터 포함.
+        """
         tracked = set()
         try:
             for c in self.data.iter_all_bom_items():
@@ -830,7 +907,13 @@ class Warehouse:
                 q = self.stock[c]
                 self.snapshots[c].append((now, int(q)))
 
+
+
 class WIPTracker:
+    """
+    재고품 수량 상한 = 총 주문 x WIP_CAP_RATIO x 3 (임의, ConWIP 기반)
+    Spearman et al. (1990) ConWIP; Ekerete et al. (2026 IRE Journals)
+    """
     def __init__(self, order: dict):
         self.wip  = defaultdict(int)
         self.cap  = defaultdict(int)
@@ -853,12 +936,18 @@ class WIPTracker:
         return sum(self.viol.values())
 
     def snapshot_loop(self, env, interval=3600):
+        """1시간마다 그룹별 WIP 스냅샷 기록 (WIP_Timeseries 시트용)."""
         tracked_grps = ['SMT', 'MODULE', 'SEMI', 'SET', 'INSP', 'PACK', 'RMA']
         while True:
             yield env.timeout(interval)
             now = env.now
             for grp in tracked_grps:
                 self.snapshots[grp].append((now, int(self.wip.get(grp, 0))))
+
+
+# ══════════════════════════════════════════════════════════
+# M05. 전력 로거
+# ══════════════════════════════════════════════════════════
 
 class EnergyLogger:
     def __init__(self, data):
@@ -890,29 +979,55 @@ class EnergyLogger:
             print(f'  {g:12s} {self.by_grp[g]:>10.4f}')
         print(f'  {"합계":12s} {self.total:>10.4f}')
 
-class IdleTracker:
-    def __init__(self):
-        self._capacity     = {}
-        self._active       = defaultdict(int)
-        self._last_t       = defaultdict(float)
-        self.total_idle    = defaultdict(float)
-        self.absent_groups = set()
-        self._completed_at = {}
-        self._completion_target  = {}
-        self._completion_counter = defaultdict(int)
-        self._last         = {}
 
-    def configure(self, capacity_map: dict):
+# ══════════════════════════════════════════════════════════
+# M06. 유휴·숙련도 추적기
+# ══════════════════════════════════════════════════════════
+
+class IdleTracker:
+    """capacity 기반 per-person idle 적분 추적기.
+
+    의도: "각 워커 개개인이, 근무시간에, 자기 그룹에 할 일이 남았는데 앞 공정
+    병목으로 일을 못 하고 쉬는 시간" 의 person·sec 합계.
+
+    동작:
+      - 그룹 g 의 capacity = N. 매 시점 t 에 점유 중인 워커 수 = active(t).
+        idle 워커 수 = max(N - active(t), 0).
+      - acquire/release 이벤트 사이의 (cap - active) × Δt(근무시간) 를 적분.
+      - 그룹별 자기 할당량 (set_target 으로 등록된 수) 처리 완료 시점
+        (_completed_at[g]) 이후는 idle 카운트 X — "내 할 일 끝나면 idle 아님".
+
+    호환:
+      - 기존 mark_busy(env, name) API 는 SMT pc/AOI 등 cap=1 binary 추적용으로 유지.
+        WORKER_GROUPS 대상은 acquire/release 로 교체됐고, mark_busy 결과는
+        worker_idle_penalty 에 포함되지 않음 (그룹 capacity 등록된 항목만 합산).
+    """
+    def __init__(self):
+        self._capacity            = {}
+        self._active              = defaultdict(int)
+        self._last_t              = defaultdict(float)
+        self.total_idle           = defaultdict(float)
+        self.absent_groups        = set()
+        self._completed_at        = {}
+        self._completion_target   = {}
+        self._completion_counter  = defaultdict(int)
+        self._worker_groups       = set()
+
+    def configure(self, capacity_map: dict, worker_groups: set = None):
         for g, cap in capacity_map.items():
             self._capacity[g] = int(cap)
             self._active.setdefault(g, 0)
             self._last_t.setdefault(g, 0.0)
+        if worker_groups:
+            self._worker_groups = set(worker_groups)
 
     def set_target(self, g: str, target: int):
+        """그룹별 처리해야 할 work item 총수 등록 (자기 할당량 완료 판정용)."""
         if target > 0:
             self._completion_target[g] = int(target)
 
     def _flush(self, env, g):
+        """그룹 g 의 (last_t, env.now) 사이 idle 워커 person·sec 누적."""
         now = float(env.now)
         last = self._last_t.get(g, 0.0)
         if g not in self._capacity:
@@ -933,10 +1048,12 @@ class IdleTracker:
         self._last_t[g] = now
 
     def flush_all(self, env):
+        """모든 등록 그룹의 마지막 구간까지 idle 반영. report/reward 직전 호출."""
         for g in list(self._capacity.keys()):
             self._flush(env, g)
 
     def acquire(self, env, g):
+        """그룹 g 의 워커 1 명이 점유 시작 — yield res.request() 직후 호출."""
         if g not in self._capacity:
             self._capacity[g] = 1
             self._last_t.setdefault(g, float(env.now))
@@ -944,6 +1061,11 @@ class IdleTracker:
         self._active[g] = self._active.get(g, 0) + 1
 
     def release(self, env, g):
+        """그룹 g 의 워커 1 명이 점유 종료 — res.release() 직전 호출.
+
+        그룹별 처리량 카운터 +=1. 등록된 target 도달 시 mark_completed 자동 발화 →
+        그룹 g 의 자기 할당량 완료 시각이 정확히 잡힘 (전체 PACK 완성 시점이 아님).
+        """
         if g not in self._capacity:
             return
         self._flush(env, g)
@@ -955,11 +1077,6 @@ class IdleTracker:
                 and g not in self._completed_at):
             self._completed_at[g] = float(env.now)
 
-    def mark_busy(self, env, name):
-        now = env.now
-        if name in self._last:
-            self.total_idle[name] += _work_seconds_between(self._last[name], now)
-        self._last[name] = now
 
     def mark_completed(self, wgrp: str, sim_time: float):
         existing = self._completed_at.get(wgrp)
@@ -967,9 +1084,10 @@ class IdleTracker:
             self._completed_at[wgrp] = float(sim_time)
 
     def worker_idle_penalty(self, threshold=300):
+        """그룹 capacity 등록된 (= acquire/release 추적된) 그룹의 누적 idle 만 합산."""
         total = 0.0
         for name in self._capacity:
-            if name not in WORKER_GROUPS:
+            if name not in self._worker_groups:
                 continue
             v = self.total_idle.get(name, 0.0)
             if v > threshold:
@@ -978,7 +1096,7 @@ class IdleTracker:
 
     def report(self):
         print('\n[작업자 유휴 시간 상위 10 (그룹 person·hh:mm:ss)]')
-        workers = {k: v for k, v in self.total_idle.items() if k in WORKER_GROUPS}
+        workers = {k: v for k, v in self.total_idle.items() if k in self._worker_groups}
         for n, v in sorted(workers.items(), key=lambda x: -x[1])[:10]:
             cap  = self._capacity.get(n, 1)
             flag = ' <- 임계초과' if v > 1800 * cap else ''
@@ -986,6 +1104,11 @@ class IdleTracker:
             h, rem = divmod(sec, 3600)
             mm, ss = divmod(rem, 60)
             print(f'  {n:25s}(cap={cap:2d}): {h:02d}:{mm:02d}:{ss:02d}{flag}')
+
+
+# ══════════════════════════════════════════════════════════
+# M07. SMT 라인
+# ══════════════════════════════════════════════════════════
 
 class SolderCream:
     def __init__(self, env, name):
@@ -1005,7 +1128,16 @@ class SolderCream:
             self.stock_g   = SOLDER_G
             self.open_time = self.env.now
 
+
 class OutsourceTruckPool:
+    """모든 SMT 라인이 공유하는 외주 트럭 풀.
+
+    THT 보드를 종류 무관하게 동일 트럭에 적재 (옵션 b).
+    (2026-05-06 변경) 트럭 적재량 제한 제거 — 트럭은 충분히 크다고 가정하고
+    SMT 라인 종료 시점에 누적된 모든 보드를 한 번에 convoy 로 출발.
+    TRUCK_SIZE 는 모니터링/엑셀 통계 표시 시 "트럭 1대당 환산 보드 수" 로만 사용.
+    THT_DELAY_PROB 는 convoy 단위로 적용 (한 번 늦으면 모두 같이 늦음).
+    """
 
     def __init__(self, env, wh, stats, smt_lines_ref):
         self.env = env
@@ -1018,6 +1150,7 @@ class OutsourceTruckPool:
         self.truck_log = []
 
     def add_board(self, line_sid, pcb_code, model_id, board_id):
+        """SMT 라인이 THT 보드 1장 외주 발사. 트럭에 적재. (자동 출발 안 함)"""
         raw_code = tht_raw_code(pcb_code)
         self.wh.restore(raw_code, 1, self.env.now)
         self.stats['tht_out'] = self.stats.get('tht_out', 0) + 1
@@ -1040,6 +1173,7 @@ class OutsourceTruckPool:
         })
 
     def flush_now(self):
+        """SMT 라인 모두 종료 시 누적된 보드 한 번에 출발 (convoy)."""
         if self.truck:
             self._dispatch()
 
@@ -1049,8 +1183,6 @@ class OutsourceTruckPool:
         delay = 0.0
         if random.random() < THT_DELAY_PROB:
             delay = random.uniform(THT_DELAY_MIN_SEC, THT_DELAY_MAX_SEC)
-            _log_event(self.env.now,
-                       f'THT 외주 트럭 납기 지연: {len(truck)}보드 +{delay/3600:.1f}h')
         send_t = float(self.env.now)
         for entry in truck:
             log = self.wh.outsource_log[entry['ev_idx']]
@@ -1076,10 +1208,6 @@ class OutsourceTruckPool:
         transit_meta = {'size': len(truck), 'send_t': send_t, 'eta': eta,
                         'log_entry': truck_log_entry}
         self.in_transit.append(transit_meta)
-        _log_event(self.env.now,
-                   f'THT 외주 convoy #{self.dispatched_count} 출발: '
-                   f'{len(truck)}보드 (트럭 환산 {truck_log_entry["truck_count"]}대, '
-                   f'도착 +{(eta - send_t)/3600:.1f}h)')
         self.env.process(self._truck_arrive(truck, delay, transit_meta))
 
     def _truck_arrive(self, truck, delay, transit_meta):
@@ -1119,7 +1247,7 @@ class OutsourceTruckPool:
                 line.pcb_count[pcb_code] += flush
                 self.stats['pcb_done'] = self.stats.get('pcb_done', 0) + flush
                 self.wh.smt_per_model[(line_sid, entry['model_id'], pcb_code)] += flush
-        _log_event(self.env.now, f'THT 외주 트럭 도착: {len(truck)}보드')
+
 
 class SMTLine:
     def __init__(self, env, suffix, data, wh,
@@ -1147,9 +1275,16 @@ class SMTLine:
             f'SMT_UNLOADER_{suffix}']}
         self.pcb_count = defaultdict(int)
         self.stage_active = {}
-        self.stage_events = []
 
     def process_board(self, pcb_code, board_id, model_id, is_second=False):
+        """SMT 보드 1장 처리.
+
+        결함 처리 (2026-05-06): 조립 공정의 INSP 검출 로직과 동일하게,
+        LOADER~UNLOADER stage 중 어느 곳에서든 결함이 발생하면 board_has_defect
+        플래그만 표시하고 보드는 계속 진행한다. 마지막 SMT_AOI 가 누적 결함을
+        자체 dr 확률로 검출하면 RMA 큐 (src='AOI') 로 투입한다 — 이 경로에서
+        AOI_DEFECT_ACTION 으로 수리/폐기 토글 가능.
+        """
         seq = [f'SMT_LOADER_{self.sfx}',    f'SMT_PRINTER_{self.sfx}',
                f'SMT_SPI_{self.sfx}',       f'SMT_MOUNTER_H_{self.sfx}',
                f'SMT_MOUNTER_M_{self.sfx}', f'SMT_REFLOW_{self.sfx}',
@@ -1172,7 +1307,6 @@ class SMTLine:
             while self.broken_flag.get(pc, False):
                 yield self.env.timeout(60)
 
-            self.idle.mark_busy(self.env, pc)
             with self._res[pc].request() as req:
                 yield req
                 _start_t = float(self.env.now)
@@ -1182,12 +1316,6 @@ class SMTLine:
                     yield self.env.timeout(act)
                 finally:
                     self.stage_active.pop(pc, None)
-                    self.stage_events.append({
-                        'pc': pc, 'pcb_code': pcb_code,
-                        'model_id': model_id, 'board_id': board_id,
-                        'is_second': is_second,
-                        'start': _start_t, 'end': float(self.env.now),
-                    })
             self.energy.record(pc, 'SMT', act, self.env.now)
             if 'PRINTER' in pc:
                 self.solder.use()
@@ -1204,7 +1332,6 @@ class SMTLine:
         if not _is_work_time(self.env.now):
             yield self.env.timeout(_next_work_start(self.env.now) - self.env.now)
 
-        self.idle.mark_busy(self.env, 'SMT_AOI')
         with self.aoi_res.request() as req:
             yield req
             _aoi_start_t = float(self.env.now)
@@ -1213,12 +1340,6 @@ class SMTLine:
                 yield self.env.timeout(aoi_ct)
             finally:
                 self.stage_active.pop('SMT_AOI', None)
-                self.stage_events.append({
-                    'pc': 'SMT_AOI', 'pcb_code': pcb_code,
-                    'model_id': model_id, 'board_id': board_id,
-                    'is_second': is_second,
-                    'start': _aoi_start_t, 'end': float(self.env.now),
-                })
         self.energy.record('SMT_AOI', 'SMT_SHARED', aoi_ct, self.env.now)
         detected = board_has_defect and (random.random() < aoi_dr)
         if detected:
@@ -1245,7 +1366,7 @@ class SMTLine:
                 'reason': 'double_pcb_flushed_without_second_pass',
             })
 
-        if pcb_code in THT_PCB:
+        if pcb_code in {c for codes in data.tht_pcb_by_model.values() for c in codes}:
             if self.outsource_pool is not None:
                 self.outsource_pool.add_board(self.sfx, pcb_code, model_id, board_id)
             else:
@@ -1260,6 +1381,15 @@ class SMTLine:
             self.stats['pcb_done'] += MAG_SIZE
             self.wh.smt_per_model[(self.sfx, model_id, pcb_code)] += MAG_SIZE
 
+
+# ████████████████████████████████████████████████████████████████████
+# §C. SIMULATION
+# ████████████████████████████████████████████████████████████████████
+
+
+# ══════════════════════════════════════════════════════════
+# ══════════════════════════════════════════════════════════
+
 def _is_work_time(sim_now_sec):
     _s = _active_schedule
     t  = sim_now_sec % DAY_SEC
@@ -1268,6 +1398,7 @@ def _is_work_time(sim_now_sec):
     if _s['lunch_start_sec'] <= t < _s['lunch_end_sec']:
         return False
     return True
+
 
 def _next_work_start(sim_now_sec):
     _s      = _active_schedule
@@ -1279,7 +1410,9 @@ def _next_work_start(sim_now_sec):
         return day_num * DAY_SEC + _s['work_start_sec']
     return (day_num + 1) * DAY_SEC + _s['work_start_sec']
 
+
 def work_timeout(env, duration):
+    """근무시간 내에서만 경과. 점심·퇴근 boundary 만나면 재개 시점까지 pause."""
     _s        = _active_schedule
     remaining = float(max(duration, 0))
     while remaining > 1e-6:
@@ -1298,7 +1431,11 @@ def work_timeout(env, duration):
         yield env.timeout(chunk)
         remaining -= chunk
 
+
 def _work_seconds_between(start_sec, end_sec):
+    """두 시뮬레이션 시각 사이의 실 근무시간(초)을 반환.
+    야간·점심을 제외한 순수 근무시간만 계산. IdleTracker.mark_busy 에서 호출.
+    """
     _s = _active_schedule
     if end_sec <= start_sec:
         return 0.0
@@ -1323,9 +1460,21 @@ def _work_seconds_between(start_sec, end_sec):
         t = min(end, boundary)
     return total
 
+
+# ══════════════════════════════════════════════════════════
+# M08. 단일 공정 실행
+# ══════════════════════════════════════════════════════════
+
 def run_process(env, prow, done_ev, wres, wh, rma, energy,
-                idle, wip, stats, mid, data, plogger=None, uid=0,
+                idle, wip, stats, mid, data, uid=0,
                 unit_defect_flag=None, progress=None):
+    """단일 공정 실행.
+
+    unit_defect_flag : {uid: bool} 공유 딕셔너리.
+        비INSP 공정에서 불량 발생 시 True 로 표시하고 공정은 계속 진행.
+        INSP 공정에서 플래그가 있으면 defect_rate 확률로 검출 -> RMA 투입.
+    progress : ManufacturingEnv.progress 공유 딕셔너리. RMA 투입 시 전달.
+    """
     pc    = str(prow['process_code'])
     grp   = str(prow.get('process_group','') or '')
     ct    = float(prow['cycle_time_sec'] or 0)
@@ -1374,15 +1523,7 @@ def run_process(env, prow, done_ev, wres, wh, rma, energy,
         idle.acquire(env, wgrp)
         acquired = True
 
-    logger_started = False
-    ev_id_p = None
     try:
-        if plogger is not None:
-            _cap = res.capacity if res is not None else 1
-            ev_id_p = plogger.mark_start(pc, mid, uid, env.now, grp,
-                                         wgrp=wgrp, cap=_cap,
-                                         work_timed=True)
-            logger_started = True
         act = max(random.normalvariate(ct, ct * CT_STD_RATIO), ct * 0.5) if ct > 0 else 0.001
         yield from work_timeout(env, act)
         energy.record(pc, grp, act, env.now)
@@ -1416,11 +1557,6 @@ def run_process(env, prow, done_ev, wres, wh, rma, energy,
                 if unit_defect_flag is not None:
                     unit_defect_flag[uid] = True
     finally:
-        if plogger is not None and logger_started:
-            try:
-                plogger.mark_end(pc, env.now, ev_id_p)
-            except Exception:
-                pass
         if req and res:
             try:
                 if acquired:
@@ -1435,8 +1571,23 @@ def run_process(env, prow, done_ev, wres, wh, rma, energy,
     if ev and not ev.triggered:
         ev.succeed()
 
+
+# ══════════════════════════════════════════════════════════
+# M09. RMA 수리 및 재투입
+# ══════════════════════════════════════════════════════════
+
 def run_rma(env, rma, wres, wh, energy, idle, wip, stats, data,
-            progress=None, plogger=None):
+            progress=None):
+    """RMA 큐 디스패처.
+
+    AOI 보드 불량 처리 — AOI_DEFECT_ACTION 으로 분기:
+      'repair' (기본): RMA 수리 후 wh.restore() 로 PCB 인벤토리 직접 재투입.
+      'scrap'        : 폐기. SMT scheduler 가 추가 생산해 보전.
+    (2026-05-06) SMT stage 자체 결함은 더 이상 즉시 폐기되지 않음 — process_board
+    가 board_has_defect 플래그만 표시하고 AOI 가 검출하므로 모든 SMT 결함 경로는
+    src='AOI' 로 통합됨.
+    INSP 공정에서 검출된 유닛 불량은 _rma_repair_and_reinsert 로 수리 후 PACK 재투입.
+    """
     while True:
         item = yield rma.get()
         src = str(item.get('src', ''))
@@ -1447,16 +1598,19 @@ def run_rma(env, rma, wres, wh, energy, idle, wip, stats, data,
                 continue
             else:
                 stats['smt_rma_scrap'] = stats.get('smt_rma_scrap', 0) + 1
-                _log_event(env.now,
-                           f'AOI 보드 불량 폐기: pcb={item.get("pcb","")} '
-                           f'model={item.get("model","")} '
-                           f'board={item.get("board","")}')
                 continue
         env.process(_rma_repair_and_reinsert(
             env, item, wres, wh, energy, idle, wip, stats, data,
-            progress=progress, plogger=plogger))
+            progress=progress))
+
 
 def _rma_repair_aoi_board(env, item, wres, wh, energy, idle, wip, stats, data):
+    """AOI 검출 불량 SMT 보드 수리 → PCB 인벤토리 직접 재투입 (요청사항 0506 ④).
+
+    수리 시 부품 소모 (2026-05-06): PCB 분해·재납땜 작업이므로 그 PCB 의
+    BOM 부품 (HierarchicalStructures PCB-typed) 한 세트를 다시 소모한다.
+    부품 부족하면 wait_stock 으로 대기 (RMA 수리 비동기 대기).
+    """
     pcb_code = str(item.get('pcb', ''))
     model    = str(item.get('model', ''))
     res = wres.get('WORKER_RMA')
@@ -1478,15 +1632,21 @@ def _rma_repair_aoi_board(env, item, wres, wh, energy, idle, wip, stats, data):
             for part_code, part_qty in data.get_pcb_parts(pcb_code):
                 yield from wh.wait_stock(env, part_code, part_qty)
             wh.restore(pcb_code, 1, env.now)
-        _log_event(env.now,
-                   f'AOI 불량 수리 완료 → PCB 재투입: pcb={pcb_code} model={model}')
     finally:
         if req:
             if acquired:
                 idle.release(env, 'WORKER_RMA')
             res.release(req)
 
+
 def _sample_defective_predecessor(data, model_id, src_pc):
+    """src_pc(INSP) 의 트랜지티브 선행 공정 중 F/W~SET (MODULE/SEMI/SET 그룹,
+    INSP suffix 제외) 후보를 모아 defect_rate 가중치로 1개 sampling.
+
+    "INSP 가 잡아낸 결함이 어느 조립 공정에서 발생했는지 모르므로 (기록 없음)
+    그 INSP 앞 단계의 비-INSP 공정 중 불량률에 비례해 1개 추정" 의도.
+    가중치 합이 0 이거나 후보가 없으면 None.
+    """
     try:
         procs = data.get_model_procs(model_id)
     except Exception:
@@ -1529,8 +1689,19 @@ def _sample_defective_predecessor(data, model_id, src_pc):
     chosen = random.choices(candidates, weights=weights, k=1)[0]
     return str(chosen['process_code'])
 
+
 def _rma_repair_and_reinsert(env, item, wres, wh, energy, idle, wip, stats, data,
-                             progress=None, plogger=None):
+                             progress=None):
+    """RMA 수리 후 PACK 첫 공정으로 재투입.
+
+    흐름:
+      SET/INSP 공정 불량 발생
+        -> run_rma 큐에서 꺼냄
+        -> WORKER_RMA 자원 확보
+        -> 수리 (임의 평균 300초)
+        -> 해당 모델의 PACK 첫 공정(_find_pack_entry 자동 추출) 실행
+        -> 완성 카운터 증가
+    """
     if not _is_work_time(env.now):
         yield env.timeout(_next_work_start(env.now) - env.now)
 
@@ -1547,15 +1718,8 @@ def _rma_repair_and_reinsert(env, item, wres, wh, energy, idle, wip, stats, data
     rma_uid  = int(item.get('uid', 0))
     progress = item.get('progress') or progress or {}
     pc_rma   = 'RMA_REPAIR'
-    ev_id_p  = None
 
     try:
-        if plogger is not None:
-            _cap = res.capacity if res is not None else 1
-            ev_id_p = plogger.mark_start(pc_rma, model or '-', rma_uid,
-                                         env.now, 'RMA',
-                                         wgrp='WORKER_RMA', cap=_cap,
-                                         work_timed=True)
         rt = max(random.normalvariate(RMA_REPAIR_TIME_MEAN_SEC,
                                        RMA_REPAIR_TIME_STD_SEC),
                  RMA_REPAIR_TIME_MIN_SEC)
@@ -1563,21 +1727,14 @@ def _rma_repair_and_reinsert(env, item, wres, wh, energy, idle, wip, stats, data
         energy.record('RMA_REPAIR', 'RMA', rt, env.now)
         stats['rma_repaired'] = stats.get('rma_repaired', 0) + 1
 
+        # MODULE/SEMI/SET 그룹의 비-INSP 공정을 defect_rate 가중치로 1개 sampling
         if src_pc:
             sampled_pc = _sample_defective_predecessor(data, model, src_pc)
             if sampled_pc:
                 for part_code, part_qty in data.get_bom_parts(model, sampled_pc):
                     yield from wh.wait_stock(env, part_code, part_qty)
-                _log_event(env.now,
-                           f'RMA 추정 결함공정={sampled_pc} → BOM 한 세트 재소모')
 
-        _log_event(env.now, f'RMA 수리 완료: {src_pc} ({model}) -> PACK 진입')
     finally:
-        if plogger is not None and ev_id_p is not None:
-            try:
-                plogger.mark_end(pc_rma, env.now, ev_id_p)
-            except Exception:
-                pass
         if req and res:
             try:
                 if acquired:
@@ -1610,11 +1767,11 @@ def _rma_repair_and_reinsert(env, item, wres, wh, energy, idle, wip, stats, data
         yield env.process(
             run_process(env, p_prow_copy, done_ev_rma, wres, wh,
                         simpy.Store(env), energy, idle, wip, stats, model, data,
-                        plogger=plogger, uid=rma_uid,
                         unit_defect_flag=None,
                         progress=progress))
 
     _do_complete(stats, progress, model, env.now, wh=wh, src_pc=src_pc)
+
 
 def _do_complete(stats, progress, model, now, wh=None, src_pc=None):
     if not model or model not in progress:
@@ -1633,7 +1790,6 @@ def _do_complete(stats, progress, model, now, wh=None, src_pc=None):
     stats[f'{model}_done'] = stats.get(f'{model}_done', 0) + 1
     progress[model] = (done + 1, total)
     pct = (done + 1) / max(total, 1) * 100
-    _log_event(now, f'{model} RMA->PACK 완성 ({pct:.0f}%)')
     if wh is not None:
         rma_idx = sum(1 for k in wh.unit_completions
                       if isinstance(k, tuple) and k[0] == model and
@@ -1647,7 +1803,13 @@ def _do_complete(stats, progress, model, now, wh=None, src_pc=None):
             'src_pc': str(src_pc) if src_pc else '',
         }
 
+
 def _get_pack_sequence(data, model, first_pack_pc):
+    """PACK 공정 연속 순서 반환. first_pack_pc 부터 시작해 SEQUENCE로 연결된 공정들.
+
+    CombinedDataLoader / FallbackDataLoader 양쪽을 지원.
+    get_model_procs() 가 있으면 해당 메서드 사용, 없으면 빈 리스트.
+    """
     result = [first_pack_pc]
     visited = {first_pack_pc}
     try:
@@ -1674,9 +1836,13 @@ def _get_pack_sequence(data, model, first_pack_pc):
         cur = nxt
     return result
 
+
+# ══════════════════════════════════════════════════════════
+# M10. 단일 제품 생산
+# ══════════════════════════════════════════════════════════
+
 def produce_unit(env, model_id, unit_id, data, kg,
-                 wres, wh, rma, energy, idle, wip, stats, progress, menv=None,
-                 plogger=None):
+                 wres, wh, rma, energy, idle, wip, stats, progress, menv=None):
     done_ev = {pc: env.event() for pc in kg.nodes}
 
     pcs     = list(kg.nodes.keys())
@@ -1744,7 +1910,6 @@ def produce_unit(env, model_id, unit_id, data, kg,
         yield env.process(
             run_process(env, prow, done_ev, wres, wh, rma,
                         energy, idle, wip, stats, model_id, data,
-                        plogger=plogger, uid=unit_id,
                         unit_defect_flag=unit_defect_flag,
                         progress=progress))
 
@@ -1773,9 +1938,6 @@ def produce_unit(env, model_id, unit_id, data, kg,
                 'time_h': float(env.now)/3600,
                 'missing_pcs': sorted(missing),
             })
-        _log_event(env.now,
-                   f'[안전로직] {model_id} #{unit_id+1} 미처리 공정: '
-                   f'{sorted(missing)}')
 
     if us is not None:
         us[unit_key].update({'state': 'DONE', 'pc': '-',
@@ -1791,22 +1953,10 @@ def produce_unit(env, model_id, unit_id, data, kg,
             yield req
             idle.acquire(env, 'WORKER_OQC')
             acquired = True
-        ev_id_oqc = None
         try:
-            if plogger is not None:
-                _cap = res.capacity if res is not None else 1
-                ev_id_oqc = plogger.mark_start(
-                    'OQC_SAMPLE', model_id, unit_id, env.now, 'OQC',
-                    wgrp='WORKER_OQC', cap=_cap,
-                    work_timed=True)
             yield from work_timeout(env, OQC_TIME_SEC)
             energy.record('OQC', 'INSP', OQC_TIME_SEC, env.now)
         finally:
-            if plogger is not None and ev_id_oqc is not None:
-                try:
-                    plogger.mark_end('OQC_SAMPLE', env.now, ev_id_oqc)
-                except Exception:
-                    pass
             if req and res:
                 if acquired:
                     idle.release(env, 'WORKER_OQC')
@@ -1828,11 +1978,10 @@ def produce_unit(env, model_id, unit_id, data, kg,
     stats[f'{model_id}_done'] = stats.get(f'{model_id}_done', 0) + 1
     progress[model_id] = (done + 1, total)
     pct = (done + 1) / total * 100
-    _log_event(env.now, f'{model_id} #{unit_id+1} 완성 ({pct:.0f}%)')
     if done + 1 >= total and menv is not None:
         for _pc, node in kg.nodes.items():
             wgrp = node.get('worker_group', '')
-            if wgrp:
+            if wgrp and wgrp not in menv.idle._completed_at:
                 menv.idle.mark_completed(wgrp, float(env.now))
     if menv is not None and hasattr(menv, 'wh'):
         menv.wh.unit_completions[(model_id, unit_id)] = {
@@ -1843,825 +1992,24 @@ def produce_unit(env, model_id, unit_id, data, kg,
             'rma_count': 0,
         }
 
-class ProcessActivityLogger:
-    def __init__(self):
-        self.log = {}
-        self.current = {}
-        self.groups = {}
-        self.events = []
-        self.slot_pool = {}
-        self.max_slot  = {}
-        self._active    = {}
-        self._ev_counter = 0
 
-    def _next_ev_id(self):
-        self._ev_counter += 1
-        return self._ev_counter
-
-    def mark_start(self, pc, mid, uid, now, grp=None, wgrp=None, cap=None,
-                   work_timed=False):
-        c = str(pc)
-        self.current[c] = (str(mid), int(uid), float(now))
-        if grp:
-            self.groups[c] = str(grp)
-        ev_id = self._next_ev_id()
-        meta = {
-            'pc'        : c,
-            'mid'       : str(mid),
-            'uid'       : int(uid),
-            'start'     : float(now),
-            'wgrp'      : '',
-            'slot'      : -1,
-            'work_timed': bool(work_timed),
-        }
-        if wgrp:
-            wg = str(wgrp)
-            pool = self.slot_pool.setdefault(wg, [])
-            target_cap = int(cap) if cap and cap > 0 else 1
-            while len(pool) < target_cap:
-                pool.append(None)
-            slot_i = -1
-            for i, v in enumerate(pool):
-                if v is None:
-                    slot_i = i
-                    break
-            if slot_i < 0:
-                slot_i = len(pool)
-                pool.append(None)
-            pool[slot_i] = ev_id
-            meta['wgrp'] = wg
-            meta['slot'] = slot_i
-            if slot_i + 1 > self.max_slot.get(wg, 0):
-                self.max_slot[wg] = slot_i + 1
-        self._active[ev_id] = meta
-        return ev_id
-
-    def mark_end(self, pc, now, ev_id=None):
-        c = str(pc)
-        self.current.pop(c, None)
-        meta = None
-        if ev_id is not None:
-            meta = self._active.pop(ev_id, None)
-        if meta is None:
-            for eid, m in list(self._active.items()):
-                if m['pc'] == c:
-                    meta = self._active.pop(eid)
-                    ev_id = eid
-                    break
-        if meta is None:
-            return
-        t_end = float(now)
-        mid, uid, t0 = meta['mid'], meta['uid'], meta['start']
-        label = f'{mid}/u{uid+1}'
-        h_start = int(t0 // 3600)
-        h_end   = int(t_end // 3600)
-        if h_end < h_start:
-            h_end = h_start
-        self.log.setdefault(c, {})
-        for h in range(h_start, h_end + 1):
-            self.log[c].setdefault(h, []).append(label)
-        self.events.append({
-            'pc'        : c,
-            'mid'       : mid,
-            'uid'       : uid,
-            'start'     : t0,
-            'end'       : t_end,
-            'grp'       : self.groups.get(c, ''),
-            'wgrp'      : meta['wgrp'],
-            'slot'      : meta['slot'],
-            'work_timed': meta.get('work_timed', False),
-        })
-        wg, slot_i = meta['wgrp'], meta['slot']
-        if wg:
-            pool = self.slot_pool.get(wg)
-            if pool and 0 <= slot_i < len(pool) and pool[slot_i] == ev_id:
-                pool[slot_i] = None
-
-    def busy_now(self, pc):
-        return self.current.get(str(pc))
-
-    def summary(self):
-        out = {}
-        for pc, hdict in self.log.items():
-            out[pc] = {h: '; '.join(labels) for h, labels in hdict.items()}
-        return out
-
-def monitor(env, progress, energy, wh, idle, wip, stats,
-            smt_lines, interval=3600, plogger=None, menv=None):
-    _wall_prev = time.time()
-    BAR_W = 20
-
-    def _bar(value, max_v, width=BAR_W, fill='█', empty='░'):
-        v = max(0, min(int(value), int(max_v)))
-        n = int((v / max(int(max_v), 1)) * width)
-        return fill * n + empty * (width - n)
-
-    def _pcb_label(model_id, pcb_code):
-        m_short = (model_id or '?').replace('MODEL_', '')
-        is_main = (PCB_MAP.get(model_id) == pcb_code)
-        kind = '메인' if is_main else '수삽'
-        try:
-            side_raw = wh.data.smt_side(pcb_code)
-        except Exception:
-            side_raw = 'double'
-        side = '양면' if side_raw == 'double' else '단면'
-        tag = (str(pcb_code) or '')[-4:]
-        return f'{m_short} {kind}-{side} ({tag})'
-
-    STAGE_KEYS   = ['LOADER', 'PRINTER', 'SPI', 'MOUNTER_H',
-                    'MOUNTER_M', 'REFLOW', 'UNLOADER']
-    STAGE_LABELS = ['LD', 'PR', 'SP', 'MH', 'MM', 'RF', 'UL']
-
-    while True:
-        yield env.timeout(interval)
-        _wall_now = time.time()
-        _wall_delta = _wall_now - _wall_prev
-        if _wall_delta < MONITOR_MIN_WALL_SEC:
-            time.sleep(MONITOR_MIN_WALL_SEC - _wall_delta)
-            _wall_now = time.time()
-            _wall_delta = _wall_now - _wall_prev
-        _wall_prev = _wall_now
-
-        try:
-            sys.stdout.write('\033[2J\033[H')
-            sys.stdout.flush()
-        except Exception:
-            pass
-
-        day  = int(env.now // DAY_SEC) + 1
-        h_in = (env.now % DAY_SEC) / 3600
-        pace = f'  {INFER_MONITOR_STEP_HR}h sim ≈ {_wall_delta:.2f}s wall' if _wall_delta > 0 else ''
-        header = f' Day{day} {h_in:>4.1f}h │ 누적 {env.now/3600:>6.1f}h │{pace} '
-        print('╔' + '═' * (len(header) + 2) + '╗')
-        print(f'║ {header} ║')
-        print('╚' + '═' * (len(header) + 2) + '╝')
-
-        print('[ SMT 라인 ]')
-        print('              ' + '   '.join(f'{s:^3}' for s in STAGE_LABELS))
-        for sid, line in smt_lines.items():
-            model = line.assigned_model
-            row = []
-            boards_set = set()
-            for stage in STAGE_KEYS:
-                pc = f'SMT_{stage}_{sid}'
-                if pc in line.stage_active:
-                    pcb_code, _bid, _is2 = line.stage_active[pc]
-                    row.append(' ●  ')
-                    if model:
-                        boards_set.add(_pcb_label(model, pcb_code))
-                else:
-                    row.append(' ─  ')
-            head = f'  {sid} ⌊{(model or "-"):^7}⌉'
-            print(f'{head} {"".join(row)}')
-            if boards_set:
-                print(f'         ↳ 처리 중: {", ".join(sorted(boards_set))}')
-
-        aoi_label = None
-        for sid, line in smt_lines.items():
-            if 'SMT_AOI' in line.stage_active:
-                pcb_code, _bid, _is2 = line.stage_active['SMT_AOI']
-                aoi_label = _pcb_label(line.assigned_model, pcb_code)
-                break
-        print(f'  AOI (공유):  {"● 진행중 " + aoi_label if aoi_label else "○ 유휴"}')
-
-        print('\n[ THT 외주 (외주중 = in-flight, mag = 도착 후 미적재) ]')
-        pool = getattr(menv, 'outsource_pool', None) if menv is not None else None
-        if pool is not None:
-            cur_n = len(pool.truck)
-            cur_bar = _bar(cur_n, TRUCK_SIZE, width=15)
-            in_transit_n = len(pool.in_transit)
-            in_transit_boards = sum(t['size'] for t in pool.in_transit)
-            print(f'  적재 중 트럭   {cur_bar} {cur_n:>2d}/{TRUCK_SIZE}  '
-                  f'│  운송 중: {in_transit_n}대 ({in_transit_boards}보드)  '
-                  f'│  누적 출발: {pool.dispatched_count}대')
-        for model in progress:
-            for tht_code in THT_PCB_BY_MODEL.get(model, []):
-                flow     = wh.pcb_flow.get(tht_code, {})
-                fired    = int(flow.get('outsource_in', 0))
-                returned = int(flow.get('outsource_returned', 0))
-                in_flight = fired - returned
-                mag_remain = sum(line.mag_buf.get(tht_code, 0)
-                                 for line in smt_lines.values())
-                lbl = _pcb_label(model, tht_code)
-                print(f'  {lbl:<13s} 발사 {fired:>3}  외주중 {in_flight:>2}  '
-                      f'mag(도착 후 미적재) {mag_remain:>2}')
-
-        print('\n[ PCB 인벤토리 ]   (그래프 max = 주문 수량)')
-        for model, (_done, total) in progress.items():
-            for pcb in [PCB_MAP.get(model)] + THT_PCB_BY_MODEL.get(model, []):
-                if not pcb:
-                    continue
-                stock = int(wh.stock.get(pcb, 0))
-                lbl = _pcb_label(model, pcb)
-                bar = _bar(stock, total, width=BAR_W)
-                print(f'  {lbl:<13s} {bar} {stock:>3d}/{total}')
-
-        print('\n[ 조립 라인 (가동 워커 / 선택 가능) ]')
-        flow_groups = ['MODULE', 'SEMI', 'SET', 'INSP', 'PACK']
-        grp_wgrp = {
-            'MODULE': ['WORKER_FW', 'WORKER_LENS_HOLDER', 'WORKER_SENSOR_FOCUS'],
-            'SEMI'  : ['WORKER_SEMI'],
-            'SET'   : ['WORKER_SET', 'WORKER_SET_INSP'],
-            'INSP'  : ['WORKER_AGING'],
-            'PACK'  : ['WORKER_PACK'],
-        }
-        wres = getattr(menv, 'wres', {}) if menv is not None else {}
-        cells = []
-        for g in flow_groups:
-            total  = wip.wip.get(g, 0)
-            active = sum(wres[w].count for w in grp_wgrp.get(g, [])
-                         if w in wres)
-            cells.append(f'{g}({active}/{total})')
-        print(f'  {"  ▶  ".join(cells)}')
-        print(f'  SMT({wip.wip.get("SMT", 0):>2d})  '
-              f'│  RMA({wip.wip.get("RMA", 0):>2d})')
-
-        print('\n[ 완성 ]')
-        for m, (done, total) in progress.items():
-            bar = _bar(done, total, width=BAR_W)
-            pct = done / max(total, 1) * 100
-            print(f'  {m}  {bar} {done:>3d}/{total:<3d} ({pct:>3.0f}%)')
-
-        rows = []
-        for c, cur in wh.stock.items():
-            if str(c).endswith(THT_RAW_SUFFIX):
-                continue
-            try:
-                ms = wh.data.get_min_stock(c)
-            except Exception:
-                ms = MIN_STOCK
-            if cur < ms:
-                rows.append((cur / max(ms, 1), c, int(cur), int(ms)))
-        rows.sort()
-        if rows:
-            top = rows[:3]
-            parts = '  '.join(f'{c}={s}/{m}' for _, c, s, m in top)
-            pending = len(wh._pending_orders)
-            print(f'\n[ 부품 부족 ]  ⚠ {parts}  │  발주중 {pending}건')
-
-        if idle.absent_groups:
-            print(f'\n[ 결근 ] {", ".join(sorted(idle.absent_groups))}')
-
-        if _EVENT_BUF:
-            print('\n[ 최근 이벤트 ]')
-            for t_sec, msg in _EVENT_BUF[-5:]:
-                print(f'  {t_sec/3600:>6.2f}h  {msg}')
-
-class ProcessGNN(nn.Module):
-    def __init__(self, in_dim=6, hidden=32, out_dim=16):
-        super().__init__()
-        self.conv1 = nn.Linear(in_dim,  hidden)
-        self.conv2 = nn.Linear(hidden,  out_dim)
-        self.score = nn.Linear(out_dim, 1)
-
-    def forward(self, H: torch.Tensor, adj: torch.Tensor) -> torch.Tensor:
-        deg = adj.sum(dim=1, keepdim=True).clamp(min=1e-6)
-        A_n = adj / deg
-        H1  = F.relu(self.conv1(A_n @ H))
-        H2  = F.relu(self.conv2(A_n @ H1))
-        return self.score(H2).squeeze(-1)
-
-    def graph_embed(self, H: torch.Tensor, adj: torch.Tensor) -> torch.Tensor:
-        deg = adj.sum(dim=1, keepdim=True).clamp(min=1e-6)
-        A_n = adj / deg
-        H1  = F.relu(self.conv1(A_n @ H))
-        H2  = F.relu(self.conv2(A_n @ H1))
-        return H2.mean(dim=0)
-
-class PPOAgent(nn.Module):
-    LR             = 3e-4
-    GAMMA          = 0.99
-    LAM            = 0.95
-    EPS            = 0.2
-    EPOCHS         = 4
-    CONV_WINDOW    = 100
-    CONV_THRESHOLD = 0.01
-
-    def __init__(self, state_dim: int, gnn: ProcessGNN):
-        super().__init__()
-        self.gnn      = gnn
-        embed_dim     = gnn.conv2.out_features
-        in_dim        = state_dim + embed_dim
-
-        self.encoder  = nn.Sequential(
-            nn.Linear(in_dim, 128), nn.ReLU(),
-            nn.Linear(128,     64), nn.ReLU(),
-        )
-        self.actor_head  = nn.Linear(64, 1)
-        self.critic_head = nn.Linear(64, 1)
-
-        self.optimizer  = torch.optim.Adam(self.parameters(), lr=self.LR)
-        self.buf        = []
-        self.ep_rewards = []
-        self.ep_rewards_decomp = []
-
-    def forward(self, state_vec: torch.Tensor,
-                graph_embed: torch.Tensor) -> tuple:
-        x   = torch.cat([state_vec, graph_embed], dim=-1)
-        enc = self.encoder(x)
-        return self.actor_head(enc), self.critic_head(enc)
-
-    def act(self, state_np: np.ndarray,
-            H: torch.Tensor, adj: torch.Tensor,
-            ready_mask: torch.Tensor) -> tuple:
-        with torch.no_grad():
-            s_t  = torch.tensor(state_np, dtype=torch.float32).unsqueeze(0)
-            deg  = adj.sum(dim=1, keepdim=True).clamp(min=1e-6)
-            A_n  = adj / deg
-            H1   = F.relu(self.gnn.conv1(A_n @ H))
-            H2   = F.relu(self.gnn.conv2(A_n @ H1))
-            emb  = H2.mean(dim=0)
-            emb_t = emb.unsqueeze(0)
-            _, val = self.forward(s_t, emb_t)
-
-            node_scores = self.gnn.score(H2).squeeze(-1)
-            node_scores = node_scores.masked_fill(~ready_mask, float('-inf'))
-            probs       = torch.softmax(node_scores, dim=0)
-            dist        = torch.distributions.Categorical(probs=probs,
-                                                          validate_args=False)
-            action      = dist.sample()
-            log_prob    = dist.log_prob(action)
-
-        mask_bytes = ready_mask.detach().to(torch.bool).numpy().copy()
-        return (action.item(), log_prob.item(),
-                val.item(), emb.detach().numpy(), mask_bytes)
-
-    def store(self, s, emb, a, r, lp, v, mask=None, model_id=None):
-        self.buf.append((s, emb, a, r, lp, v, mask, model_id))
-
-    def update(self, graphs_cache=None):
-        if len(self.buf) < 2:
-            return 0.0
-        rewards   = [b[3] for b in self.buf]
-        values    = [b[5] for b in self.buf]
-        model_ids = [b[7] for b in self.buf]
-        ep_r      = sum(rewards)
-        self.ep_rewards.append(ep_r)
-
-        advs, gae = [], 0.0
-        for i in reversed(range(len(rewards) - 1)):
-            delta = rewards[i] + self.GAMMA * values[i+1] - values[i]
-            gae   = delta + self.GAMMA * self.LAM * gae
-            advs.insert(0, gae)
-        advs_t = torch.tensor(advs, dtype=torch.float32)
-        advs_t = (advs_t - advs_t.mean()) / (advs_t.std() + 1e-8)
-
-        for _ in range(self.EPOCHS):
-            for i, entry in enumerate(self.buf[:-1]):
-                if i >= len(advs):
-                    break
-                s, emb, a, _, old_lp, _old_v, mask, mid = entry
-                s_t   = torch.tensor(s,   dtype=torch.float32).unsqueeze(0)
-                emb_t = torch.tensor(emb, dtype=torch.float32).unsqueeze(0)
-
-                _actor_out, critic_out = self.forward(s_t, emb_t)
-
-                H_m   = graphs_cache.get(mid, (None, None))[0] if graphs_cache else None
-                adj_m = graphs_cache.get(mid, (None, None))[1] if graphs_cache else None
-                if H_m is not None and adj_m is not None and mask is not None:
-                    mask_t = torch.tensor(mask, dtype=torch.bool)
-                    node_scores = self.gnn(H_m, adj_m)
-                    node_scores = node_scores.masked_fill(~mask_t, float('-inf'))
-                    probs       = torch.softmax(node_scores, dim=0)
-                    dist        = torch.distributions.Categorical(
-                        probs=probs, validate_args=False)
-                    new_lp      = dist.log_prob(torch.tensor(int(a)))
-                    old_lp_t    = torch.tensor(float(old_lp))
-                    ratio       = torch.exp(new_lp - old_lp_t)
-                    adv         = advs_t[i]
-                    loss_p      = -torch.min(
-                        ratio * adv,
-                        torch.clamp(ratio, 1-self.EPS, 1+self.EPS) * adv)
-                else:
-                    loss_p = torch.tensor(0.0)
-
-                loss_v = F.mse_loss(
-                    critic_out.squeeze(),
-                    torch.tensor(values[i], dtype=torch.float32))
-                loss   = loss_p + 0.5 * loss_v
-
-                self.optimizer.zero_grad()
-                loss.backward()
-                nn.utils.clip_grad_norm_(self.parameters(), 0.5)
-                self.optimizer.step()
-
-        self.buf.clear()
-        return ep_r
-
-    def is_converged(self):
-        if len(self.ep_rewards) < self.CONV_WINDOW * 2:
-            return False
-        recent = np.mean(self.ep_rewards[-self.CONV_WINDOW:])
-        prev   = np.mean(self.ep_rewards[-self.CONV_WINDOW*2:-self.CONV_WINDOW])
-        return abs(recent - prev) < self.CONV_THRESHOLD
-
-    def save(self, path=POLICY_PATH, verbose=True):
-        torch.save({
-            'model_state': self.state_dict(),
-            'ep_rewards' : self.ep_rewards,
-            'ep_rewards_decomp': self.ep_rewards_decomp,
-        }, path)
-        if verbose:
-            print(f'정책 저장: {path}')
-
-    def load(self, path=POLICY_PATH):
-        ckpt = torch.load(path, map_location='cpu')
-        self.load_state_dict(ckpt['model_state'])
-        self.ep_rewards = ckpt.get('ep_rewards', [])
-        self.ep_rewards_decomp = ckpt.get('ep_rewards_decomp', [])
-        print(f'정책 불러오기: {path} (학습 에피소드:{len(self.ep_rewards)})')
-
-class ManufacturingEnv:
-    W_DEFAULT = (0.30, 0.25, 0.15, 0.10, 0.10, 0.10)
-
-    def __init__(self, data, order, weight_vec=None):
-        self.data   = data
-        self.order  = order
-        self.W      = tuple(weight_vec) if weight_vec else self.W_DEFAULT
-        self.graphs = {m: ProcessKnowledgeGraph(data, m) for m in order}
-        self._H_cache = {
-            m: torch.tensor(kg.get_feat_matrix()[1], dtype=torch.float32)
-            for m, kg in self.graphs.items()
-        }
-        self._adj_cache = {
-            m: torch.tensor(kg.get_adj(), dtype=torch.float32)
-            for m, kg in self.graphs.items()
-        }
-        self._init_sim()
-
-    def _init_sim(self):
-        _EVENT_BUF.clear()
-        self.env         = simpy.Environment()
-        self.wh          = Warehouse(self.data, self.order)
-        self.energy      = EnergyLogger(self.data)
-        self.idle        = IdleTracker()
-        self.wip         = WIPTracker(self.order)
-        self.rma         = simpy.Store(self.env)
-        self.stats       = defaultdict(int)
-        self.progress    = {m: (0, q) for m, q in self.order.items()}
-        self.wres = {}
-        for _g, _c in self.data.workers.items():
-            if _g == 'WORKER_SET':
-                _cap = max(int(_c) - SET_INSP_HEADCOUNT, 1)
-            else:
-                _cap = int(_c)
-            self.wres[_g] = simpy.Resource(self.env, capacity=_cap)
-        self.aoi_res     = simpy.Resource(self.env, capacity=1)
-        self.smt_broken  = defaultdict(bool)
-        self.smt_lines   = {}
-        self.outsource_pool = OutsourceTruckPool(
-            self.env, self.wh, self.stats, self.smt_lines)
-        for sid in SMT_LINE_IDS:
-            line = SMTLine(self.env, sid, self.data, self.wh,
-                           self.aoi_res, self.rma, self.energy,
-                           self.idle, self.wip, self.stats, self.smt_broken,
-                           outsource_pool=self.outsource_pool)
-            self.smt_lines[sid] = line
-        self.plogger     = ProcessActivityLogger()
-        self.unit_states     = {}
-        self.agent           = None
-        self._prev_reward_t    = 0.0
-        self._prev_reward_kwh  = 0.0
-        self._prev_wip_viol    = 0
-        self._prev_stock_pen   = 0
-        self._prev_done        = 0
-        self._prev_idle_pen    = 0.0
-
-        self.idle.configure({g: r.capacity for g, r in self.wres.items()})
-        self._compute_idle_targets()
-
-    def _compute_idle_targets(self):
-        target = defaultdict(int)
-        for mid, qty in self.order.items():
-            try:
-                procs = self.data.get_model_procs(mid)
-            except Exception:
-                continue
-            for _, r in procs.iterrows():
-                wgrp = str(r.get('worker_group', '') or '')
-                grp  = str(r.get('process_group', '') or '')
-                pc   = str(r['process_code'])
-                if wgrp == 'WORKER_SET' and grp == 'SET' \
-                        and pc.rsplit('_', 1)[-1].upper() == 'INSP':
-                    wgrp = 'WORKER_SET_INSP'
-                if wgrp:
-                    target[wgrp] += qty
-        for g, t in target.items():
-            self.idle.set_target(g, t)
-
-    def get_state(self) -> np.ndarray:
-        comp  = [self.stats.get(f'{m}_done', 0) / max(q, 1)
-                 for m, q in self.order.items()]
-        wutil = [1 - (r.count / max(r.capacity, 1))
-                 for r in self.wres.values()]
-        t_max = MAX_DAYS * (
-            _active_schedule['work_end_sec']
-            - _active_schedule['work_start_sec']
-            - _active_schedule['break_duration_sec']
-        )
-        return np.array(
-            comp + wutil + [
-                self.energy.total / max(self.env.now + 1, 1),
-                self.env.now / t_max,
-                self.wh.stock_penalty() / max(sum(self.order.values()), 1),
-                self.wip.violations() / max(len(self.wres), 1),
-                self.idle.worker_idle_penalty() / max(self.env.now + 1, 1),
-                sum(self.smt_broken.values()) / max(len(self.smt_broken) + 1, 1),
-            ], dtype=np.float32)
-
-    def reward(self) -> float:
-        total = sum(self.order.values())
-        cur   = sum(self.stats.get(f'{m}_done', 0) for m in self.order)
-        w1, w2, w3, w4, w5, w6 = self.W
-
-        t_max  = MAX_DAYS * (
-            _active_schedule['work_end_sec']
-            - _active_schedule['work_start_sec']
-            - _active_schedule['break_duration_sec']
-        )
-        t_now  = float(self.env.now)
-        prev_t = getattr(self, '_prev_reward_t', 0.0)
-        dt_wall   = t_now - prev_t
-        dt_work   = _work_seconds_between(prev_t, t_now)
-
-        r1 = -dt_wall / max(t_max, 1)
-
-        kwh_now  = self.energy.total
-        prev_kwh = getattr(self, '_prev_reward_kwh', 0.0)
-        d_kwh    = kwh_now - prev_kwh
-        r2       = -d_kwh / max(kwh_now + 1, 1)
-
-        wip_v_now  = self.wip.violations()
-        d_wip      = wip_v_now - getattr(self, '_prev_wip_viol', 0)
-        r3         = -d_wip / max(len(self.wres), 1)
-
-        stock_now  = self.wh.stock_penalty()
-        d_stock    = stock_now - getattr(self, '_prev_stock_pen', 0)
-        r4         = -d_stock / max(total * 10, 1)
-
-        d_done = cur - getattr(self, '_prev_done', 0)
-        r5 = d_done / max(total, 1)
-        if cur >= total and getattr(self, '_prev_done', 0) < total:
-            r5 += 1.0
-
-        self.idle.flush_all(self.env)
-        idle_now  = self.idle.worker_idle_penalty()
-        d_idle    = idle_now - getattr(self, '_prev_idle_pen', 0.0)
-        total_cap = sum(self.idle._capacity.get(g, 0) for g in WORKER_GROUPS)
-        r6_denom  = max(total_cap * dt_work, 1.0)
-        r6        = -d_idle / r6_denom
-
-        self._prev_reward_t   = t_now
-        self._prev_reward_kwh = kwh_now
-        self._prev_wip_viol   = wip_v_now
-        self._prev_stock_pen  = stock_now
-        self._prev_done       = cur
-        self._prev_idle_pen   = idle_now
-
-        contribs = (w1*r1, w2*r2, w3*r3, w4*r4, w5*r5, w6*r6)
-        if not hasattr(self, '_reward_decomp_sum'):
-            self._reward_decomp_sum = [0.0] * 6
-        for i, c in enumerate(contribs):
-            self._reward_decomp_sum[i] += c
-
-        return sum(contribs)
-
-    def _event_smt_breakdown(self, env):
-        smt_pcs = [pc for sid in self.smt_lines
-                   for pc in self.smt_lines[sid]._res]
-        while True:
-            yield env.timeout(600)
-            if not _is_work_time(env.now):
-                continue
-            for pc in smt_pcs:
-                if random.random() < SMT_BREAKDOWN_PROB:
-                    self.smt_broken[pc] = True
-                    mttr_sec   = self.data.get_mttr(pc)
-                    repair_sec = max(random.normalvariate(mttr_sec, mttr_sec * 0.2),
-                                     mttr_sec * 0.1)
-                    _log_event(env.now,
-                               f'SMT 설비 고장: {pc} MTTR={mttr_sec/3600:.1f}h '
-                               f'수리예정 {repair_sec/3600:.1f}h')
-                    yield env.timeout(repair_sec)
-                    self.smt_broken[pc] = False
-                    _log_event(env.now, f'SMT 설비 복구: {pc}')
-
-    def _event_worker_absent(self, env):
-        work_day_sec = (
-            _active_schedule['work_end_sec']
-            - _active_schedule['work_start_sec']
-            - _active_schedule['break_duration_sec']
-        )
-        while True:
-            yield env.timeout(_next_work_start(env.now) - env.now)
-            for wgrp in self.data.worker_skill:
-                if random.random() < WORKER_ABSENT_PROB:
-                    self.idle.absent_groups.add(wgrp)
-                    cur_skill = self.data.worker_skill.get(wgrp, 2)
-                    _log_event(env.now,
-                               f'작업자 결근: {wgrp} '
-                               f'(숙련도 {cur_skill} -> {max(1, cur_skill - 1)})')
-                    yield env.timeout(work_day_sec)
-                    self.idle.absent_groups.discard(wgrp)
-                    
-    def _event_replenishment(self, env):
-        while True:
-            yield env.timeout(3600)
-            if not _is_work_time(env.now):
-                continue
-            for item_code in list(self.wh._pending_orders):
-                self.wh._pending_orders.discard(item_code)
-                env.process(self._deliver(env, item_code,
-                                           order_time=env.now,
-                                           stock_at_order=int(self.wh.stock.get(item_code, 0))))
-
-    def _deliver(self, env, item_code, order_time=None, stock_at_order=None):
-        yield env.timeout(REPLENISH_LEAD_DAY * DAY_SEC)
-        self.wh.replenish(item_code, env.now,
-                          order_time=order_time, stock_at_order=stock_at_order)
-
-    def _next_model_for_line(self):
-        remaining = [m for m in self.order
-                     if self.stats.get(f'smt_done_{m}', 0) < self.order[m]]
-        if not remaining:
-            return None
-
-        def _shortage(m):
-            order_qty = self.order[m]
-            codes = [PCB_MAP[m]] + THT_PCB_BY_MODEL.get(m, [])
-            stock = sum(self.wh.stock.get(c, 0) for c in codes)
-            completed = self.stats.get(f'{m}_done', 0)
-            return order_qty - stock - completed
-
-        choice = max(remaining, key=_shortage)
-        self.wh.smt_model_choices.append((float(self.env.now), choice))
-        return choice
-
-    def _smt_schedule(self):
-        def _run_line(env, sid):
-            line = self.smt_lines[sid]
-            while True:
-                model = self._next_model_for_line()
-                if model is None:
-                    break
-                active = {l.assigned_model for l in self.smt_lines.values()
-                          if l.assigned_model is not None}
-                if model in active:
-                    remaining = [m for m in self.order
-                                 if self.stats.get(f'smt_done_{m}', 0) < self.order[m]
-                                 and m not in active]
-                    if not remaining:
-                        yield env.timeout(300)
-                        continue
-                    model = remaining[0]
-                line.assigned_model = model
-                pcb_codes = ([PCB_MAP[model]] +
-                             THT_PCB_BY_MODEL.get(model, []))
-                target_total = self.order[model]
-                target_make = target_total - int(target_total * PCB_INITIAL_RATIO)
-                while True:
-                    boards = []
-                    for pcb_code in pcb_codes:
-                        flow = self.wh.pcb_flow.get(pcb_code, {})
-                        arrived = int(flow.get('restore_from_smt_or_outsource', 0))
-                        in_flight = (int(flow.get('outsource_in', 0))
-                                     - int(flow.get('outsource_returned', 0)))
-                        in_mag = int(line.mag_buf.get(pcb_code, 0))
-                        committed = arrived + in_flight + in_mag
-                        if committed >= target_make:
-                            continue
-                        shortage = target_make - committed
-                        for board_id in range(shortage):
-                            p = env.process(
-                                line.process_board(pcb_code, board_id, model))
-                            boards.append(p)
-                    if not boards:
-                        break
-                    yield simpy.AllOf(env, boards)
-                    for pcb_code in pcb_codes:
-                        remainder = line.mag_buf.get(pcb_code, 0)
-                        if remainder > 0:
-                            line.mag_buf[pcb_code] = 0
-                            line.wh.restore(pcb_code, remainder, env.now)
-                            line.pcb_count[pcb_code] += remainder
-                    all_supplied = True
-                    for pcb_code in pcb_codes:
-                        flow = self.wh.pcb_flow.get(pcb_code, {})
-                        arrived = int(flow.get('restore_from_smt_or_outsource', 0))
-                        in_flight = (int(flow.get('outsource_in', 0))
-                                     - int(flow.get('outsource_returned', 0)))
-                        in_mag = int(line.mag_buf.get(pcb_code, 0))
-                        if arrived + in_flight + in_mag < target_make:
-                            all_supplied = False
-                            break
-                    if all_supplied:
-                        break
-                self.stats[f'smt_done_{model}'] = self.order[model]
-                line.assigned_model = None
-
-        line_procs = [self.env.process(_run_line(self.env, sid))
-                      for sid in SMT_LINE_IDS]
-
-        def _flush_outsource_after_lines_done(env):
-            yield simpy.AllOf(env, line_procs)
-            self.outsource_pool.flush_now()
-        self.env.process(_flush_outsource_after_lines_done(self.env))
-
-    def _report(self, elapsed):
-        done = sum(self.stats.get(f'{m}_done', 0) for m in self.order)
-        print('\n' + '=' * 60)
-        print(f'makespan:{self.env.now/3600:.2f}h | 실행:{elapsed:.2f}s | '
-              f'완성:{done}/{sum(self.order.values())}')
-        for m, (d, t) in self.progress.items():
-            pct = d / max(t, 1) * 100
-            bar = '#' * int(pct/5) + '.' * (20-int(pct/5))
-            print(f'  {m}: [{bar}] {d}/{t} ({pct:.0f}%)')
-        print(f'  불량: SMT={self.stats.get("smt_defect",0)} '
-              f'AOI={self.stats.get("aoi_defect",0)} '
-              f'조립={self.stats.get("assy_defect",0)} '
-              f'수리={self.stats.get("rma_repaired",0)}')
-        print(f'  재고부족:{self.wh.stock_penalty()} | 재고품초과:{self.wip.violations()}')
-        self.energy.report()
-        self.idle.flush_all(self.env)
-        self.idle.report()
-        print('=' * 60)
-
-    def _summary(self):
-        done = sum(self.stats.get(f'{m}_done', 0) for m in self.order)
-        return {
-            'total_done'  : done,
-            'total_order' : sum(self.order.values()),
-            'makespan_hr' : self.env.now / 3600,
-            'total_kwh'   : self.energy.total,
-            '재고품초과'  : self.wip.violations(),
-            'stock_pen'   : self.wh.stock_penalty(),
-            'total_defect': (self.stats.get('smt_defect', 0) +
-                             self.stats.get('aoi_defect', 0) +
-                             self.stats.get('assy_defect', 0)),
-            'oqc_inspected': self.stats.get('oqc_inspected', 0),
-            'by_grp_kwh'  : dict(self.energy.by_grp),
-        }
-    
-    def run(self, training=False):
-        t_sec = MAX_DAYS * (
-            _active_schedule['work_end_sec']
-            - _active_schedule['work_start_sec']
-            - _active_schedule['break_duration_sec']
-        )
-        total_need = sum(self.order.values())
-        t0         = time.time()
-        stop_event = self.env.event()
-        mon_interval = TRAIN_MONITOR_INTERVAL if training else INFER_MONITOR_INTERVAL
-
-        def _check_done(env):
-            while True:
-                yield env.timeout(30)
-                done = sum(self.stats.get(f'{m}_done', 0) for m in self.order)
-                if done >= total_need or env.now >= t_sec:
-                    if done >= total_need:
-                        for wgrp in self.data.workers:
-                            self.idle.mark_completed(wgrp, float(env.now))
-                    if not stop_event.triggered:
-                        stop_event.succeed()
-                    return
-
-        self.env.process(run_rma(self.env, self.rma, self.wres, self.wh,
-                                 self.energy, self.idle, self.wip,
-                                 self.stats, self.data,
-                                 progress=self.progress,
-                                 plogger=self.plogger))
-
-        if not training:
-            self.env.process(monitor(self.env, self.progress, self.energy,
-                                     self.wh, self.idle, self.wip, self.stats,
-                                     self.smt_lines, interval=mon_interval,
-                                     plogger=self.plogger, menv=self))
-        self.env.process(_check_done(self.env))
-        self.env.process(self._event_smt_breakdown(self.env))
-        self.env.process(self._event_worker_absent(self.env))
-        self.env.process(self._event_replenishment(self.env))
-        self.env.process(self.wh.snapshot_loop(self.env, interval=3600))
-        self.env.process(self.wip.snapshot_loop(self.env, interval=3600))
-        self._smt_schedule()
-
-        for m in self.order:
-            for uid in range(self.order[m]):
-                self.env.process(
-                    produce_unit(self.env, m, uid, self.data, self.graphs[m],
-                                 self.wres, self.wh, self.rma,
-                                 self.energy, self.idle, self.wip,
-                                 self.stats, self.progress, menv=self,
-                                 plogger=self.plogger))
-
-        self.env.run(until=stop_event)
-        if not training:
-            self._report(time.time() - t0)
-        else:
-            self._train_elapsed = time.time() - t0
-        return self._summary()
-
-class ExperimentRunner:
+# ══════════════════════════════════════════════════════════
+# M11. 콘솔 모니터
+# ══════════════════════════════════════════════════════════
+
+    """
+    상태 : 시뮬레이션 스칼라 벡터 + GNN 그래프 임베딩
+    행동 : 조립 공정 내 실행 가능 공정 중 우선순위 선택 (GNN 노드 스코어 기반)
+          경험 (s, emb, a, r, lp, v, mask)은 produce_unit에서 store()로 직접 수집
+    보상 : w1*(이번스텝시간감소) + w2*(-전력증가) - w3*WIP초과
+           - w4*재고부족(critical_stock 기준) + w5*납기 + w6*(-작업자유휴)
+    수렴 : 최근 CONV_WINDOW 에피소드 평균 보상 변화 < CONV_THRESHOLD
+    """
     def __init__(self, data, order: dict):
+        """
+        data  : CombinedDataLoader 인스턴스 (FallbackDataLoader 도 호환)
+        order : {model_id: qty} 주문 딕셔너리
+        """
         self.data  = data
         self.order = order
 
@@ -2742,6 +2090,12 @@ class ExperimentRunner:
         return agent
 
     def run_inference(self, agent=None):
+        """추론 실행.
+
+        agent: run_ppo_training()이 반환한 PPOAgent 객체.
+               None이면 ppo_policy.pt 파일에서 로드 시도.
+               파일도 없으면 greedy(ready_pcs[0]) 모드로 실행.
+        """
         print('\n[추론 실행]')
         menv = ManufacturingEnv(self.data, self.order)
 
@@ -2772,17 +2126,525 @@ class ExperimentRunner:
         return summary
 
     def save_results(self, inference_summary=None, path=RESULT_PATH):
-        from cpro_visualization import save_results as _impl
-        _impl(runner=self, inference_summary=inference_summary, path=path,
-              min_stock=MIN_STOCK, pcb_map=PCB_MAP, tht_pcb_by_model=THT_PCB_BY_MODEL)
+        import openpyxl
+        from openpyxl.styles import Font, PatternFill, Alignment
+        from openpyxl.utils import get_column_letter
 
-    def save_figures(self, inference_summary=None, ep_rewards=None):
-        from cpro_visualization import save_figures as _impl
-        _impl(runner=self, inference_summary=inference_summary, ep_rewards=ep_rewards,
-              base_dir=BASE_DIR, location_order=LOCATION_ORDER,
-              location_label=LOCATION_LABEL, day_sec=DAY_SEC,
-              schedule=_active_schedule, is_work_time=_is_work_time,
-              next_work_start=_next_work_start)
+        wb       = openpyxl.Workbook()
+        hdr_font = Font(bold=True, color='FFFFFF')
+        hdr_fill = PatternFill('solid', fgColor='2E4053')
+
+        def _hdr(ws, headers):
+            for col, h in enumerate(headers, 1):
+                c = ws.cell(row=1, column=col, value=h)
+                c.font  = hdr_font
+                c.fill  = hdr_fill
+                c.alignment = Alignment(horizontal='center')
+
+        def _aw(ws):
+            for col in ws.columns:
+                ml = max((len(str(c.value)) for c in col if c.value), default=8)
+                ws.column_dimensions[get_column_letter(col[0].column)].width = min(ml+2,30)
+
+        ws = wb.active
+        ws.title = 'Inference'
+        if inference_summary:
+            _hdr(ws, ['항목','값'])
+            items = [
+                ('makespan_hr',  inference_summary.get('makespan_hr', 0)),
+                ('total_kwh',    inference_summary.get('total_kwh', 0)),
+                ('재고품초과',   inference_summary.get('재고품초과', 0)),
+                ('stock_pen',    inference_summary.get('stock_pen', 0)),
+                ('total_defect', inference_summary.get('total_defect', 0)),
+                ('total_done',   inference_summary.get('total_done', 0)),
+                ('total_order',  inference_summary.get('total_order', 0)),
+            ]
+            for r, (k, v) in enumerate(items, 2):
+                ws.cell(r, 1, k)
+                ws.cell(r, 2, round(float(v),6) if isinstance(v, float) else v)
+            row_i = len(items) + 3
+            ws.cell(row_i, 1, '공정그룹')
+            ws.cell(row_i, 2, 'kWh')
+            for grp, kwh in inference_summary.get('by_grp_kwh', {}).items():
+                row_i += 1
+                ws.cell(row_i, 1, grp)
+                ws.cell(row_i, 2, round(kwh, 6))
+        _aw(ws)
+
+        agent = getattr(self, '_last_agent', None)
+        if agent and agent.ep_rewards:
+            ws2 = wb.create_sheet('Training_Rewards')
+            _hdr(ws2, ['episode','reward','rolling_avg_100'])
+            for i, r in enumerate(agent.ep_rewards, 1):
+                ws2.cell(i+1, 1, i)
+                ws2.cell(i+1, 2, round(float(r), 6))
+                if i >= 100:
+                    ws2.cell(i+1, 3, round(float(np.mean(agent.ep_rewards[i-100:i])),6))
+            _aw(ws2)
+
+
+
+
+        # ══════════════════════════════════════════════════════════
+        # ══════════════════════════════════════════════════════════
+        menv = getattr(self, '_last_menv', None)
+        if menv is not None:
+            wh = menv.wh
+            makespan_s = int(menv.env.now)
+            max_hour = max(1, makespan_s // 3600 + 1)
+            if max_hour > 720:
+                print(f'[경고] makespan {max_hour}h > 720h - Stock_Timeseries 열 수가 많아 '
+                      f'openpyxl 쓰기가 오래 걸릴 수 있습니다.')
+
+            all_items = set()
+            try:
+                all_items = wh.data.iter_all_bom_items()
+            except AttributeError:
+                pass
+            all_items.update(wh.stock.keys())
+            all_items.update(wh.snapshots.keys())
+            all_items = sorted(all_items)
+
+            ws_s = wb.create_sheet('Stock_Summary')
+            _hdr(ws_s, ['item_code', 'item_name', 'initial_stock',
+                        'total_consumed', 'final_stock', 'min_stock_qty',
+                        'lot_size', 'violations_count', 'reorder_count'])
+            r = 2
+            for code in all_items:
+                try:
+                    name = wh.data.get_item_name(code)
+                except AttributeError:
+                    name = ''
+                ws_s.cell(r, 1, code)
+                ws_s.cell(r, 2, name)
+                init_val = wh._initial_stocks.get(code,
+                    wh._bom_init_stock if code in wh._bom_codes else wh._init_stock)
+                ws_s.cell(r, 3, int(init_val))
+                ws_s.cell(r, 4, int(wh.consumed.get(code, 0)))
+                ws_s.cell(r, 5, int(wh.stock.get(code, init_val)))
+                try:
+                    ws_s.cell(r, 6, float(wh.data.get_min_stock(code)))
+                except Exception:
+                    ws_s.cell(r, 6, MIN_STOCK)
+                try:
+                    ws_s.cell(r, 7, int(wh._lot_for(code)))
+                except Exception:
+                    ws_s.cell(r, 7, 0)
+                ws_s.cell(r, 8, int(wh.violations.get(code, 0)))
+                ws_s.cell(r, 9, int(wh.reorder_count.get(code, 0)))
+                r += 1
+            _aw(ws_s)
+
+            ws_t = wb.create_sheet('Stock_Timeseries')
+            header = ['item_code', 'item_name'] + [f't={h}h' for h in range(max_hour + 1)]
+            _hdr(ws_t, header)
+            r = 2
+            for code in all_items:
+                try:
+                    name = wh.data.get_item_name(code)
+                except AttributeError:
+                    name = ''
+                ws_t.cell(r, 1, code)
+                ws_t.cell(r, 2, name)
+                by_hour = {}
+                for t_sec, q in wh.snapshots.get(code, []):
+                    by_hour[int(t_sec // 3600)] = int(q)
+                prev = int(wh._initial_stocks.get(code,
+                    wh._bom_init_stock if code in wh._bom_codes else wh._init_stock))
+                for h in range(max_hour + 1):
+                    if h in by_hour:
+                        prev = by_hour[h]
+                    ws_t.cell(r, 3 + h, prev)
+                r += 1
+
+            ws_e = wb.create_sheet('Stock_Events')
+            _hdr(ws_e, ['time_sec', 'time_hr', 'item_code', 'stock_after'])
+            r = 2
+            EVENT_CAP = 60000
+            count = 0
+            stop = False
+            for code in all_items:
+                if stop:
+                    break
+                for t_sec, q in wh.history.get(code, []):
+                    ws_e.cell(r, 1, float(t_sec))
+                    ws_e.cell(r, 2, round(float(t_sec) / 3600, 3))
+                    ws_e.cell(r, 3, code)
+                    ws_e.cell(r, 4, int(q))
+                    r += 1
+                    count += 1
+                    if count >= EVENT_CAP:
+                        ws_e.cell(r, 1, '[TRUNCATED]')
+                        ws_e.cell(r, 3, f'events > {EVENT_CAP}')
+                        stop = True
+                        break
+            _aw(ws_e)
+
+            ws_p = wb.create_sheet('Process_Log')
+            pheader = ['process_code'] + [f't={h}h' for h in range(max_hour + 1)]
+            _hdr(ws_p, pheader)
+            r = 2
+            _aw(ws_p)
+
+            ws_r = wb.create_sheet('Reorder_Log')
+            _hdr(ws_r, ['item_code', 'order_time_hr', 'arrive_time_hr',
+                        'lead_hr', 'lot_size', 'incoming', 'stock_at_order'])
+            r = 2
+            for entry in wh.reorder_log:
+                ot = float(entry.get('order_time', 0)) / 3600
+                at = float(entry.get('arrive_time', 0)) / 3600
+                ws_r.cell(r, 1, entry.get('item_code', ''))
+                ws_r.cell(r, 2, round(ot, 3))
+                ws_r.cell(r, 3, round(at, 3))
+                ws_r.cell(r, 4, round(at - ot, 3))
+                ws_r.cell(r, 5, int(entry.get('lot_size', 0)))
+                ws_r.cell(r, 6, int(entry.get('incoming', 0)))
+                ws_r.cell(r, 7, int(entry.get('stock_at_order', 0)))
+                r += 1
+            _aw(ws_r)
+
+            print(f'  재고·공정 시트 5개 추가 (items={len(all_items)}, '
+                  f'events={count}, reorders={len(wh.reorder_log)})')
+
+            # ══════════════════════════════════════════════════════
+            # ══════════════════════════════════════════════════════
+
+            ws_dms = wb.create_sheet('Debug_Model_Stats')
+            _hdr(ws_dms, ['model_id', 'order_qty', 'stats_done',
+                          'normal_completions', 'rma_completions',
+                          'blocked_by_quota', 'first_event_h',
+                          'last_event_h', 'first_after_24h',
+                          'first_after_48h'])
+            comps = wh.unit_completions
+            r = 2
+            for model in menv.order:
+                qty = menv.order[model]
+                stats_done = int(menv.stats.get(f'{model}_done', 0))
+                model_comps = [v for k, v in comps.items()
+                               if isinstance(k, tuple) and k[0] == model]
+                n_normal = sum(1 for c in model_comps if c['path'] == 'normal')
+                n_rma    = sum(1 for c in model_comps if c['path'] == 'rma')
+                n_blocked = sum(1 for c in model_comps
+                                if 'blocked_by_quota' in c['path'])
+                m_evs = [e for e in events_all if e.get('mid') == model]
+                first_h = round(min((e['start'] for e in m_evs), default=0)/3600, 2)
+                last_h  = round(max((e['end']   for e in m_evs), default=0)/3600, 2)
+                after_24 = round(min((e['start'] for e in m_evs
+                                      if e['start'] >= 24*3600), default=0)/3600, 2)
+                after_48 = round(min((e['start'] for e in m_evs
+                                      if e['start'] >= 48*3600), default=0)/3600, 2)
+                ws_dms.cell(r, 1, model)
+                ws_dms.cell(r, 2, qty)
+                ws_dms.cell(r, 3, stats_done)
+                ws_dms.cell(r, 4, n_normal)
+                ws_dms.cell(r, 5, n_rma)
+                ws_dms.cell(r, 6, n_blocked)
+                ws_dms.cell(r, 7, first_h)
+                ws_dms.cell(r, 8, last_h)
+                ws_dms.cell(r, 9, after_24)
+                ws_dms.cell(r, 10, after_48)
+                r += 1
+            _aw(ws_dms)
+
+            ws_dus = wb.create_sheet('Debug_Unit_Status')
+            _hdr(ws_dus, ['model_id', 'unit_key', 'completion_path',
+                          'end_time_h', 'done_n', 'total_n',
+                          'live_state', 'live_pc', 'live_done_n',
+                          'live_total_n'])
+            r = 2
+            live_us = getattr(menv, 'unit_states', {}) or {}
+            seen_keys = set()
+            for k, c in sorted(comps.items(),
+                                key=lambda kv: (str(kv[0][0]), str(kv[0][1]))):
+                model = k[0]
+                uid_or_tag = k[1]
+                ws_dus.cell(r, 1, str(model))
+                ws_dus.cell(r, 2, str(uid_or_tag))
+                ws_dus.cell(r, 3, c.get('path', ''))
+                ws_dus.cell(r, 4, round(c.get('end_time', 0)/3600, 3))
+                ws_dus.cell(r, 5, int(c.get('done_n', -1)))
+                ws_dus.cell(r, 6, int(c.get('total_n', -1)))
+                if isinstance(uid_or_tag, int):
+                    ls = live_us.get((model, uid_or_tag), {})
+                    ws_dus.cell(r, 7, str(ls.get('state', '')))
+                    ws_dus.cell(r, 8, str(ls.get('pc', '')))
+                    ws_dus.cell(r, 9, int(ls.get('done_n', 0)))
+                    ws_dus.cell(r, 10, int(ls.get('total_n', 0)))
+                    seen_keys.add((model, uid_or_tag))
+                r += 1
+            for (model, uid), ls in sorted(live_us.items(),
+                                           key=lambda kv: (str(kv[0][0]), kv[0][1])):
+                if (model, uid) in seen_keys:
+                    continue
+                ws_dus.cell(r, 1, str(model))
+                ws_dus.cell(r, 2, str(uid))
+                ws_dus.cell(r, 3, 'cutoff')
+                ws_dus.cell(r, 4, round(menv.env.now/3600, 3))
+                ws_dus.cell(r, 5, int(ls.get('done_n', 0)))
+                ws_dus.cell(r, 6, int(ls.get('total_n', 0)))
+                ws_dus.cell(r, 7, str(ls.get('state', '')))
+                ws_dus.cell(r, 8, str(ls.get('pc', '')))
+                ws_dus.cell(r, 9, int(ls.get('done_n', 0)))
+                ws_dus.cell(r, 10, int(ls.get('total_n', 0)))
+                r += 1
+            _aw(ws_dus)
+
+            ws_dpc = wb.create_sheet('Debug_Process_Coverage')
+            _hdr(ws_dpc, ['model_id', 'process_code', 'process_group',
+                          'worker_group', 'expected_qty', 'actual_count',
+                          'first_h', 'last_h'])
+            r = 2
+            for model in menv.order:
+                qty = menv.order[model]
+                kg_nodes = menv.graphs[model].nodes if model in menv.graphs else {}
+                for pc in sorted(kg_nodes.keys()):
+                    node = kg_nodes[pc]
+                    pc_evs = [e for e in events_all
+                              if e.get('mid') == model and e.get('pc') == pc]
+                    cnt = len(pc_evs)
+                    f_h = round(min((e['start'] for e in pc_evs),
+                                    default=0)/3600, 2) if pc_evs else ''
+                    l_h = round(max((e['end']   for e in pc_evs),
+                                    default=0)/3600, 2) if pc_evs else ''
+                    ws_dpc.cell(r, 1, model)
+                    ws_dpc.cell(r, 2, pc)
+                    ws_dpc.cell(r, 3, node.get('process_group', ''))
+                    ws_dpc.cell(r, 4, node.get('worker_group', ''))
+                    ws_dpc.cell(r, 5, qty)
+                    ws_dpc.cell(r, 6, cnt)
+                    ws_dpc.cell(r, 7, f_h)
+                    ws_dpc.cell(r, 8, l_h)
+                    r += 1
+            _aw(ws_dpc)
+
+            ws_dpf = wb.create_sheet('Debug_PCB_Flow')
+            _hdr(ws_dpf, ['pcb_code', 'role', 'model_hint',
+                          'initial_stock', 'final_stock', 'total_consumed',
+                          'smt_or_outsource_restore',
+                          'outsource_in', 'outsource_returned',
+                          'external_order_trigger', 'external_replenish_arrived',
+                          'is_bug_candidate'])
+            r = 2
+            model_for_pcb = {}
+            for m, pc_main in self.data.pcb_map.items():
+                model_for_pcb[pc_main] = (m, 'main')
+            for m, ths in self.data.tht_pcb_by_model.items():
+                for pc_t in ths:
+                    model_for_pcb[pc_t] = (m, 'tht')
+            for code in sorted(wh._pcb_codes):
+                role = model_for_pcb.get(code, ('-', '-'))
+                flow = wh.pcb_flow.get(code, {})
+                ext_trig = int(flow.get('external_order_trigger', 0))
+                ext_arr  = int(flow.get('external_replenish_arrived', 0))
+                bug = ext_trig > 0 or ext_arr > 0
+                ws_dpf.cell(r, 1, code)
+                ws_dpf.cell(r, 2, role[1])
+                ws_dpf.cell(r, 3, role[0])
+                ws_dpf.cell(r, 4, int(wh._initial_stocks.get(code,
+                    wh._bom_init_stock if code in wh._bom_codes else wh._init_stock)))
+                ws_dpf.cell(r, 5, int(wh.stock.get(code, 0)))
+                ws_dpf.cell(r, 6, int(wh.consumed.get(code, 0)))
+                ws_dpf.cell(r, 7, int(flow.get('restore_from_smt_or_outsource', 0)))
+                ws_dpf.cell(r, 8, int(flow.get('outsource_in', 0)))
+                ws_dpf.cell(r, 9, int(flow.get('outsource_returned', 0)))
+                ws_dpf.cell(r, 10, ext_trig)
+                ws_dpf.cell(r, 11, ext_arr)
+                ws_dpf.cell(r, 12, 'BUG' if bug else '')
+                r += 1
+            r += 1
+            ws_dpf.cell(r, 1, '== SMT 처리량 (line × model × pcb) ==')
+            r += 1
+            ws_dpf.cell(r, 1, 'line')
+            ws_dpf.cell(r, 2, 'model')
+            ws_dpf.cell(r, 3, 'pcb_code')
+            ws_dpf.cell(r, 4, 'restored_qty')
+            r += 1
+            for (sid, m, pc_code), q in sorted(wh.smt_per_model.items()):
+                ws_dpf.cell(r, 1, sid)
+                ws_dpf.cell(r, 2, m)
+                ws_dpf.cell(r, 3, pc_code)
+                ws_dpf.cell(r, 4, int(q))
+                r += 1
+            _aw(ws_dpf)
+
+            ws_dol = wb.create_sheet('Debug_Outsource_Log')
+            _hdr(ws_dol, ['pcb_code', 'model_id', 'board_id',
+                          'send_time_h', 'return_time_h', 'transit_h',
+                          'delay_h', 'status'])
+            r = 2
+            for entry in wh.outsource_log:
+                ret = entry.get('return_time')
+                send_h = round(entry.get('send_time', 0)/3600, 3)
+                ret_h  = round(ret/3600, 3) if ret is not None else ''
+                transit = round((ret - entry.get('send_time', 0))/3600, 3) \
+                          if ret is not None else ''
+                ws_dol.cell(r, 1, entry.get('pcb_code', ''))
+                ws_dol.cell(r, 2, entry.get('model_id', ''))
+                ws_dol.cell(r, 3, entry.get('board_id', ''))
+                ws_dol.cell(r, 4, send_h)
+                ws_dol.cell(r, 5, ret_h)
+                ws_dol.cell(r, 6, transit)
+                ws_dol.cell(r, 7, round(entry.get('delay_sec', 0)/3600, 3))
+                ws_dol.cell(r, 8, entry.get('status', ''))
+                r += 1
+            _aw(ws_dol)
+
+            ws_dpr = wb.create_sheet('Debug_PCB_Reorders')
+            _hdr(ws_dpr, ['item_code', 'order_h', 'arrive_h',
+                          'lot_size', 'incoming', 'stock_at_order'])
+            r = 2
+            for entry in wh.reorder_log:
+                if not entry.get('is_pcb'):
+                    continue
+                ws_dpr.cell(r, 1, entry.get('item_code', ''))
+                ws_dpr.cell(r, 2, round(entry.get('order_time', 0)/3600, 3))
+                ws_dpr.cell(r, 3, round(entry.get('arrive_time', 0)/3600, 3))
+                ws_dpr.cell(r, 4, int(entry.get('lot_size', 0)))
+                ws_dpr.cell(r, 5, int(entry.get('incoming', 0)))
+                ws_dpr.cell(r, 6, int(entry.get('stock_at_order', 0)))
+                r += 1
+            _aw(ws_dpr)
+
+            ws_dsk = wb.create_sheet('Debug_Skipped_PCs')
+            _hdr(ws_dsk, ['model_id', 'process_code', 'skip_count',
+                          'in_excel_pf', 'in_kg_nodes'])
+            r = 2
+            for (m, pc), c in sorted(wh.skipped_pcs.items()):
+                in_pf = wh.data._pc_map.get(pc) is not None
+                in_kg = (m in menv.graphs and
+                         pc in menv.graphs[m].nodes)
+                ws_dsk.cell(r, 1, m)
+                ws_dsk.cell(r, 2, pc)
+                ws_dsk.cell(r, 3, int(c))
+                ws_dsk.cell(r, 4, 'Y' if in_pf else 'N')
+                ws_dsk.cell(r, 5, 'Y' if in_kg else 'N')
+                r += 1
+            _aw(ws_dsk)
+
+            ws_dsm = wb.create_sheet('Debug_SMT_Choices')
+            _hdr(ws_dsm, ['time_h', 'chosen_model'])
+            r = 2
+            for (t, m) in wh.smt_model_choices:
+                ws_dsm.cell(r, 1, round(t/3600, 3))
+                ws_dsm.cell(r, 2, m)
+                r += 1
+            _aw(ws_dsm)
+
+            ws_dsa = wb.create_sheet('Debug_Safety_Alarms')
+            _hdr(ws_dsa, ['alarm_type', 'detail_1', 'detail_2',
+                          'detail_3', 'time_h', 'extra'])
+            r = 2
+            for entry in wh.kg_incomplete_log:
+                ws_dsa.cell(r, 1, 'B1_kg_incomplete')
+                ws_dsa.cell(r, 2, entry['model_id'])
+                ws_dsa.cell(r, 3, str(entry['unit_id']))
+                ws_dsa.cell(r, 4, '')
+                ws_dsa.cell(r, 5, round(entry['time_h'], 3))
+                ws_dsa.cell(r, 6, ','.join(entry['missing_pcs']))
+                r += 1
+            for entry in wh.smt_single_side_log:
+                ws_dsa.cell(r, 1, 'B5_single_side_double_pcb')
+                ws_dsa.cell(r, 2, entry['pcb_code'])
+                ws_dsa.cell(r, 3, entry['model_id'])
+                ws_dsa.cell(r, 4, str(entry['board_id']))
+                ws_dsa.cell(r, 5, round(entry['time_h'], 3))
+                ws_dsa.cell(r, 6, entry.get('reason', ''))
+                r += 1
+            dup_log = getattr(wh.data, '_bom_dup_merge_log', [])
+            for msg in dup_log:
+                ws_dsa.cell(r, 1, 'B4_bom_smt_side_conflict')
+                ws_dsa.cell(r, 2, str(msg))
+                r += 1
+            for entry in wh.stuck_wait_log:
+                ws_dsa.cell(r, 1, 'wait_stock_timeout_fallback')
+                ws_dsa.cell(r, 2, entry['item_code'])
+                ws_dsa.cell(r, 3, str(entry['qty']))
+                ws_dsa.cell(r, 4, f'stock={entry["stock_at_end"]}')
+                ws_dsa.cell(r, 5, round(entry['wait_end_h'], 3))
+                ws_dsa.cell(r, 6, f'wait_for_{entry["wait_end_h"]-entry["wait_start_h"]:.2f}h')
+                r += 1
+            _aw(ws_dsa)
+
+            ws_dpe = wb.create_sheet('Debug_Plogger_Events')
+            _hdr(ws_dpe, ['pc', 'mid', 'uid', 'grp', 'wgrp', 'slot',
+                          'start_h', 'end_h', 'dur_s', 'work_timed'])
+            r = 2
+            for e in evs:
+                if e.get('grp') != 'PACK':
+                    continue
+                ws_dpe.cell(r, 1, str(e.get('pc', '')))
+                ws_dpe.cell(r, 2, str(e.get('mid', '')))
+                ws_dpe.cell(r, 3, int(e.get('uid', 0)))
+                ws_dpe.cell(r, 4, str(e.get('grp', '')))
+                ws_dpe.cell(r, 5, str(e.get('wgrp', '')))
+                ws_dpe.cell(r, 6, int(e.get('slot', -1)))
+                ws_dpe.cell(r, 7, round(float(e.get('start', 0))/3600, 3))
+                ws_dpe.cell(r, 8, round(float(e.get('end', 0))/3600, 3))
+                ws_dpe.cell(r, 9, round(float(e.get('end', 0))-float(e.get('start', 0)), 2))
+                ws_dpe.cell(r, 10, str(e.get('work_timed', False)))
+                r += 1
+            _aw(ws_dpe)
+
+            pack_no_wgrp = sum(1 for e in evs
+                               if e.get('grp') == 'PACK' and not e.get('wgrp'))
+            pack_bad_slot = sum(1 for e in evs
+                                if e.get('grp') == 'PACK' and e.get('slot', -1) < 0)
+            from collections import Counter
+            pack_per_model = Counter(e.get('mid') for e in evs
+                                     if e.get('grp') == 'PACK')
+
+            print(f'  디버그 시트 10개 추가 (unit_comps={len(comps)}, '
+                  f'outsource_evs={len(wh.outsource_log)}, '
+                  f'skipped={sum(wh.skipped_pcs.values())}, '
+                  f'smt_choices={len(wh.smt_model_choices)}, '
+                  f'kg_incomplete={len(wh.kg_incomplete_log)}, '
+                  f'single_side_alarm={len(wh.smt_single_side_log)})')
+            print(f'  [PACK 이벤트 진단] no_wgrp={pack_no_wgrp}, bad_slot={pack_bad_slot}, '
+                  f'per_model={dict(pack_per_model)}')
+
+            wip = menv.wip
+            ws_wt = wb.create_sheet('WIP_Timeseries')
+            grps = ['SMT', 'MODULE', 'SEMI', 'SET', 'INSP', 'PACK', 'RMA']
+            _hdr(ws_wt, ['hour'] + grps)
+            hours = sorted({int(t // 3600) for g in grps
+                            for t, _ in wip.snapshots.get(g, [])})
+            lookup = {g: {int(t // 3600): n for t, n in wip.snapshots.get(g, [])}
+                      for g in grps}
+            r = 2
+            for h in hours:
+                ws_wt.cell(r, 1, h)
+                for ci, g in enumerate(grps, 2):
+                    ws_wt.cell(r, ci, lookup[g].get(h, 0))
+                r += 1
+            _aw(ws_wt)
+
+            pool = getattr(menv, 'outsource_pool', None)
+            ws_tl = wb.create_sheet('Truck_Log')
+            _hdr(ws_tl, ['dispatch_id', 'send_h', 'eta_h', 'return_h',
+                         'transit_h', 'delay_h', 'boards', 'truck_count_eq',
+                         'pcb_breakdown'])
+            r = 2
+            for entry in (pool.truck_log if pool else []):
+                ret_h = (entry['return_t'] / 3600) if entry.get('return_t') else None
+                send_h = entry['send_t'] / 3600
+                eta_h  = entry['eta'] / 3600
+                bk = ', '.join(f"{c[-4:]}×{n}"
+                               for c, n in entry['breakdown'].items())
+                ws_tl.cell(r, 1, entry['dispatch_id'])
+                ws_tl.cell(r, 2, round(send_h, 3))
+                ws_tl.cell(r, 3, round(eta_h, 3))
+                ws_tl.cell(r, 4, round(ret_h, 3) if ret_h else '')
+                ws_tl.cell(r, 5, round((ret_h - send_h), 3) if ret_h else '')
+                ws_tl.cell(r, 6, round(entry['delay_sec'] / 3600, 3))
+                ws_tl.cell(r, 7, entry['size'])
+                ws_tl.cell(r, 8, entry['truck_count'])
+                ws_tl.cell(r, 9, bk)
+                r += 1
+            _aw(ws_tl)
+
+
+        wb.save(path)
+        print(f'결과 저장: {path}')
 
 def main():
     if os.name == 'nt':
@@ -2811,14 +2673,6 @@ def main():
         else:
             print(f'  [AAS]  {model_id}: ManufacturingProcess 미파싱 — 시뮬에서 제외')
 
-    common_path = os.path.join(BASE_DIR, 'WorkstationWorkerMatchingDataAAS.json')
-    if os.path.exists(common_path):
-        common = load_aas('COMMON', common_path)
-        if common.schedule or common.WorkstationWorkerMatchingData:
-            aas_models['COMMON'] = common
-            print(f'  [AAS]  COMMON: workstations:{len(common.WorkstationWorkerMatchingData)} | '
-                  f'schedule:{"OK" if common.schedule else "missing"}')
-
     data = CombinedDataLoader(static_data, aas_models)
     if not data.schedule:
         raise RuntimeError(
@@ -2831,11 +2685,10 @@ def main():
           f'{data.schedule.get("work_end_sec",0)//3600:02d}h '
           f'(break {data.schedule.get("break_duration_sec",0)//60}min)')
 
-    model_ids = [m for m in aas_models if m != 'COMMON']
     order = {}
-    if not model_ids:
+    if not aas_loaders:
         print('  [경고] AAS 로드된 모델이 없어 주문 입력을 건너뜁니다.')
-    for m in model_ids:
+    for m in aas_loaders:
         while True:
             try:
                 qty = int(input(f'{m} 주문 수량: '))
@@ -2877,8 +2730,7 @@ def main():
 
     s = runner.run_inference(agent=agent)
     runner.save_results(inference_summary=s)
-    runner.save_figures(inference_summary=s,
-                        ep_rewards=(agent.ep_rewards if agent else None))
+
 
 if __name__ == '__main__':
     main()
