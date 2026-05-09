@@ -50,17 +50,13 @@ def _apply_schedule(schedule_dict: dict):
             f'BreakDurationMin(Range) 을 확인하세요.')
 
 def _find_pack_entry(data, model_id):
-    try:
-        procs = data.get_model_procs(model_id)
-    except Exception:
-        return None
-    grp_of = {str(r['process_code']): str(r.get('process_group', '') or '')
+    procs = data.get_model_procs(model_id)
+    grp_of = {str(r['process_code']): str(r['process_group'])
               for _, r in procs.iterrows()}
     for _, r in procs.iterrows():
-        if str(r.get('process_group', '') or '') != 'PACK':
+        if str(r['process_group']) != 'PACK':
             continue
-        prevs = [p.strip() for p in
-                 str(r.get('dep_prev_codes', '') or '').split(';') if p.strip()]
+        prevs = [p.strip() for p in str(r['dep_prev_codes']).split(';') if p.strip()]
         for p in prevs:
             if grp_of.get(p) == 'INSP':
                 return str(r['process_code'])
@@ -394,23 +390,23 @@ class ProcessKnowledgeGraph:
         max_ct = max(df['cycle_time_sec'].max(), 1)
         for _, r in df.iterrows():
             pc   = str(r['process_code'])
-            wgrp = str(r.get('worker_group','') or '')
-            kw   = data.get_kw(pc, str(r.get('process_group','') or ''))
-            dt   = str(r.get('dep_type','SEQUENCE') or 'SEQUENCE').upper()
+            wgrp = str(r['worker_group'] or '')
+            kw   = data.get_kw(pc, str(r['process_group']))
+            dt   = str(r['dep_type']).upper()
             self.nodes[pc] = {
                 'process_code' : pc,
-                'process_group': str(r.get('process_group','') or ''),
-                'cycle_time_sec': float(r['cycle_time_sec'] or 0),
-                'defect_rate'  : float(r['defect_rate'] or DEFECT_FLOOR),
-                'dep_wait_hr'  : float(r['dep_wait_hr'] or 0),
+                'process_group': str(r['process_group']),
+                'cycle_time_sec': float(r['cycle_time_sec']),
+                'defect_rate'  : float(r['defect_rate']),
+                'dep_wait_hr'  : float(r['dep_wait_hr']),
                 'worker_group' : wgrp,
                 'worker_count' : data.workers.get(wgrp, 1),
                 'rated_kw'     : kw,
-                'transfer_time': float(r['transfer_time_sec'] or 0),
+                'transfer_time': float(r['transfer_time_sec']),
                 'dep_type'     : dt,
                 'feat': np.array([
-                    float(r['cycle_time_sec'] or 0) / max_ct,
-                    min(float(r['defect_rate'] or DEFECT_FLOOR) * 1000, 1.0),
+                    float(r['cycle_time_sec']) / max_ct,
+                    min(float(r['defect_rate']) * 1000, 1.0),
                     data.workers.get(wgrp, 1) / 20,
                     min(kw / 100, 1.0),
                     1.0 if dt == 'FORK' else 0.0,
@@ -418,7 +414,7 @@ class ProcessKnowledgeGraph:
                 ], dtype=np.float32)
             }
             for prev in [p.strip() for p in
-                         str(r.get('dep_prev_codes','') or '').split(';') if p.strip()]:
+                         str(r['dep_prev_codes']).split(';') if p.strip()]:
                 if prev != pc:
                     self.edges.append((prev, pc, dt))
 
@@ -719,7 +715,7 @@ class EnergyLogger:
         if capacity is None:
             wgrp = PROCESS_GROUP_TO_WORKER_GROUP.get(str(grp))
             if wgrp:
-                capacity = int(self.data.workers.get(wgrp, 1))
+                capacity = int(self.data.workers[wgrp])
             else:
                 capacity = 1
         kw  = self.data.get_kw(pc, grp, capacity)
@@ -1009,9 +1005,9 @@ class SMTLine:
             if pr is None:
                 yield self.env.timeout(0.001)
                 continue
-            ct = float(pr['cycle_time_sec'] or 0.001)
-            tt = float(pr['transfer_time_sec'] or 0)
-            dr = float(pr['defect_rate'] or DEFECT_FLOOR)
+            ct = float(pr['cycle_time_sec'])
+            tt = float(pr['transfer_time_sec'])
+            dr = float(pr['defect_rate'])
 
             if not _is_work_time(self.env.now):
                 yield self.env.timeout(_next_work_start(self.env.now) - self.env.now)
@@ -1045,8 +1041,8 @@ class SMTLine:
                 board_has_defect = True
 
         aoi = self.data.get_proc('SMT_AOI')
-        aoi_ct = float(aoi['cycle_time_sec'] or 30)
-        aoi_dr = float(aoi['defect_rate'] or DEFECT_FLOOR)
+        aoi_ct = float(aoi['cycle_time_sec'])
+        aoi_dr = float(aoi['defect_rate'])
 
         if not _is_work_time(self.env.now):
             yield self.env.timeout(_next_work_start(self.env.now) - self.env.now)
@@ -1175,23 +1171,23 @@ def run_process(env, prow, done_ev, wres, wh, rma, energy,
                 unit_defect_flag=None, progress=None):
     pc    = str(prow['process_code'])
     grp   = str(prow.get('process_group','') or '')
-    ct    = float(prow['cycle_time_sec'] or 0)
-    dr    = float(prow['defect_rate'] or DEFECT_FLOOR)
-    tt    = float(prow['transfer_time_sec'] or 0)
-    whr   = float(prow['dep_wait_hr'] or 0)
-    wgrp  = str(prow.get('worker_group','') or '')
-    dtype = str(prow.get('dep_type','SEQUENCE') or 'SEQUENCE').upper()
+    ct    = float(prow['cycle_time_sec'])
+    dr    = float(prow['defect_rate'])
+    tt    = float(prow['transfer_time_sec'])
+    whr   = float(prow['dep_wait_hr'])
+    wgrp  = prow['worker_group']
+    dtype = str(prow['dep_type']).upper()
     prevs = [p.strip() for p in
-             str(prow.get('dep_prev_codes','') or '').split(';') if p.strip()]
+             str(prow['dep_prev_codes']).split(';') if p.strip()]
 
     if wgrp == 'WORKER_SET' and grp == 'SET':
         if pc.rsplit('_', 1)[-1].upper() == 'INSP':
             wgrp = 'WORKER_SET_INSP'
 
-    skill_base   = data.worker_skill.get(wgrp, 2)
+    skill_base   = data.worker_skill[wgrp]
     skill_actual = max(1, skill_base - (1 if wgrp in idle.absent_groups else 0))
-    ct = ct * data.skill_ct.get(skill_actual, 1.0)
-    dr = dr * data.skill_dr.get(skill_actual, 1.0)
+    ct = ct * data.skill_ct[skill_actual]
+    dr = dr * data.skill_dr[skill_actual]
 
     if prevs:
         wait_evs = [done_ev[p] for p in prevs if p in done_ev]
@@ -1370,7 +1366,7 @@ def _sample_defective_predecessor(data, model_id, src_pc):
 
     if not candidates:
         return None
-    weights = [max(float(c.get('defect_rate', 0) or 0), 0.0) for c in candidates]
+    weights = [max(float(c['defect_rate']), 0.0) for c in candidates]
     if sum(weights) <= 0:
         return None
     chosen = random.choices(candidates, weights=weights, k=1)[0]
@@ -2304,7 +2300,7 @@ class ManufacturingEnv:
             for wgrp in self.data.worker_skill:
                 if random.random() < WORKER_ABSENT_PROB:
                     self.idle.absent_groups.add(wgrp)
-                    cur_skill = self.data.worker_skill.get(wgrp, 2)
+                    cur_skill = self.data.worker_skill[wgrp]
                     _log_event(env.now,
                                f'작업자 결근: {wgrp} '
                                f'(숙련도 {cur_skill} -> {max(1, cur_skill - 1)})')

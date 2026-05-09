@@ -5,7 +5,7 @@
   1) load_aas 가 예외 없이 끝나는가
   2) 각 Submodel(ManufacturingProcess / WWM / SkillLevelType / HierarchicalStructures) 이 비어있지 않은가
   3) ProcessNode 의 핵심 필드가 그럴듯한 값을 가지는가
-  4) group_to_workstation 매핑이 ManufacturingProcess 의 GroupIdShort 들을 모두 커버하는가
+  4) process_to_workstation 매핑이 ManufacturingProcess 의 GroupIdShort 들을 모두 커버하는가
   5) ProcessNode.WorkstationId 가 WorkstationWorkerMatchingData 의 키 안에 존재하는가
   6) DepPrev 에 적힌 선행공정이 모두 ManufacturingProcess 키 안에 있는가 (orphan 검사)
   7) HierarchicalStructures.PcbEntry 의 SMT 컴포넌트 item_code 가 IRI URL 이 아니라 토큰화돼있는지
@@ -67,7 +67,7 @@ def check_model(model_id: str, path: str) -> int:
     print(f'  SkillLevelType                : {len(m.SkillLevelType):3d} levels')
     print(f'  HierarchicalStructures.pcb    : {len(m.HierarchicalStructures.pcb_entries):3d} PCB entries')
     print(f'  HierarchicalStructures.parts  : {len(m.HierarchicalStructures.assembly_parts):3d} assembly parts')
-    print(f'  group_to_workstation          : {len(m.group_to_workstation):3d} mappings')
+    print(f'  process_to_workstation          : {len(m.process_to_workstation):3d} mappings')
     print(f'  schedule                      : {m.schedule}')
 
     if not m.ManufacturingProcess:
