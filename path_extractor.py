@@ -113,6 +113,9 @@ def _qty(raw) -> int:
     except (ValueError, TypeError):
         return 1
 
+def _bool(raw) -> bool:
+    return True if raw == "TRUE" else False
+
 
 # ══════════════════════════════════════════════════════════════════════════════
 # dataclass — 필드명 = AAS idShort (기존 유지)
@@ -177,6 +180,7 @@ class PcbEntry:
     idShort    : str
     entityType : str
     SMT_Side   : str
+    SMT_THT    : bool
     Quantity   : int
     components : List[SmtComponent]
 
@@ -423,6 +427,7 @@ def _parse_HierarchicalStructures(submodels: list) -> HierarchicalStructuresData
                 entityType = statement.get('entityType', ''),
                 SMT_Side   = _qualifier(statement, 'SMT_Side') or 'single',
                 Quantity   = _qty(_qualifier(statement, 'Quantity')),
+                SMT_THT   = _bool(_qualifier(statement, 'SMT_THT')),
                 components = [
                     SmtComponent(
                         item_code = (rel.get('second', {}).get('keys') or [{}])[0]

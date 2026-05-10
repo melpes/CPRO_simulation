@@ -37,17 +37,6 @@ def _log_event(t, msg):
     if len(_EVENT_BUF) > 100:
         del _EVENT_BUF[:-100]
 
-def _apply_schedule(schedule_dict: dict):
-
-    _active_schedule.update(schedule_dict)
-    required = ('work_start_sec', 'work_end_sec',
-                'lunch_start_sec', 'lunch_end_sec', 'break_duration_sec')
-    missing = [k for k in required if k not in _active_schedule]
-    if missing:
-        raise RuntimeError(
-            f'AAS 가 근무 스케줄 미제공: {missing}. '
-            f'WorkstationWorkerMatchingData 의 WorkStartTime / WorkEndTime / '
-            f'BreakDurationMin(Range) 을 확인하세요.')
 
 class CombinedDataLoader:
 
