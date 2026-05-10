@@ -50,8 +50,9 @@
 #               [P] WorkerId      → WorkstationData.WorkerIds[]
 #               [P] SkillLevel    → WorkstationData.SkillLevel (최빈값)
 #           SML.AssignedProcessGroups
-#             [Re](반복)
+#             [Re](반복)          → Ref 1개 = 복수 ProcessCode 
 #               .value.keys[]     → _iri_token → GroupIdShort
+#               → group_to_workstation[ProcessCode] = WorkstationId
 #
 #   SM.HierarchicalStructures
 #     [E].{ModelEntity}
@@ -200,7 +201,7 @@ class AASModel:
     WorkstationWorkerMatchingData : Dict[str, WorkstationData]
     SkillLevelType                : Dict[str, SkillLevel]
     HierarchicalStructures        : HierarchicalStructuresData
-    process_to_workstation          : Dict[str, str] = field(default_factory=dict)
+    group_to_workstation          : Dict[str, str] = field(default_factory=dict)
     schedule                      : Dict[str, int] = field(default_factory=dict)
 
 
@@ -210,7 +211,7 @@ class AASModel:
 
 def _parse_ManufacturingProcess(
     submodels: list,
-    process_to_workstation: Dict[str, str],
+    group_to_workstation: Dict[str, str],
 ) -> Dict[str, ProcessNode]:
 
     ManufacturingProcess = _sm(submodels, 'ManufacturingProcess')
@@ -238,7 +239,7 @@ def _parse_ManufacturingProcess(
                 ProcessCode   = ProcessCode_el['idShort'],
                 GroupIdShort  = GroupIdShort,
                 ProcessGroup  = _qualifier(GroupIdShort_el, 'ProcessGroup') or '',
-                WorkstationId = process_to_workstation.get(ProcessCode_el['idShort'], ''),
+                WorkstationId = group_to_workstation.get(ProcessCode_el['idShort'], ''),
                 DepType       = str(_prop(elems, 'DepType') or 'SEQUENCE').upper(),
                 DepPrev       = [p.strip()
                                  for p in str(_prop(elems, 'DepPrev') or '').split(';')
@@ -294,7 +295,7 @@ def _parse_SkillLevelType(WorkstationWorkerMatchingData: dict) -> Dict[str, Skil
 
 
 def _extract_assigned_groups(apg_el: Optional[dict]) -> List[str]:
-    """AssignedProcessGroups ReferenceElement 목록에서 GroupIdShort (_iri_token) 추출"""
+    """AssignedProcessGroups[SML] 파싱"""
     if not apg_el:
         return []
     assigned: List[str] = []
@@ -330,7 +331,7 @@ def _parse_WorkstationWorkerMatchingData(
         return {}, SkillLevelType, {}, {}
 
     workstations:         Dict[str, WorkstationData] = {}
-    process_to_workstation: Dict[str, str]             = {}
+    group_to_workstation: Dict[str, str]             = {}
     schedule:             Dict[str, int]             = {}
     schedule_set = False
 
@@ -361,7 +362,7 @@ def _parse_WorkstationWorkerMatchingData(
         assigned = _extract_assigned_groups(apg_el)
 
         for token in assigned:
-            process_to_workstation[token] = WorkstationId_el['idShort']
+            group_to_workstation[token] = WorkstationId_el['idShort']
 
         if not schedule_set and props:
             schedule = {
@@ -392,7 +393,7 @@ def _parse_WorkstationWorkerMatchingData(
             AssignedProcessGroups = assigned,
         )
 
-    return workstations, SkillLevelType, process_to_workstation, schedule
+    return workstations, SkillLevelType, group_to_workstation, schedule
 
 
 # ══════════════════════════════════════════════════════════════════════════════
@@ -467,6 +468,6 @@ def load_aas(model_id: str, json_path: str) -> AASModel:
         WorkstationWorkerMatchingData = ww,
         SkillLevelType                = skill,
         HierarchicalStructures        = _parse_HierarchicalStructures(submodels),
-        process_to_workstation          = g2w,
+        group_to_workstation          = g2w,
         schedule                      = sched,
     )
