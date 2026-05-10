@@ -77,6 +77,21 @@ def tht_raw_code(pcb_code):
 
 SMT_LINE_IDS = ['L1', 'L2']
 
+SMT_STAGE_KEYS   = ['LOADER', 'PRINTER', 'SPI', 'MOUNTER_H',
+                    'MOUNTER_M', 'REFLOW', 'UNLOADER']
+SMT_STAGE_LABELS = ['LD', 'PR', 'SP', 'MH', 'MM', 'RF', 'UL']
+
+SMT_AOI_CODE      = 'SMT_AOI'
+SMT_COMPLETE_CODE = 'SMT_COMPLETE'
+SMT_THT_CODE      = 'SMT_THT'
+SMT_VIRTUAL_DONE_CODES = {SMT_COMPLETE_CODE, SMT_THT_CODE}
+
+def smt_stage_pc(stage: str, suffix: str) -> str:
+    return f'SMT_{stage}_{suffix}'
+
+def smt_line_sequence(suffix: str) -> list:
+    return [smt_stage_pc(s, suffix) for s in SMT_STAGE_KEYS]
+
 KG_EXCLUDED_PROCESS_GROUPS = {'SMT', 'LOGISTICS', 'SMT_SHARED', 'RMA'}
 WIP_TRACKED_GROUPS         = ['SMT', 'MODULE', 'SEMI', 'SET', 'INSP', 'PACK', 'RMA']
 
