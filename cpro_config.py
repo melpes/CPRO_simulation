@@ -28,8 +28,6 @@ REPLENISH_LEAD_DAY = 1
 REPLENISH_QTY_MULT = 10
 WIP_CAP_RATIO      = 1.5
 
-OQC_RATE          = 0.05
-OQC_TIME_SEC      = 600
 AOI_DEFECT_ACTION = 'repair'
 
 RMA_REPAIR_TIME_MEAN_SEC = 300
@@ -78,6 +76,14 @@ def tht_raw_code(pcb_code):
     return f'{pcb_code}{THT_RAW_SUFFIX}'
 
 SMT_LINE_IDS = ['L1', 'L2']
+
+KG_EXCLUDED_PROCESS_GROUPS = {'SMT', 'LOGISTICS', 'SMT_SHARED', 'RMA'}
+WIP_TRACKED_GROUPS         = ['SMT', 'MODULE', 'SEMI', 'SET', 'INSP', 'PACK', 'RMA']
+
+PROCESS_GROUP_DEFAULT_KW = {
+    'SMT': 5.0, 'MODULE': 1.0, 'SEMI': 2.0, 'SET': 2.0,
+    'INSP': 0.5, 'OQC': 0.2, 'PACK': 1.0, 'RMA': 0.1,
+}
 
 
 # ════════════════════════════════════════════════════════════════════════

@@ -135,6 +135,7 @@ class ProcessNode:
     CycleTimeSec  : int
     DefectRate    : float
     InputBOM      : List[BomItem]
+    SamplingRate  : Optional[float] = None
 
 @dataclass
 class BreakDurationMin:
@@ -255,6 +256,8 @@ def _parse_ManufacturingProcess(
                     and _iri_token(
                         (ref.get('value', {}).get('keys') or [{}])[0].get('value', ''))
                 ],
+                SamplingRate  = (lambda v: float(v) if v is not None else None)(
+                    _qualifier(ProcessCode_el, 'SamplingRate')),
             )
 
     return result

@@ -33,7 +33,7 @@ AAS 템플릿에 미반영된 데이터는 모두 **`cpro_config.py`** 한 파�
 `cpro_config.py` 의 섹션 구성:
 
 - 시간 / 진입점 (`RANDOM_SEED`, `DAY_SEC`, `MAX_DAYS`)
-- 시뮬 정책 상수 (`OQC_RATE`, `MIN_STOCK`, `RMA_*`, `THT_*` 등)
+- 시뮬 정책 상수 (`MIN_STOCK`, `RMA_*`, `THT_*` 등 — AAS qualifier 로 옮긴 항목은 제거)
 - PCB / SMT 라인 매핑 (`PCB_MAP`, `THT_PCB_BY_MODEL`, `SMT_LINE_IDS`)
 - 워커 그룹 / 라벨 매핑 (`WWM_LINE_TO_WORKER`, `PROCESS_GROUP_TO_WORKER_GROUP`, `LOCATION_*`)
 - 정격 전력 (`RATED_POWER_KW`, `get_rated_power_kw`)
@@ -44,6 +44,48 @@ AAS 템플릿에 미반영된 데이터는 모두 **`cpro_config.py`** 한 파�
 - 새 항목은 적절한 섹션에 추가.
 - AAS 템플릿이 확장되어 어떤 항목이 AAS 에서 추출 가능해지면 `cpro_config.py` 에서 제거하고 `path_extractor` 가 추출하도록 수정.
 - 임시 글로벌을 **AAS 에서 가져온 것처럼 위장하기 위한 prefix 추론 등 우회 로직은 만들지 말 것**.
+
+## TODO: 시뮬레이션 분기 일반화 (그룹 이름 hardcoding 제거)
+
+시뮬 코드가 `'SMT'`, `'RMA'`, `'OQC'`, `'PACK'`, `'INSP'` 등 특정 ProcessGroup 라벨에 매칭해서 분기하는 곳들이 다수 남아 있다. 다른 공장의 AAS 가 자유 형식 라벨(`'GHT_MEI'`, 숫자 코드 등)을 보내도 동작해야 한다는 contract 위반. 라벨 매칭 대신 **AAS qualifier 또는 그래프 토폴로지** 같은 데이터 기반 식별로 옮길 것.
+
+### A. 흐름 자체가 일반 KG 와 다른 경우 (시뮬 핸들러 분기)
+
+1. **SMT 컨베이어 라인** (`'SMT'`/`'SMT_SHARED'`): `SMTLine` 클래스, `KG_EXCLUDED_PROCESS_GROUPS`, `wip.enter('SMT')`, `energy.record(_,'SMT',_)` 다수.
+   → AAS qualifier `LineType: SmtConveyor` 또는 토폴로지(stage chain) 로 식별.
+2. **RMA 재투입** (`'RMA'`/`'RMA_REPAIR'`): `run_rma`, `_rma_repair_and_reinsert`, `energy.record('RMA_REPAIR','RMA',_)`, `KG_EXCLUDED_PROCESS_GROUPS` 의 `'RMA'`.
+   → AAS qualifier `LineType: ReworkLine`.
+3. **THT 외주**: `OutsourceTruckPool`, `PCB_MAP`/`THT_PCB_BY_MODEL`, `THT_DELAY_*`.
+   → AAS qualifier `PcbType: Main/Tht` + `LineType: OutsourceShipment`.
+
+### B. 일반 KG 흐름 안의 노드별 변형 (qualifier 로 옮기기 가장 쉬움)
+
+4. **OQC 5% 샘플링** — ✅ 처리 완료 (`ProcessNode.SamplingRate` qualifier).
+5. **AOI defect action** (`'repair'`/`'scrap'`): `AOI_DEFECT_ACTION` 글로벌.
+   → ProcessNode qualifier `DefectAction`.
+6. **SET_INSP 분리**: `resolve_worker_group` 의 `wgrp=='WORKER_SET' & grp=='SET' & pc.endswith('_INSP')` 하드코딩.
+   → ProcessNode qualifier `RequiresInspector` 또는 별도 워커 매핑 명시.
+
+### C. PACK 진입 식별
+
+7. **`_find_pack_entry`**: `process_group=='PACK'` + INSP 합류 검사.
+   → ProcessNode qualifier `IsPackEntry` 또는 토폴로지 (`DepNext` 없는 합류 노드).
+
+### D. 모니터링 / 통계
+
+8. **`WIP_TRACKED_GROUPS` 고정 7개 그룹**.
+   → 동적 (`for grp in self.wip:`). 라벨 자유.
+9. **`PROCESS_GROUP_DEFAULT_KW`**: `RATED_POWER_KW` 못 찾을 때 group 기본값.
+   → 검증기에서 `RATED_POWER_KW` 누락 raise. fallback 자체 제거.
+10. **`PCB_MAP` / `THT_PCB_BY_MODEL`**: 모델별 main/THT PCB 코드.
+    → AAS `pcb_entries` 의 qualifier `PcbType: Main/Tht` 도입.
+
+### 진행 원칙
+
+- **B 부터** (4의 OQC 패턴 그대로 적용 가능).
+- **A** 는 핸들러 자체는 도메인 특화로 유지하되, AAS qualifier 로 식별만 옮김.
+- 새 qualifier 도입 = AAS 템플릿 확장 + `path_extractor` 추출 + 시뮬 사용.
+
 
 ## 시각화 분리
 

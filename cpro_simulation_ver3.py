@@ -105,9 +105,7 @@ class FallbackDataLoader:
         kw = get_rated_power_kw(process_code, process_group, capacity)
         if kw > 0:
             return kw
-        return {'SMT': 5.0, 'MODULE': 1.0, 'SEMI': 2.0, 'SET': 2.0,
-                'INSP': 0.5, 'OQC': 0.2, 'PACK': 1.0, 'RMA': 0.1
-                }.get(process_group, 0.5) / max(capacity, 1)
+        return PROCESS_GROUP_DEFAULT_KW.get(process_group, 0.5) / max(capacity, 1)
 
     def get_mttr(self, process_code):
         return self._mttr.get(str(process_code), SMT_MTTR_DEFAULT_HR * 3600)
@@ -148,8 +146,7 @@ class FallbackDataLoader:
     def get_model_procs(self, model_id):
         df = self.pf
         return df[df['model_id'].isin([model_id, 'ALL'])
-                  & ~df['process_group'].isin(
-                      ['SMT', 'LOGISTICS', 'SMT_SHARED', 'RMA'])].copy()
+                  & ~df['process_group'].isin(KG_EXCLUDED_PROCESS_GROUPS)].copy()
 
 class CombinedDataLoader:
 
@@ -177,6 +174,7 @@ class CombinedDataLoader:
                     'transfer_qty'     : 1,
                     'transfer_time_sec': 0.0,
                     'transport_mode'   : '',
+                    'sampling_rate'    : node.SamplingRate,
                 }
 
         self._bom_idx = dict(static_loader._bom_idx)
@@ -327,10 +325,10 @@ class CombinedDataLoader:
 
     def get_model_procs(self, model_id):
         df = self._pf_combined
-        return df[
-            df['model_id'].isin([model_id, 'ALL'])
-            & ~df['process_group'].isin(['SMT','LOGISTICS','SMT_SHARED','RMA'])
-        ].copy()
+        matched   = df['model_id'] == model_id
+        static_ok = (df['model_id'] == 'ALL') & ~df['process_group'].isin(
+            KG_EXCLUDED_PROCESS_GROUPS)
+        return df[matched | static_ok].copy()
 
 class ProcessKnowledgeGraph:
     def __init__(self, data, model_id: str):
@@ -420,8 +418,13 @@ def is_process_ready(pc: str, ctx: ReadyContext) -> ReadyStatus:
     node = ctx.kg.nodes[pc]
 
     preds = [p for (p, t, _) in ctx.kg.edges if t == pc]
-    if not all(p in ctx.done_set for p in preds):
-        return ReadyStatus.WAIT_PRED
+    if preds:
+        if node['dep_type'] == 'JOIN':
+            if not all(p in ctx.done_set for p in preds):
+                return ReadyStatus.WAIT_PRED
+        else:
+            if not any(p in ctx.done_set for p in preds):
+                return ReadyStatus.WAIT_PRED
 
     for code, qty in ctx.data.get_bom_parts(ctx.model_id, pc):
         if ctx.wh.stock[str(code)] < qty:
@@ -633,7 +636,7 @@ class WIPTracker:
         self.history = defaultdict(list)
         self.snapshots = defaultdict(list)
         total = sum(order.values())
-        for grp in ['MODULE','SEMI','SET','INSP','PACK','SMT']:
+        for grp in WIP_TRACKED_GROUPS:
             self.cap[grp] = max(int(total * WIP_CAP_RATIO * 3), 10)
 
     def enter(self, grp):
@@ -648,11 +651,10 @@ class WIPTracker:
         return sum(self.viol.values())
 
     def snapshot_loop(self, env, interval=3600):
-        tracked_grps = ['SMT', 'MODULE', 'SEMI', 'SET', 'INSP', 'PACK', 'RMA']
         while True:
             yield env.timeout(interval)
             now = env.now
-            for grp in tracked_grps:
+            for grp in WIP_TRACKED_GROUPS:
                 self.snapshots[grp].append((now, int(self.wip.get(grp, 0))))
 
 class EnergyLogger:
@@ -1143,11 +1145,11 @@ def run_process(env, prow, done_ev, wres, wh, rma, energy,
 
     if prevs:
         wait_evs = [done_ev[p] for p in prevs if p in done_ev]
-        if dtype == 'JOIN':
-            if wait_evs:
+        if wait_evs:
+            if dtype == 'JOIN':
                 yield simpy.AllOf(env, wait_evs)
-        elif wait_evs:
-            yield wait_evs[0]
+            else:
+                yield simpy.AnyOf(env, wait_evs)
 
     if whr > 0:
         yield env.timeout(whr * 3600)
@@ -1486,7 +1488,10 @@ def produce_unit(env, model_id, unit_id, data, kg,
     done_set = {'SMT_COMPLETE', 'SMT_THT'}
     kg_done  = set()
     kg_total = set(kg.nodes.keys())
+    kg_sources = {p for p, t, _ in kg.edges}
+    kg_terminals = kg_total - kg_sources
     unit_defect_flag = {unit_id: False}
+    unit_routing = {'rma': False}
 
     unit_key = (model_id, unit_id)
     us = None
@@ -1498,7 +1503,7 @@ def produce_unit(env, model_id, unit_id, data, kg,
     ready_ctx = ReadyContext(
         kg=kg, done_set=done_set, wh=wh, wres=wres,
         data=data, model_id=model_id)
-    while kg_done != kg_total:
+    while not kg_terminals.issubset(kg_done):
         ready_pcs = kg.ready_processes(ready_ctx)
 
         if us is not None:
@@ -1534,6 +1539,24 @@ def produce_unit(env, model_id, unit_id, data, kg,
                 menv.wh.skipped_pcs[(model_id, str(next_pc))] += 1
             done_set.add(next_pc)
             kg_done.add(next_pc)
+            if next_pc in done_ev and not done_ev[next_pc].triggered:
+                done_ev[next_pc].succeed()
+            continue
+
+        if prow.get('process_group') == 'RMA' and not unit_routing['rma']:
+            done_set.add(next_pc)
+            kg_done.add(next_pc)
+            if next_pc in done_ev and not done_ev[next_pc].triggered:
+                done_ev[next_pc].succeed()
+            continue
+
+        sr = prow.get('sampling_rate')
+        if sr is not None and random.random() >= float(sr):
+            stats['sampling_skipped'] = stats.get('sampling_skipped', 0) + 1
+            done_set.add(next_pc)
+            kg_done.add(next_pc)
+            if next_pc in done_ev and not done_ev[next_pc].triggered:
+                done_ev[next_pc].succeed()
             continue
 
         yield env.process(
@@ -1575,39 +1598,6 @@ def produce_unit(env, model_id, unit_id, data, kg,
     if us is not None:
         us[unit_key].update({'state': 'DONE', 'pc': '-',
                              'done_n': len(kg_done)})
-
-    if random.random() < OQC_RATE:
-        if not _is_work_time(env.now):
-            yield env.timeout(_next_work_start(env.now) - env.now)
-        res = wres.get('WORKER_OQC')
-        req = res.request() if res else None
-        acquired = False
-        if req:
-            yield req
-            idle.acquire(env, 'WORKER_OQC')
-            acquired = True
-        ev_id_oqc = None
-        try:
-            if plogger is not None:
-                _cap = res.capacity if res is not None else 1
-                ev_id_oqc = plogger.mark_start(
-                    'OQC_SAMPLE', model_id, unit_id, env.now, 'OQC',
-                    wgrp='WORKER_OQC', cap=_cap,
-                    work_timed=True)
-            yield from work_timeout(env, OQC_TIME_SEC)
-            energy.record('OQC', 'INSP', OQC_TIME_SEC, env.now)
-        finally:
-            if plogger is not None and ev_id_oqc is not None:
-                try:
-                    plogger.mark_end('OQC_SAMPLE', env.now, ev_id_oqc)
-                except Exception:
-                    pass
-            if req and res:
-                if acquired:
-                    idle.release(env, 'WORKER_OQC')
-                    acquired = False
-                res.release(req)
-        stats['oqc_inspected'] = stats.get('oqc_inspected', 0) + 1
 
     done, total = progress[model_id]
     if done >= total:
