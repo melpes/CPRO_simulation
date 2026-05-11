@@ -4,13 +4,11 @@ from __future__ import annotations
 import json
 import re
 from dataclasses import dataclass, field
-from typing import Any, Dict, List, Optional
+from typing import Any, Dict, List
 
 
 _CD_URL_RE = re.compile(r'/ids/cd/(?P<idShort>[^/]+)/[^/]+/[^/]+/?$')  # 확정
 
-
-# 확정
 @dataclass
 class GlobalReference:
     value: str
@@ -20,8 +18,6 @@ class GlobalReference:
         m = _CD_URL_RE.search(self.value)
         return m.group('idShort')
 
-
-# 확정
 @dataclass
 class AssignedProcessGroupRef:
     value: List[GlobalReference] = field(default_factory=list)
@@ -45,13 +41,14 @@ class SkillLevelType:
 
 @dataclass
 class WorkstationInformation:
+    idShort: str = ''
     AssignedProcessGroups: List[AssignedProcessGroupRef] = field(default_factory=list)
     WorkstationConfigurationRecords: Dict[str, int] = field(default_factory=dict)
 
 
 @dataclass
 class GeneralWorkstationData:
-    WorkstationInformation: List[WorkstationInformation] = field(default_factory=list)
+    WorkstationInformation: Dict[str, WorkstationInformation] = field(default_factory=dict)
 
 
 @dataclass
@@ -108,18 +105,6 @@ class BomQualifier:
 
 
 class BomRef(dict):
-    """InputBOM — multi-key dict ``{process_idShort: quantity, ...}``.
-
-    JSON 의 InputBOM SubmodelElementList 안 ReferenceElement 들을 한 dict 으로
-    평탄화. 각 (key, value) 의 출처::
-
-        key   ← _CD_URL_RE.search(ref.value).group('idShort')   # ref 의 URL
-        value ← ref.qualifier.Quantity (float)                  # ref 의 qualifier
-
-    원본 ``(URL, BomQualifier)`` 쌍은 ``self.refs`` 로 보존(추적/디버깅).
-    빈 BomRef 부터 ``add()`` 로 채우거나, ``refs=`` 에 list 를 한 번에 전달.
-    """
-
     def __init__(self, refs: List = None):
         super().__init__()
         self.refs: List = []
@@ -161,28 +146,12 @@ class ManufacturingProcess:
     def __getitem__(self, key: str) -> ProcessGroup:
         return self.groups[key]
 
-
-# ── JSON 로더 ─────────────────────────────────────────────────────────────
-#
-# 진입점::
-#
-#     wwm = load_workstation_worker_matching_data('WorkstationWorkerMatchingDataAAS.json')
-#     hs  = load_hierarchical_structures('MODEL_A.json')
-#     mp  = load_manufacturing_process('MODEL_A.json')
-#
-# 위 dataclass 와 동일한 path-style (``view.<idShort>``, ``view[i]``,
-# ``view.value``, ``view.qualifier['type']`` 등) 로 raw JSON 을 navigate
-# 하기 위해 ``AasView`` wrapper 를 사용한다. 정의되지 않은 필드(description,
-# semanticId, displayName 등) 는 무시. 누락/불일치는 RuntimeError 로 raise.
-#
-
-
 def load_workstation_worker_matching_data(json_path: str) -> WorkstationWorkerMatchingData:
     """WWM AAS JSON → WorkstationWorkerMatchingData."""
     sm = AasView(_find_submodel(_read_json(json_path), 'WorkstationWorkerMatchingData'))
 
     skill = SkillLevelType(levels=[
-        SkillLevelProperty(idShort=p.idShort, value=p.value)
+        SkillLevelProperty(idShort=p.idShort, value=int(p.value))
         for p in sm.SkillLevelType
     ])
 
@@ -199,13 +168,15 @@ def load_workstation_worker_matching_data(json_path: str) -> WorkstationWorkerMa
             for rec in wsi.WorkstationConfigurationRecords
         }
         infos.append(WorkstationInformation(
+            idShort=wsi.idShort,
             AssignedProcessGroups=apgs,
             WorkstationConfigurationRecords=wcr,
         ))
 
     return WorkstationWorkerMatchingData(
         SkillLevelType=skill,
-        GeneralWorkstationData=GeneralWorkstationData(WorkstationInformation=infos),
+        GeneralWorkstationData=GeneralWorkstationData(
+            WorkstationInformation={ws.idShort: ws for ws in infos}),
     )
 
 
@@ -221,12 +192,6 @@ def load_hierarchical_structures(json_path: str) -> HierarchicalStructures:
 
 
 def load_manufacturing_process(json_path: str) -> ManufacturingProcess:
-    """MODEL_N AAS JSON → ManufacturingProcess.
-
-    ProcessGroup 은 자식이 모두 SubmodelElementCollection (ProcessNode) 인 것만
-    인식. ProcessType (자식이 Property 인 enum 류) 같은 메타 collection 은 제외 —
-    토폴로지 기반 식별이라 idShort 의존 없음.
-    """
     sm = AasView(_find_submodel(_read_json(json_path), 'ManufacturingProcess'))
     groups: Dict[str, ProcessGroup] = {}
     for elem in sm:
@@ -237,8 +202,6 @@ def load_manufacturing_process(json_path: str) -> ManufacturingProcess:
             groups[elem.idShort] = _parse_process_group(elem)
     return ManufacturingProcess(groups=groups)
 
-
-# ── 내부 파서 (AasView 만 받음) ─────────────────────────────────────────────
 
 def _parse_entity(view: 'AasView') -> Entity:
     return Entity(
@@ -270,9 +233,9 @@ def _parse_process_node(view: 'AasView') -> ProcessNode:
         elif idsh == 'DepPrev':
             pn.DepPrev = Property(value=elem.value)
         elif idsh == 'CycleTimeSec':
-            pn.CycleTimeSec = Property(value=elem.value)
+            pn.CycleTimeSec = Property(value=int(elem.value))
         elif idsh == 'DefectRate':
-            pn.DefectRate = Property(value=elem.value)
+            pn.DefectRate = Property(value=float(elem.value))
         elif idsh == 'InputBOM':
             pn.InputBOM = _parse_input_bom(elem)
     return pn
@@ -281,38 +244,17 @@ def _parse_process_node(view: 'AasView') -> ProcessNode:
 def _parse_input_bom(view: 'AasView') -> BomRef:
     bom = BomRef()
     for ref in view:
-        qual = BomQualifier(Quantity=ref.qualifier.get('Quantity', 0.0))
+        # Quantity 는 BomQualifier(Quantity: float) 라 명시 float() 으로 cast.
+        # JSON 에 valueType=xs:int 이지만 value="1.1" 같은 데이터 결함이 있어
+        # AasView 의 valueType 기반 자동 cast 를 거치지 않고 raw 에서 직접.
+        qty = float(ref.qualifier.get('Quantity', '0') or 0)
         keys = ref.value
         if len(keys) > 0:
-            bom.add(keys[0].value, qual)
+            bom.add(keys[0].value, BomQualifier(Quantity=qty))
     return bom
 
 
-# ── AasView: raw JSON 을 dataclass 와 동일한 path-style 로 navigate ──────────
-
 class AasView:
-    """Raw AAS JSON 노드를 dot/index/qualifier 로 navigate 하기 위한 얇은 wrapper.
-
-    지원 패턴 (dataclass 측 path 와 동일한 모양)::
-
-        view.<idShort>          # 자식 SubmodelElement (idShort 매칭)
-        view[idShort]           # 위와 동일 (대괄호 형태)
-        view[i]                 # SubmodelElementList/Collection 의 i 번째 자식
-        view.value              # Property→casted, ReferenceElement→keys list view,
-                                # Collection/List→자식 list view, key→URL string
-        view.idShort            # 자기 자신의 idShort
-        view.entityType         # Entity.entityType
-        view.modelType          # 자기 자신의 modelType
-        view.qualifier['type']  # qualifier 의 type 매칭 → casted value (없으면 KeyError)
-        view.qualifier.get(t, d)# default 지원
-        view.statements         # Entity 자식들 list view
-        for child in view: ...  # collection/list 자식 iterate
-        len(view)               # 자식 수
-        'idShort' in view       # 자식 존재 여부
-
-    누락/불일치는 AttributeError/KeyError 로 즉시 raise (CLAUDE.md fallback 금지).
-    """
-
     __slots__ = ('_raw',)
 
     def __init__(self, raw):
@@ -324,7 +266,6 @@ class AasView:
         return (f'<AasView idShort={self._raw.get("idShort")!r} '
                 f'mt={self._raw.get("modelType")!r}>')
 
-    # 자기 메타 / value / 자식-by-idShort
     def __getattr__(self, name: str):
         if name.startswith('_'):
             raise AttributeError(name)
@@ -375,33 +316,15 @@ class AasView:
 
 
 def _value_of(raw: dict):
-    """SubmodelElement 의 의미적 .value 반환 — modelType 별로 분기."""
     mt = raw.get('modelType')
     v = raw.get('value')
-    if mt == 'Property':
-        return _cast_value(raw.get('valueType', ''), v)
     if mt == 'ReferenceElement':
         return AasView((v or {}).get('keys') or [])  # keys list 로 평탄화
     if isinstance(v, list):
         return AasView(v)  # Collection / List
-    return v  # ReferenceKey 등 (raw URL 문자열)
-
-
-def _cast_value(value_type: str, raw):
-    """xs: 타입에 따라 문자열 raw 를 파이썬 값으로 변환."""
-    if raw is None or raw == '':
-        return raw
-    if value_type in ('xs:integer', 'xs:int', 'xs:long', 'xs:short'):
-        return int(raw)
-    if value_type in ('xs:float', 'xs:double', 'xs:decimal'):
-        return float(raw)
-    if value_type == 'xs:boolean':
-        return str(raw).strip().upper() == 'TRUE'
-    return raw
-
+    return v  # Property→raw string, ReferenceKey→URL string
 
 class _QualifierAccess:
-    """qualifier['type'] 으로 type 매칭 → value (casted) lookup."""
 
     __slots__ = ('_q',)
 
@@ -411,7 +334,7 @@ class _QualifierAccess:
     def __getitem__(self, qtype: str):
         for q in self._q:
             if q.get('type') == qtype:
-                return _cast_value(q.get('valueType', ''), q.get('value'))
+                return q.get('value')
         raise KeyError(qtype)
 
     def __contains__(self, qtype: str) -> bool:
@@ -423,18 +346,13 @@ class _QualifierAccess:
         except KeyError:
             return default
 
-
-# ── 최저 수준 헬퍼 ────────────────────────────────────────────────────────
-
 def _read_json(path: str) -> dict:
     with open(path, 'r', encoding='utf-8') as f:
         return json.load(f)
-
 
 def _find_submodel(doc: dict, idShort: str) -> dict:
     for sm in (doc.get('submodels') or []):
         if sm.get('idShort') == idShort:
             return sm
-    raise RuntimeError(f"Submodel idShort={idShort!r} not found")
 
 
