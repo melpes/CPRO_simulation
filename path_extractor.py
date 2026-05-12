@@ -4,10 +4,19 @@ from __future__ import annotations
 import json
 import re
 from dataclasses import dataclass, field
-from typing import Any, Dict, List
+from typing import Any, Dict, List, Optional
 
 
-_CD_URL_RE = re.compile(r'/ids/cd/(?P<idShort>[^/]+)/[^/]+/[^/]+/?$')  # 확정
+__all__ = [
+    'load_workstation_worker_matching_data',
+    'load_hierarchical_structures',
+    'load_manufacturing_process',
+    'load_provision_of_simulation_models',
+]
+
+
+_CD_URL_RE = re.compile(r'/ids/cd/(?P<idShort>[^/]+)/[^/]+/[^/]+/?$')
+
 
 @dataclass
 class GlobalReference:
@@ -17,6 +26,7 @@ class GlobalReference:
     def Process(self) -> str:
         m = _CD_URL_RE.search(self.value)
         return m.group('idShort')
+
 
 @dataclass
 class AssignedProcessGroupRef:
@@ -56,6 +66,7 @@ class WorkstationWorkerMatchingData:
     SkillLevelType: SkillLevelType = field(default_factory=SkillLevelType)
     GeneralWorkstationData: GeneralWorkstationData = field(default_factory=GeneralWorkstationData)
 
+
 @dataclass
 class EntityQualifier:
     SMT_Side: str = ''   # 'single' | 'double'
@@ -76,10 +87,9 @@ class Entity:
 @dataclass
 class HierarchicalStructures:
     ArcheType: str = ''
-    entities: Dict[str, Entity] = field(default_factory=dict)  # 최상위 entity idShort → Entity
+    entities: Dict[str, Entity] = field(default_factory=dict)
 
     def entityType(self, category: str) -> Dict[str, Entity]:
-
         out: Dict[str, Entity] = {}
         for top in self.entities.values():
             self._walk(top, category, out)
@@ -92,15 +102,14 @@ class HierarchicalStructures:
         for child in ent.statements.values():
             HierarchicalStructures._walk(child, target, out)
 
+
 @dataclass
 class Property:
-    """AAS Property — 단일 .value 노출 (DepType, CycleTimeSec, ...)."""
     value: Any = None
 
 
 @dataclass
 class BomQualifier:
-    """InputBOM ref 의 qualifier — Quantity 만 모델링."""
     Quantity: float = 0.0
 
 
@@ -121,17 +130,14 @@ class BomRef(dict):
 
 @dataclass
 class ProcessNode:
-    """ManufacturingProcess 의 한 process step (예: VD7_10)."""
     DepType: Property = field(default_factory=Property)
     DepPrev: Property = field(default_factory=Property)
-    CycleTimeSec: Property = field(default_factory=Property)
-    DefectRate: Property = field(default_factory=Property)
+    ProcessGroup: Property = field(default_factory=Property)
     InputBOM: BomRef = field(default_factory=BomRef)
 
 
 @dataclass
 class ProcessGroup:
-    """ProcessGroup (예: VD7FwInput) — process 들의 dict."""
     processes: Dict[str, ProcessNode] = field(default_factory=dict)
 
     def __getitem__(self, key: str) -> ProcessNode:
@@ -140,21 +146,56 @@ class ProcessGroup:
 
 @dataclass
 class ManufacturingProcess:
-    """ManufacturingProcess Submodel — group 들의 dict."""
     groups: Dict[str, ProcessGroup] = field(default_factory=dict)
 
     def __getitem__(self, key: str) -> ProcessGroup:
         return self.groups[key]
 
-def load_workstation_worker_matching_data(json_path: str) -> WorkstationWorkerMatchingData:
-    """WWM AAS JSON → WorkstationWorkerMatchingData."""
-    sm = AasView(_find_submodel(_read_json(json_path), 'WorkstationWorkerMatchingData'))
 
+@dataclass
+class SimNode:
+    CycleTimeSec: Property = field(default_factory=Property)
+    RatedPowerKw: Property = field(default_factory=Property)
+    DefectRate: Optional[Property] = None
+    SamplingRate: Optional[Property] = None
+
+
+@dataclass
+class Ref:
+    value: List[str] = field(default_factory=list)
+
+
+@dataclass
+class Action:
+    IndependentSequence: List[Ref] = field(default_factory=list)
+    DependentSequence: List[Ref] = field(default_factory=list)
+    DependentJoin: List[Ref] = field(default_factory=list)
+
+
+@dataclass
+class SimulationModel:
+    Node: Dict[str, Dict[str, SimNode]] = field(default_factory=dict)
+    Action: Action = field(default_factory=Action)
+
+
+@dataclass
+class SimulationModels:
+    SimulationModel: SimulationModel = field(default_factory=SimulationModel)
+
+
+@dataclass
+class ProvisionofSimulationModelsAAS:
+    SimulationModels: SimulationModels = field(default_factory=SimulationModels)
+
+
+# ===== 진입점 =====
+
+def load_workstation_worker_matching_data(json_path: str) -> WorkstationWorkerMatchingData:
+    sm = AasView(_find_submodel(_read_json(json_path), 'WorkstationWorkerMatchingData'))
     skill = SkillLevelType(levels=[
         SkillLevelProperty(idShort=p.idShort, value=int(p.value))
         for p in sm.SkillLevelType
     ])
-
     infos: List[WorkstationInformation] = []
     for wsi in sm.GeneralWorkstationData.WorkstationInformation:
         apgs = [
@@ -172,7 +213,6 @@ def load_workstation_worker_matching_data(json_path: str) -> WorkstationWorkerMa
             AssignedProcessGroups=apgs,
             WorkstationConfigurationRecords=wcr,
         ))
-
     return WorkstationWorkerMatchingData(
         SkillLevelType=skill,
         GeneralWorkstationData=GeneralWorkstationData(
@@ -181,7 +221,6 @@ def load_workstation_worker_matching_data(json_path: str) -> WorkstationWorkerMa
 
 
 def load_hierarchical_structures(json_path: str) -> HierarchicalStructures:
-    """MODEL_N AAS JSON → HierarchicalStructures."""
     sm = AasView(_find_submodel(_read_json(json_path), 'HierarchicalStructures'))
     arche = sm.ArcheType.value if 'ArcheType' in sm else ''
     entities = {
@@ -203,6 +242,29 @@ def load_manufacturing_process(json_path: str) -> ManufacturingProcess:
     return ManufacturingProcess(groups=groups)
 
 
+def load_provision_of_simulation_models(json_path: str) -> ProvisionofSimulationModelsAAS:
+    sm = AasView(_find_submodel(_read_json(json_path), 'SimulationModels'))
+    smodel = sm.SimulationModel
+    node_map: Dict[str, Dict[str, SimNode]] = {}
+    for group in smodel.Node:
+        node_map[group.idShort] = {
+            n.idShort: _parse_sim_node(n) for n in group
+        }
+    act = smodel.Action
+    action = Action(
+        IndependentSequence=_parse_ref_list(act.IndependentSequence),
+        DependentSequence=_parse_ref_list(act.DependentSequence),
+        DependentJoin=_parse_ref_list(act.DependentJoin),
+    )
+    return ProvisionofSimulationModelsAAS(
+        SimulationModels=SimulationModels(
+            SimulationModel=SimulationModel(Node=node_map, Action=action)
+        )
+    )
+
+
+# ===== 내부 유틸 =====
+
 def _parse_entity(view: 'AasView') -> Entity:
     return Entity(
         idShort=view.idShort,
@@ -219,9 +281,14 @@ def _parse_entity(view: 'AasView') -> Entity:
 
 
 def _parse_process_group(view: 'AasView') -> ProcessGroup:
-    return ProcessGroup(processes={
-        proc.idShort: _parse_process_node(proc) for proc in view
-    })
+    abstract = view.qualifier.get('ProcessGroup', '')
+    pg = ProcessGroup(processes={})
+    for proc in view:
+        process_node = _parse_process_node(proc)
+        if not process_node.ProcessGroup.value:
+            process_node.ProcessGroup = Property(value=abstract)
+        pg.processes[proc.idShort] = process_node
+    return pg
 
 
 def _parse_process_node(view: 'AasView') -> ProcessNode:
@@ -232,21 +299,15 @@ def _parse_process_node(view: 'AasView') -> ProcessNode:
             pn.DepType = Property(value=elem.value)
         elif idsh == 'DepPrev':
             pn.DepPrev = Property(value=elem.value)
-        elif idsh == 'CycleTimeSec':
-            pn.CycleTimeSec = Property(value=int(elem.value))
-        elif idsh == 'DefectRate':
-            pn.DefectRate = Property(value=float(elem.value))
         elif idsh == 'InputBOM':
             pn.InputBOM = _parse_input_bom(elem)
+    pn.ProcessGroup = Property(value=view.qualifier.get('ProcessGroup', ''))
     return pn
 
 
 def _parse_input_bom(view: 'AasView') -> BomRef:
     bom = BomRef()
     for ref in view:
-        # Quantity 는 BomQualifier(Quantity: float) 라 명시 float() 으로 cast.
-        # JSON 에 valueType=xs:int 이지만 value="1.1" 같은 데이터 결함이 있어
-        # AasView 의 valueType 기반 자동 cast 를 거치지 않고 raw 에서 직접.
         qty = float(ref.qualifier.get('Quantity', '0') or 0)
         keys = ref.value
         if len(keys) > 0:
@@ -254,11 +315,34 @@ def _parse_input_bom(view: 'AasView') -> BomRef:
     return bom
 
 
+def _parse_sim_node(view: 'AasView') -> SimNode:
+    n = SimNode()
+    for elem in view:
+        idsh = elem.idShort
+        if idsh == 'CycleTimeSec':
+            n.CycleTimeSec = Property(value=int(elem.value))
+        elif idsh == 'RatedPowerKw':
+            n.RatedPowerKw = Property(value=float(elem.value))
+        elif idsh == 'DefectRate':
+            n.DefectRate = Property(value=float(elem.value))
+        elif idsh == 'SamplingRate':
+            n.SamplingRate = Property(value=float(elem.value))
+    return n
+
+
+def _parse_ref_list(view: 'AasView') -> List[Ref]:
+    out: List[Ref] = []
+    for ref_elem in view:
+        keys = ref_elem.value
+        out.append(Ref(value=[k.value for k in keys]))
+    return out
+
+
 class AasView:
     __slots__ = ('_raw',)
 
     def __init__(self, raw):
-        self._raw = raw  # dict (단일 노드) 또는 list (자식 collection)
+        self._raw = raw
 
     def __repr__(self):
         if isinstance(self._raw, list):
@@ -270,7 +354,6 @@ class AasView:
         if name.startswith('_'):
             raise AttributeError(name)
         raw = self._raw
-
         if isinstance(raw, dict):
             if name in ('idShort', 'entityType', 'modelType', 'valueType', 'category'):
                 return raw.get(name)
@@ -319,13 +402,13 @@ def _value_of(raw: dict):
     mt = raw.get('modelType')
     v = raw.get('value')
     if mt == 'ReferenceElement':
-        return AasView((v or {}).get('keys') or [])  # keys list 로 평탄화
+        return AasView((v or {}).get('keys') or [])
     if isinstance(v, list):
-        return AasView(v)  # Collection / List
-    return v  # Property→raw string, ReferenceKey→URL string
+        return AasView(v)
+    return v
+
 
 class _QualifierAccess:
-
     __slots__ = ('_q',)
 
     def __init__(self, qualifiers: list):
@@ -346,13 +429,13 @@ class _QualifierAccess:
         except KeyError:
             return default
 
+
 def _read_json(path: str) -> dict:
     with open(path, 'r', encoding='utf-8') as f:
         return json.load(f)
+
 
 def _find_submodel(doc: dict, idShort: str) -> dict:
     for sm in (doc.get('submodels') or []):
         if sm.get('idShort') == idShort:
             return sm
-
-
