@@ -4523,18 +4523,6 @@
                               },
                               {
                                 "type": "GlobalReference",
-                                "value": "https://www.smart-factory.kr/ids/cd/VD7_70/1/0"
-                              },
-                              {
-                                "type": "GlobalReference",
-                                "value": "https://www.smart-factory.kr/ids/cd/VD7_70_1/1/0"
-                              },
-                              {
-                                "type": "GlobalReference",
-                                "value": "https://www.smart-factory.kr/ids/cd/VD7_70_2/1/0"
-                              },
-                              {
-                                "type": "GlobalReference",
                                 "value": "https://www.smart-factory.kr/ids/cd/VD7_90/1/0"
                               }
                             ]
@@ -4589,30 +4577,6 @@
                               {
                                 "type": "GlobalReference",
                                 "value": "https://www.smart-factory.kr/ids/cd/BT5_62/1/0"
-                              },
-                              {
-                                "type": "GlobalReference",
-                                "value": "https://www.smart-factory.kr/ids/cd/BT5_70/1/0"
-                              },
-                              {
-                                "type": "GlobalReference",
-                                "value": "https://www.smart-factory.kr/ids/cd/BT5_71/1/0"
-                              },
-                              {
-                                "type": "GlobalReference",
-                                "value": "https://www.smart-factory.kr/ids/cd/BT5_72/1/0"
-                              },
-                              {
-                                "type": "GlobalReference",
-                                "value": "https://www.smart-factory.kr/ids/cd/BT5_73/1/0"
-                              },
-                              {
-                                "type": "GlobalReference",
-                                "value": "https://www.smart-factory.kr/ids/cd/BT5_74/1/0"
-                              },
-                              {
-                                "type": "GlobalReference",
-                                "value": "https://www.smart-factory.kr/ids/cd/BT5_75/1/0"
                               },
                               {
                                 "type": "GlobalReference",
@@ -4674,18 +4638,6 @@
                               {
                                 "type": "GlobalReference",
                                 "value": "https://www.smart-factory.kr/ids/cd/NVD_83/1/0"
-                              },
-                              {
-                                "type": "GlobalReference",
-                                "value": "https://www.smart-factory.kr/ids/cd/NVD_90/1/0"
-                              },
-                              {
-                                "type": "GlobalReference",
-                                "value": "https://www.smart-factory.kr/ids/cd/NVD_91/1/0"
-                              },
-                              {
-                                "type": "GlobalReference",
-                                "value": "https://www.smart-factory.kr/ids/cd/NVD_92/1/0"
                               },
                               {
                                 "type": "GlobalReference",
@@ -5725,7 +5677,13 @@
                         },
                         {
                           "category": "PARAMETER",
-                          "idShort": "SETWorkerRecord_09",
+                          "idShort": "",
+                          "displayName": [
+                            {
+                              "language": "en",
+                              "text": "SETWorkerRecord_09"
+                            }
+                          ],
                           "description": [
                             {
                               "language": "en",
@@ -6205,19 +6163,182 @@
                             }
                           ],
                           "modelType": "SubmodelElementCollection"
-                        },
+                        }
+                      ],
+                      "modelType": "SubmodelElementList"
+                    }
+                  ],
+                  "modelType": "SubmodelElementCollection"
+                },
+                {
+                  "category": "PARAMETER",
+                  "idShort": "WWM_InspectionLine",
+                  "description": [
+                    {
+                      "language": "en",
+                      "text": "Workstation for the inspection process within the SET assembly stage in camera manufacturing"
+                    }
+                  ],
+                  "semanticId": {
+                    "type": "ModelReference",
+                    "keys": [
+                      {
+                        "type": "ConceptDescription",
+                        "value": "https://www.smart-factory.kr/ids/cd/WWM_InspectionLine/1/0"
+                      }
+                    ]
+                  },
+                  "value": [
+                    {
+                      "category": "PARAMETER",
+                      "idShort": "WorkStartTime",
+                      "semanticId": {
+                        "type": "ModelReference",
+                        "keys": [
+                          {
+                            "type": "ConceptDescription",
+                            "value": "https://www.smart-factory.kr/ids/cd/WorkStartTime/1/0"
+                          }
+                        ]
+                      },
+                      "qualifiers": [
+                        {
+                          "semanticId": {
+                            "type": "ExternalReference",
+                            "keys": [
+                              {
+                                "type": "GlobalReference",
+                                "value": "https://admin-shell.io/SubmodelTemplates/Cardinality/1/0"
+                              }
+                            ]
+                          },
+                          "kind": "TemplateQualifier",
+                          "type": "SMT/Cardinality",
+                          "valueType": "xs:string",
+                          "value": "One"
+                        }
+                      ],
+                      "valueType": "xs:time",
+                      "value": "9:00",
+                      "modelType": "Property"
+                    },
+                    {
+                      "category": "PARAMETER",
+                      "idShort": "WorkEndTime",
+                      "semanticId": {
+                        "type": "ModelReference",
+                        "keys": [
+                          {
+                            "type": "ConceptDescription",
+                            "value": "https://www.smart-factory.kr/ids/cd/WorkEndTime/1/0"
+                          }
+                        ]
+                      },
+                      "qualifiers": [
+                        {
+                          "semanticId": {
+                            "type": "ExternalReference",
+                            "keys": [
+                              {
+                                "type": "GlobalReference",
+                                "value": "https://admin-shell.io/SubmodelTemplates/Cardinality/1/0"
+                              }
+                            ]
+                          },
+                          "kind": "TemplateQualifier",
+                          "type": "SMT/Cardinality",
+                          "valueType": "xs:string",
+                          "value": "One"
+                        }
+                      ],
+                      "valueType": "xs:time",
+                      "value": "18:00",
+                      "modelType": "Property"
+                    },
+                    {
+                      "category": "PARAMETER",
+                      "idShort": "BreakDurationMin",
+                      "description": [
+                        {
+                          "language": "en",
+                          "text": "The total scheduled break duration per working day at a manufacturing workstation, expressed in minutes. Includes all rest periods such as lunch breaks. Effective working time per day is calculated as the difference between work end time and work start time minus the total break duration."
+                        }
+                      ],
+                      "semanticId": {
+                        "type": "ModelReference",
+                        "keys": [
+                          {
+                            "type": "ConceptDescription",
+                            "value": "https://www.smart-factory.kr/ids/cd/BreakDurationMin/1/0"
+                          }
+                        ]
+                      },
+                      "qualifiers": [
+                        {
+                          "semanticId": {
+                            "type": "ExternalReference",
+                            "keys": [
+                              {
+                                "type": "GlobalReference",
+                                "value": "https://www.smart-factory.kr/ids/cd/BreakDurationMin/1/0"
+                              }
+                            ]
+                          },
+                          "kind": "TemplateQualifier",
+                          "type": "SMT/Cardinality",
+                          "valueType": "xs:string",
+                          "value": "One"
+                        }
+                      ],
+                      "valueType": "xs:time",
+                      "min": "12:00",
+                      "max": "13:00",
+                      "modelType": "Range"
+                    },
+                    {
+                      "category": "PARAMETER",
+                      "idShort": "AssignedProcessGroups",
+                      "description": [
+                        {
+                          "language": "en",
+                          "text": "List of manufacturing process groups assigned to this workstation line. Each entry references a process group SubmodelElementCollection defined in the ManufacturingProcess Submodel. The total set of referenced process groups defines the scope of work performed by the workers assigned to this line across all applicable product model variants."
+                        }
+                      ],
+                      "semanticId": {
+                        "type": "ModelReference",
+                        "keys": [
+                          {
+                            "type": "ConceptDescription",
+                            "value": "https://www.smart-factory.kr/ids/cd/AssignedProcessGroups/1/0"
+                          }
+                        ]
+                      },
+                      "qualifiers": [
+                        {
+                          "semanticId": {
+                            "type": "ExternalReference",
+                            "keys": [
+                              {
+                                "type": "GlobalReference",
+                                "value": "https://admin-shell.io/SubmodelTemplates/Cardinality/1/0"
+                              }
+                            ]
+                          },
+                          "kind": "TemplateQualifier",
+                          "type": "SMT/Cardinality",
+                          "valueType": "xs:string",
+                          "value": "OneToMany"
+                        }
+                      ],
+                      "typeValueListElement": "ReferenceElement",
+                      "value": [
                         {
                           "category": "PARAMETER",
-                          "displayName": [
-                            {
-                              "language": "en",
-                              "text": "SETWorkerRecord_13"
-                            }
-                          ],
+                          "idShort": "",
                           "description": [
                             {
                               "language": "en",
-                              "text": "Worker assignment record for SET assembly line operator 13. Worker ID assigned as SET_OP_013. Skill level STANDARD applies cycle time correction factor of 1.00 and defect rate correction factor of 1.00."
+                              "text": "Reference to the gimbal assembly process group for MODEL_A (VD7GimbalAssembly). Covers process steps VD7_40 and VD7_40-1."
                             }
                           ],
                           "semanticId": {
@@ -6225,10 +6346,189 @@
                             "keys": [
                               {
                                 "type": "ConceptDescription",
-                                "value": "https://www.smart-factory.kr/ids/cd/SETWorkerRecord_13/1/0"
+                                "value": "https://www.smart-factory.kr/ids/cd/AssignedProcessGroups/1/0"
                               }
                             ]
                           },
+                          "value": {
+                            "type": "ExternalReference",
+                            "keys": [
+                              {
+                                "type": "GlobalReference",
+                                "value": "https://www.smart-factory.kr/ids/cd/VD7_70/1/0"
+                              },
+                              {
+                                "type": "GlobalReference",
+                                "value": "https://www.smart-factory.kr/ids/cd/VD7_70_1/1/0"
+                              },
+                              {
+                                "type": "GlobalReference",
+                                "value": "https://www.smart-factory.kr/ids/cd/VD7_70_2/1/0"
+                              }
+                            ]
+                          },
+                          "modelType": "ReferenceElement"
+                        },
+                        {
+                          "category": "PARAMETER",
+                          "idShort": "",
+                          "description": [
+                            {
+                              "language": "en",
+                              "text": "Reference to the gimbal assembly process group for MODEL_A (VD7GimbalAssembly). Covers process steps VD7_40 and VD7_40-1."
+                            }
+                          ],
+                          "semanticId": {
+                            "type": "ModelReference",
+                            "keys": [
+                              {
+                                "type": "ConceptDescription",
+                                "value": "https://www.smart-factory.kr/ids/cd/AssignedProcessGroups/1/0"
+                              }
+                            ]
+                          },
+                          "value": {
+                            "type": "ExternalReference",
+                            "keys": [
+                              {
+                                "type": "GlobalReference",
+                                "value": "https://www.smart-factory.kr/ids/cd/BT5_70/1/0"
+                              },
+                              {
+                                "type": "GlobalReference",
+                                "value": "https://www.smart-factory.kr/ids/cd/BT5_71/1/0"
+                              },
+                              {
+                                "type": "GlobalReference",
+                                "value": "https://www.smart-factory.kr/ids/cd/BT5_72/1/0"
+                              },
+                              {
+                                "type": "GlobalReference",
+                                "value": "https://www.smart-factory.kr/ids/cd/BT5_73/1/0"
+                              },
+                              {
+                                "type": "GlobalReference",
+                                "value": "https://www.smart-factory.kr/ids/cd/BT5_74/1/0"
+                              },
+                              {
+                                "type": "GlobalReference",
+                                "value": "https://www.smart-factory.kr/ids/cd/BT5_75/1/0"
+                              }
+                            ]
+                          },
+                          "modelType": "ReferenceElement"
+                        },
+                        {
+                          "category": "PARAMETER",
+                          "idShort": "",
+                          "description": [
+                            {
+                              "language": "en",
+                              "text": "Reference to the front assembly process group for MODEL_C (NVDFrontAssembly). Covers SET step NVD_53."
+                            }
+                          ],
+                          "semanticId": {
+                            "type": "ModelReference",
+                            "keys": [
+                              {
+                                "type": "ConceptDescription",
+                                "value": "https://www.smart-factory.kr/ids/cd/AssignedProcessGroups/1/0"
+                              }
+                            ]
+                          },
+                          "value": {
+                            "type": "ExternalReference",
+                            "keys": [
+                              {
+                                "type": "GlobalReference",
+                                "value": "https://www.smart-factory.kr/ids/cd/NVD_90/1/0"
+                              },
+                              {
+                                "type": "GlobalReference",
+                                "value": "https://www.smart-factory.kr/ids/cd/NVD_91/1/0"
+                              },
+                              {
+                                "type": "GlobalReference",
+                                "value": "https://www.smart-factory.kr/ids/cd/NVD_92/1/0"
+                              }
+                            ]
+                          },
+                          "modelType": "ReferenceElement"
+                        }
+                      ],
+                      "modelType": "SubmodelElementList"
+                    },
+                    {
+                      "category": "PARAMETER",
+                      "idShort": "WorkstationConfigurationRecords",
+                      "semanticId": {
+                        "type": "ModelReference",
+                        "keys": [
+                          {
+                            "type": "ConceptDescription",
+                            "value": "https://admin-shell.io/idta/sml/workstationconfigurationrecords/1/0"
+                          }
+                        ]
+                      },
+                      "qualifiers": [
+                        {
+                          "semanticId": {
+                            "type": "ExternalReference",
+                            "keys": [
+                              {
+                                "type": "GlobalReference",
+                                "value": "https://admin-shell.io/SubmodelTemplates/Cardinality/1/0"
+                              }
+                            ]
+                          },
+                          "kind": "TemplateQualifier",
+                          "type": "SMT/Cardinality",
+                          "valueType": "xs:string",
+                          "value": "OneToMany"
+                        }
+                      ],
+                      "typeValueListElement": "SubmodelElementCollection",
+                      "value": [
+                        {
+                          "category": "PARAMETER",
+                          "displayName": [
+                            {
+                              "language": "en",
+                              "text": "SET_INSP_WorkerRecord_01"
+                            }
+                          ],
+                          "description": [
+                            {
+                              "language": "en",
+                              "text": "Worker assignment record for SET inspection line operator 1. Worker ID assigned as SET_INSP_OP_001. Skill level STANDARD applies cycle time correction factor of 1.00 and defect rate correction factor of 1.00."
+                            }
+                          ],
+                          "semanticId": {
+                            "type": "ModelReference",
+                            "keys": [
+                              {
+                                "type": "ConceptDescription",
+                                "value": "https://www.smart-factory.kr/ids/cd/SET_INSP_WorkerRecord_01/1/0"
+                              }
+                            ]
+                          },
+                          "qualifiers": [
+                            {
+                              "semanticId": {
+                                "type": "ExternalReference",
+                                "keys": [
+                                  {
+                                    "type": "GlobalReference",
+                                    "value": "https://admin-shell.io/SubmodelTemplates/Cardinality/1/0"
+                                  }
+                                ]
+                              },
+                              "kind": "TemplateQualifier",
+                              "type": "SMT/Cardinality",
+                              "valueType": "xs:string",
+                              "value": "One"
+                            }
+                          ],
                           "value": [
                             {
                               "category": "PARAMETER",
@@ -6236,7 +6536,7 @@
                               "description": [
                                 {
                                   "language": "en",
-                                  "text": "Unique identifier assigned to SET assembly line operator 13."
+                                  "text": "Unique identifier assigned to SET assembly line operator 1."
                                 }
                               ],
                               "semanticId": {
@@ -6266,7 +6566,7 @@
                                 }
                               ],
                               "valueType": "xs:string",
-                              "value": "SET_OP_013",
+                              "value": "SET_INSP_OP_001",
                               "modelType": "Property"
                             },
                             {
@@ -6275,7 +6575,147 @@
                               "description": [
                                 {
                                   "language": "en",
-                                  "text": "Skill level of SET assembly line operator 13. STANDARD applies cycle time correction factor of 1.00 and defect rate correction factor of 1.00."
+                                  "text": "Skill level of SET assembly line operator 1. STANDARD applies cycle time correction factor of 1.00 and defect rate correction factor of 1.00."
+                                }
+                              ],
+                              "semanticId": {
+                                "type": "ModelReference",
+                                "keys": [
+                                  {
+                                    "type": "ConceptDescription",
+                                    "value": "https://www.smart-factory.kr/ids/cd/SkillLevel/1/0"
+                                  }
+                                ]
+                              },
+                              "qualifiers": [
+                                {
+                                  "semanticId": {
+                                    "type": "ExternalReference",
+                                    "keys": [
+                                      {
+                                        "type": "GlobalReference",
+                                        "value": "https://admin-shell.io/SubmodelTemplates/Cardinality/1/0"
+                                      }
+                                    ]
+                                  },
+                                  "kind": "TemplateQualifier",
+                                  "type": "SMT/Cardinality",
+                                  "valueType": "xs:string",
+                                  "value": "One"
+                                }
+                              ],
+                              "valueType": "xs:string",
+                              "value": "STANDARD",
+                              "valueId": {
+                                "type": "ModelReference",
+                                "keys": [
+                                  {
+                                    "type": "Submodel",
+                                    "value": "https://admin-shell.io/idta/SubmodelTemplate/workstationMatching/1/0"
+                                  },
+                                  {
+                                    "type": "SubmodelElementCollection",
+                                    "value": "SkillLevelType"
+                                  },
+                                  {
+                                    "type": "Property",
+                                    "value": "STANDARD"
+                                  }
+                                ]
+                              },
+                              "modelType": "Property"
+                            }
+                          ],
+                          "modelType": "SubmodelElementCollection"
+                        },
+                        {
+                          "category": "PARAMETER",
+                          "idShort": "",
+                          "displayName": [
+                            {
+                              "language": "en",
+                              "text": "SET_INSP_WorkerRecord_02"
+                            }
+                          ],
+                          "description": [
+                            {
+                              "language": "en",
+                              "text": "Worker assignment record for SET inspection line operator 1. Worker ID assigned as SET_INSP_OP_002. Skill level STANDARD applies cycle time correction factor of 1.00 and defect rate correction factor of 1.00."
+                            }
+                          ],
+                          "semanticId": {
+                            "type": "ModelReference",
+                            "keys": [
+                              {
+                                "type": "ConceptDescription",
+                                "value": "https://www.smart-factory.kr/ids/cd/SET_INSP_WorkerRecord_02/1/0"
+                              }
+                            ]
+                          },
+                          "qualifiers": [
+                            {
+                              "semanticId": {
+                                "type": "ExternalReference",
+                                "keys": [
+                                  {
+                                    "type": "GlobalReference",
+                                    "value": "https://admin-shell.io/SubmodelTemplates/Cardinality/1/0"
+                                  }
+                                ]
+                              },
+                              "kind": "TemplateQualifier",
+                              "type": "SMT/Cardinality",
+                              "valueType": "xs:string",
+                              "value": "One"
+                            }
+                          ],
+                          "value": [
+                            {
+                              "category": "PARAMETER",
+                              "idShort": "WorkerId",
+                              "description": [
+                                {
+                                  "language": "en",
+                                  "text": "Unique identifier assigned to SET assembly line operator 2."
+                                }
+                              ],
+                              "semanticId": {
+                                "type": "ModelReference",
+                                "keys": [
+                                  {
+                                    "type": "ConceptDescription",
+                                    "value": "https://www.smart-factory.kr/ids/cd/WorkerId/1/0"
+                                  }
+                                ]
+                              },
+                              "qualifiers": [
+                                {
+                                  "semanticId": {
+                                    "type": "ExternalReference",
+                                    "keys": [
+                                      {
+                                        "type": "GlobalReference",
+                                        "value": "https://admin-shell.io/SubmodelTemplates/Cardinality/1/0"
+                                      }
+                                    ]
+                                  },
+                                  "kind": "TemplateQualifier",
+                                  "type": "SMT/Cardinality",
+                                  "valueType": "xs:string",
+                                  "value": "One"
+                                }
+                              ],
+                              "valueType": "xs:string",
+                              "value": "SET_INSP_OP_002",
+                              "modelType": "Property"
+                            },
+                            {
+                              "category": "PARAMETER",
+                              "idShort": "SkillLevel",
+                              "description": [
+                                {
+                                  "language": "en",
+                                  "text": "Skill level of SET assembly line operator 2. STANDARD applies cycle time correction factor of 1.00 and defect rate correction factor of 1.00."
                                 }
                               ],
                               "semanticId": {
@@ -6333,13 +6773,13 @@
                           "displayName": [
                             {
                               "language": "en",
-                              "text": "SETWorkerRecord_14"
+                              "text": "SET_INSP_WorkerRecord_03"
                             }
                           ],
                           "description": [
                             {
                               "language": "en",
-                              "text": "Worker assignment record for SET assembly line operator 14. Worker ID assigned as SET_OP_014. Skill level STANDARD applies cycle time correction factor of 1.00 and defect rate correction factor of 1.00."
+                              "text": "Worker assignment record for SET inspection line operator 1. Worker ID assigned as SET_INSP_OP_003. Skill level STANDARD applies cycle time correction factor of 1.00 and defect rate correction factor of 1.00."
                             }
                           ],
                           "semanticId": {
@@ -6347,18 +6787,74 @@
                             "keys": [
                               {
                                 "type": "ConceptDescription",
-                                "value": "https://www.smart-factory.kr/ids/cd/SETWorkerRecord_14/1/0"
+                                "value": "https://www.smart-factory.kr/ids/cd/SET_INSP_WorkerRecord_03/1/0"
                               }
                             ]
                           },
+                          "qualifiers": [
+                            {
+                              "semanticId": {
+                                "type": "ExternalReference",
+                                "keys": [
+                                  {
+                                    "type": "GlobalReference",
+                                    "value": "https://admin-shell.io/SubmodelTemplates/Cardinality/1/0"
+                                  }
+                                ]
+                              },
+                              "kind": "TemplateQualifier",
+                              "type": "SMT/Cardinality",
+                              "valueType": "xs:string",
+                              "value": "One"
+                            }
+                          ],
                           "value": [
+                            {
+                              "category": "PARAMETER",
+                              "idShort": "WorkerId",
+                              "description": [
+                                {
+                                  "language": "en",
+                                  "text": "Unique identifier assigned to SET assembly line operator 3."
+                                }
+                              ],
+                              "semanticId": {
+                                "type": "ModelReference",
+                                "keys": [
+                                  {
+                                    "type": "ConceptDescription",
+                                    "value": "https://www.smart-factory.kr/ids/cd/WorkerId/1/0"
+                                  }
+                                ]
+                              },
+                              "qualifiers": [
+                                {
+                                  "semanticId": {
+                                    "type": "ExternalReference",
+                                    "keys": [
+                                      {
+                                        "type": "GlobalReference",
+                                        "value": "https://admin-shell.io/SubmodelTemplates/Cardinality/1/0"
+                                      }
+                                    ]
+                                  },
+                                  "kind": "TemplateQualifier",
+                                  "type": "SMT/Cardinality",
+                                  "valueType": "xs:string",
+                                  "value": "One"
+                                }
+                              ],
+                              "valueType": "xs:string",
+                              "value": "SET_INSP_OP_003",
+                              "modelType": "Property"
+                            },
                             {
                               "category": "PARAMETER",
                               "idShort": "SkillLevel",
                               "description": [
                                 {
                                   "language": "en",
-                                  "text": "Skill level of SET assembly line operator 14. STANDARD applies cycle time correction factor of 1.00 and defect rate correction factor of 1.00."
+                                  "text": "Skill level of SET assembly line operator 3. STANDARD applies cycle time correction factor of 1.00 and defect rate correction factor of 1.00."
                                 }
                               ],
                               "semanticId": {
@@ -6406,45 +6902,6 @@
                                   }
                                 ]
                               },
-                              "modelType": "Property"
-                            },
-                            {
-                              "category": "PARAMETER",
-                              "idShort": "WorkerId",
-                              "description": [
-                                {
-                                  "language": "en",
-                                  "text": "Unique identifier assigned to SET assembly line operator 14."
-                                }
-                              ],
-                              "semanticId": {
-                                "type": "ModelReference",
-                                "keys": [
-                                  {
-                                    "type": "ConceptDescription",
-                                    "value": "https://www.smart-factory.kr/ids/cd/WorkerId/1/0"
-                                  }
-                                ]
-                              },
-                              "qualifiers": [
-                                {
-                                  "semanticId": {
-                                    "type": "ExternalReference",
-                                    "keys": [
-                                      {
-                                        "type": "GlobalReference",
-                                        "value": "https://admin-shell.io/SubmodelTemplates/Cardinality/1/0"
-                                      }
-                                    ]
-                                  },
-                                  "kind": "TemplateQualifier",
-                                  "type": "SMT/Cardinality",
-                                  "valueType": "xs:string",
-                                  "value": "One"
-                                }
-                              ],
-                              "valueType": "xs:string",
-                              "value": "SET_OP_014",
                               "modelType": "Property"
                             }
                           ],
@@ -6455,13 +6912,13 @@
                           "displayName": [
                             {
                               "language": "en",
-                              "text": "SETWorkerRecord_15"
+                              "text": "SET_INSP_WorkerRecord_04"
                             }
                           ],
                           "description": [
                             {
                               "language": "en",
-                              "text": "Worker assignment record for SET assembly line operator 15. Worker ID assigned as SET_OP_015. Skill level STANDARD applies cycle time correction factor of 1.00 and defect rate correction factor of 1.00."
+                              "text": "Worker assignment record for SET inspection line operator 1. Worker ID assigned as SET_INSP_OP_004. Skill level STANDARD applies cycle time correction factor of 1.00 and defect rate correction factor of 1.00."
                             }
                           ],
                           "semanticId": {
@@ -6469,18 +6926,74 @@
                             "keys": [
                               {
                                 "type": "ConceptDescription",
-                                "value": "https://www.smart-factory.kr/ids/cd/SETWorkerRecord_15/1/0"
+                                "value": "https://www.smart-factory.kr/ids/cd/SET_INSP_WorkerRecord_04/1/0"
                               }
                             ]
                           },
+                          "qualifiers": [
+                            {
+                              "semanticId": {
+                                "type": "ExternalReference",
+                                "keys": [
+                                  {
+                                    "type": "GlobalReference",
+                                    "value": "https://admin-shell.io/SubmodelTemplates/Cardinality/1/0"
+                                  }
+                                ]
+                              },
+                              "kind": "TemplateQualifier",
+                              "type": "SMT/Cardinality",
+                              "valueType": "xs:string",
+                              "value": "One"
+                            }
+                          ],
                           "value": [
+                            {
+                              "category": "PARAMETER",
+                              "idShort": "WorkerId",
+                              "description": [
+                                {
+                                  "language": "en",
+                                  "text": "Unique identifier assigned to SET assembly line operator 4."
+                                }
+                              ],
+                              "semanticId": {
+                                "type": "ModelReference",
+                                "keys": [
+                                  {
+                                    "type": "ConceptDescription",
+                                    "value": "https://www.smart-factory.kr/ids/cd/WorkerId/1/0"
+                                  }
+                                ]
+                              },
+                              "qualifiers": [
+                                {
+                                  "semanticId": {
+                                    "type": "ExternalReference",
+                                    "keys": [
+                                      {
+                                        "type": "GlobalReference",
+                                        "value": "https://admin-shell.io/SubmodelTemplates/Cardinality/1/0"
+                                      }
+                                    ]
+                                  },
+                                  "kind": "TemplateQualifier",
+                                  "type": "SMT/Cardinality",
+                                  "valueType": "xs:string",
+                                  "value": "One"
+                                }
+                              ],
+                              "valueType": "xs:string",
+                              "value": "SET_INSP_OP_004",
+                              "modelType": "Property"
+                            },
                             {
                               "category": "PARAMETER",
                               "idShort": "SkillLevel",
                               "description": [
                                 {
                                   "language": "en",
-                                  "text": "Skill level of SET assembly line operator 15. STANDARD applies cycle time correction factor of 1.00 and defect rate correction factor of 1.00."
+                                  "text": "Skill level of SET assembly line operator 4. STANDARD applies cycle time correction factor of 1.00 and defect rate correction factor of 1.00."
                                 }
                               ],
                               "semanticId": {
@@ -6528,167 +7041,6 @@
                                   }
                                 ]
                               },
-                              "modelType": "Property"
-                            },
-                            {
-                              "category": "PARAMETER",
-                              "idShort": "WorkerId",
-                              "description": [
-                                {
-                                  "language": "en",
-                                  "text": "Unique identifier assigned to SET assembly line operator 15."
-                                }
-                              ],
-                              "semanticId": {
-                                "type": "ModelReference",
-                                "keys": [
-                                  {
-                                    "type": "ConceptDescription",
-                                    "value": "https://www.smart-factory.kr/ids/cd/WorkerId/1/0"
-                                  }
-                                ]
-                              },
-                              "qualifiers": [
-                                {
-                                  "semanticId": {
-                                    "type": "ExternalReference",
-                                    "keys": [
-                                      {
-                                        "type": "GlobalReference",
-                                        "value": "https://admin-shell.io/SubmodelTemplates/Cardinality/1/0"
-                                      }
-                                    ]
-                                  },
-                                  "kind": "TemplateQualifier",
-                                  "type": "SMT/Cardinality",
-                                  "valueType": "xs:string",
-                                  "value": "One"
-                                }
-                              ],
-                              "valueType": "xs:string",
-                              "value": "SET_OP_015",
-                              "modelType": "Property"
-                            }
-                          ],
-                          "modelType": "SubmodelElementCollection"
-                        },
-                        {
-                          "category": "PARAMETER",
-                          "displayName": [
-                            {
-                              "language": "en",
-                              "text": "SETWorkerRecord_16"
-                            }
-                          ],
-                          "description": [
-                            {
-                              "language": "en",
-                              "text": "Worker assignment record for SET assembly line operator 16. Worker ID assigned as SET_OP_016. Skill level STANDARD applies cycle time correction factor of 1.00 and defect rate correction factor of 1.00."
-                            }
-                          ],
-                          "semanticId": {
-                            "type": "ModelReference",
-                            "keys": [
-                              {
-                                "type": "ConceptDescription",
-                                "value": "https://www.smart-factory.kr/ids/cd/SETWorkerRecord_16/1/0"
-                              }
-                            ]
-                          },
-                          "value": [
-                            {
-                              "category": "PARAMETER",
-                              "idShort": "SkillLevel",
-                              "description": [
-                                {
-                                  "language": "en",
-                                  "text": "Skill level of SET assembly line operator 16. STANDARD applies cycle time correction factor of 1.00 and defect rate correction factor of 1.00."
-                                }
-                              ],
-                              "semanticId": {
-                                "type": "ModelReference",
-                                "keys": [
-                                  {
-                                    "type": "ConceptDescription",
-                                    "value": "https://www.smart-factory.kr/ids/cd/SkillLevel/1/0"
-                                  }
-                                ]
-                              },
-                              "qualifiers": [
-                                {
-                                  "semanticId": {
-                                    "type": "ExternalReference",
-                                    "keys": [
-                                      {
-                                        "type": "GlobalReference",
-                                        "value": "https://admin-shell.io/SubmodelTemplates/Cardinality/1/0"
-                                      }
-                                    ]
-                                  },
-                                  "kind": "TemplateQualifier",
-                                  "type": "SMT/Cardinality",
-                                  "valueType": "xs:string",
-                                  "value": "One"
-                                }
-                              ],
-                              "valueType": "xs:string",
-                              "value": "STANDARD",
-                              "valueId": {
-                                "type": "ModelReference",
-                                "keys": [
-                                  {
-                                    "type": "Submodel",
-                                    "value": "https://admin-shell.io/idta/SubmodelTemplate/workstationMatching/1/0"
-                                  },
-                                  {
-                                    "type": "SubmodelElementCollection",
-                                    "value": "SkillLevelType"
-                                  },
-                                  {
-                                    "type": "Property",
-                                    "value": "STANDARD"
-                                  }
-                                ]
-                              },
-                              "modelType": "Property"
-                            },
-                            {
-                              "category": "PARAMETER",
-                              "idShort": "WorkerId",
-                              "description": [
-                                {
-                                  "language": "en",
-                                  "text": "Unique identifier assigned to SET assembly line operator 16."
-                                }
-                              ],
-                              "semanticId": {
-                                "type": "ModelReference",
-                                "keys": [
-                                  {
-                                    "type": "ConceptDescription",
-                                    "value": "https://www.smart-factory.kr/ids/cd/WorkerId/1/0"
-                                  }
-                                ]
-                              },
-                              "qualifiers": [
-                                {
-                                  "semanticId": {
-                                    "type": "ExternalReference",
-                                    "keys": [
-                                      {
-                                        "type": "GlobalReference",
-                                        "value": "https://admin-shell.io/SubmodelTemplates/Cardinality/1/0"
-                                      }
-                                    ]
-                                  },
-                                  "kind": "TemplateQualifier",
-                                  "type": "SMT/Cardinality",
-                                  "valueType": "xs:string",
-                                  "value": "One"
-                                }
-                              ],
-                              "valueType": "xs:string",
-                              "value": "SET_OP_016",
                               "modelType": "Property"
                             }
                           ],
@@ -11895,6 +12247,246 @@
       "modelType": "ConceptDescription"
     },
     {
+      "idShort": "RMWorkerRecord_01",
+      "displayName": [
+        {
+          "language": "en",
+          "text": "RMA Line Worker Record 01"
+        }
+      ],
+      "id": "https://www.smart-factory.kr/ids/cd/RMWorkerRecord_01/1/0",
+      "embeddedDataSpecifications": [
+        {
+          "dataSpecification": {
+            "type": "ExternalReference",
+            "keys": [
+              {
+                "type": "GlobalReference",
+                "value": "https://admin-shell.io/DataSpecificationTemplates/DataSpecificationIec61360/3/0"
+              }
+            ]
+          },
+          "dataSpecificationContent": {
+            "preferredName": [
+              {
+                "language": "en",
+                "text": "RMWorkerRecord_01"
+              }
+            ],
+            "dataType": "STRING",
+            "definition": [
+              {
+                "language": "en",
+                "text": "An individual worker assignment record for the RMA line. Contains the worker identifier and skill level for operator 1 assigned to execute RMA process steps across applicable product model variants."
+              }
+            ],
+            "modelType": "DataSpecificationIec61360"
+          }
+        }
+      ],
+      "modelType": "ConceptDescription"
+    },
+    {
+      "idShort": "RMWorkerRecord_02",
+      "displayName": [
+        {
+          "language": "en",
+          "text": "RMA Line Worker Record 02"
+        }
+      ],
+      "id": "https://www.smart-factory.kr/ids/cd/RMWorkerRecord_02/1/0",
+      "embeddedDataSpecifications": [
+        {
+          "dataSpecification": {
+            "type": "ExternalReference",
+            "keys": [
+              {
+                "type": "GlobalReference",
+                "value": "https://admin-shell.io/DataSpecificationTemplates/DataSpecificationIec61360/3/0"
+              }
+            ]
+          },
+          "dataSpecificationContent": {
+            "preferredName": [
+              {
+                "language": "en",
+                "text": "RMWorkerRecord_02"
+              }
+            ],
+            "dataType": "STRING",
+            "definition": [
+              {
+                "language": "en",
+                "text": "An individual worker assignment record for the RMA line. Contains the worker identifier and skill level for operator 2 assigned to execute RMA process steps across applicable product model variants."
+              }
+            ],
+            "modelType": "DataSpecificationIec61360"
+          }
+        }
+      ],
+      "modelType": "ConceptDescription"
+    },
+    {
+      "idShort": "RMWorkerRecord_03",
+      "displayName": [
+        {
+          "language": "en",
+          "text": "RMA Line Worker Record 03"
+        }
+      ],
+      "id": "https://www.smart-factory.kr/ids/cd/RMWorkerRecord_03/1/0",
+      "embeddedDataSpecifications": [
+        {
+          "dataSpecification": {
+            "type": "ExternalReference",
+            "keys": [
+              {
+                "type": "GlobalReference",
+                "value": "https://admin-shell.io/DataSpecificationTemplates/DataSpecificationIec61360/3/0"
+              }
+            ]
+          },
+          "dataSpecificationContent": {
+            "preferredName": [
+              {
+                "language": "en",
+                "text": "RMWorkerRecord_03"
+              }
+            ],
+            "dataType": "STRING",
+            "definition": [
+              {
+                "language": "en",
+                "text": "An individual worker assignment record for the RMA line. Contains the worker identifier and skill level for operator 3 assigned to execute RMA process steps across applicable product model variants."
+              }
+            ],
+            "modelType": "DataSpecificationIec61360"
+          }
+        }
+      ],
+      "modelType": "ConceptDescription"
+    },
+    {
+      "idShort": "RMWorkerRecord_04",
+      "displayName": [
+        {
+          "language": "en",
+          "text": "RMA Line Worker Record 04"
+        }
+      ],
+      "id": "https://www.smart-factory.kr/ids/cd/RMWorkerRecord_04/1/0",
+      "embeddedDataSpecifications": [
+        {
+          "dataSpecification": {
+            "type": "ExternalReference",
+            "keys": [
+              {
+                "type": "GlobalReference",
+                "value": "https://admin-shell.io/DataSpecificationTemplates/DataSpecificationIec61360/3/0"
+              }
+            ]
+          },
+          "dataSpecificationContent": {
+            "preferredName": [
+              {
+                "language": "en",
+                "text": "RMWorkerRecord_04"
+              }
+            ],
+            "dataType": "STRING",
+            "definition": [
+              {
+                "language": "en",
+                "text": "An individual worker assignment record for the RMA line. Contains the worker identifier and skill level for operator 4 assigned to execute RMA process steps across applicable product model variants."
+              }
+            ],
+            "modelType": "DataSpecificationIec61360"
+          }
+        }
+      ],
+      "modelType": "ConceptDescription"
+    },
+    {
+      "idShort": "RMWorkerRecord_05",
+      "displayName": [
+        {
+          "language": "en",
+          "text": "RMA Line Worker Record 05"
+        }
+      ],
+      "id": "https://www.smart-factory.kr/ids/cd/RMWorkerRecord_05/1/0",
+      "embeddedDataSpecifications": [
+        {
+          "dataSpecification": {
+            "type": "ExternalReference",
+            "keys": [
+              {
+                "type": "GlobalReference",
+                "value": "https://admin-shell.io/DataSpecificationTemplates/DataSpecificationIec61360/3/0"
+              }
+            ]
+          },
+          "dataSpecificationContent": {
+            "preferredName": [
+              {
+                "language": "en",
+                "text": "RMWorkerRecord_05"
+              }
+            ],
+            "dataType": "STRING",
+            "definition": [
+              {
+                "language": "en",
+                "text": "An individual worker assignment record for the RMA line. Contains the worker identifier and skill level for operator 5 assigned to execute RMA process steps across applicable product model variants."
+              }
+            ],
+            "modelType": "DataSpecificationIec61360"
+          }
+        }
+      ],
+      "modelType": "ConceptDescription"
+    },
+    {
+      "idShort": "RMWorkerRecord_06",
+      "displayName": [
+        {
+          "language": "en",
+          "text": "RMA Line Worker Record 06"
+        }
+      ],
+      "id": "https://www.smart-factory.kr/ids/cd/RMWorkerRecord_06/1/0",
+      "embeddedDataSpecifications": [
+        {
+          "dataSpecification": {
+            "type": "ExternalReference",
+            "keys": [
+              {
+                "type": "GlobalReference",
+                "value": "https://admin-shell.io/DataSpecificationTemplates/DataSpecificationIec61360/3/0"
+              }
+            ]
+          },
+          "dataSpecificationContent": {
+            "preferredName": [
+              {
+                "language": "en",
+                "text": "RMWorkerRecord_06"
+              }
+            ],
+            "dataType": "STRING",
+            "definition": [
+              {
+                "language": "en",
+                "text": "An individual worker assignment record for the RMA line. Contains the worker identifier and skill level for operator 6 assigned to execute RMA process steps across applicable product model variants."
+              }
+            ],
+            "modelType": "DataSpecificationIec61360"
+          }
+        }
+      ],
+      "modelType": "ConceptDescription"
+    },
+    {
       "idShort": "SETWorkerRecord_01",
       "displayName": [
         {
@@ -11918,7 +12510,7 @@
             "preferredName": [
               {
                 "language": "en",
-                "text": "SETWorkerRecord_01"
+                "text": "SET_INSP_WorkerRecord_01"
               }
             ],
             "dataType": "STRING",
@@ -11935,7 +12527,7 @@
       "modelType": "ConceptDescription"
     },
     {
-      "idShort": "SETWorkerRecord_02",
+      "idShort": "SET_INSP_WorkerRecord_02",
       "displayName": [
         {
           "language": "en",
@@ -13156,6 +13748,176 @@
               }
             ],
             "dataType": "STRING",
+            "modelType": "DataSpecificationIec61360"
+          }
+        }
+      ],
+      "modelType": "ConceptDescription"
+    },
+    {
+      "idShort": "WWM_InspectionLine",
+      "id": "https://www.smart-factory.kr/ids/cd/WWM_InspectionLine/1/0",
+      "embeddedDataSpecifications": [
+        {
+          "dataSpecification": {
+            "type": "ExternalReference",
+            "keys": [
+              {
+                "type": "GlobalReference",
+                "value": "https://admin-shell.io/DataSpecificationTemplates/DataSpecificationIec61360/3/0"
+              }
+            ]
+          },
+          "dataSpecificationContent": {
+            "preferredName": [
+              {
+                "language": "en",
+                "text": "WWM_InspectionLine"
+              }
+            ],
+            "dataType": "STRING",
+            "definition": [
+              {
+                "language": "en",
+                "text": "Inspection Line for SET Assembly Process"
+              }
+            ],
+            "modelType": "DataSpecificationIec61360"
+          }
+        }
+      ],
+      "modelType": "ConceptDescription"
+    },
+    {
+      "idShort": "SET_INSP_WorkerRecord_01",
+      "id": "https://www.smart-factory.kr/ids/cd/SET_INSP_WorkerRecord_01/1/0",
+      "embeddedDataSpecifications": [
+        {
+          "dataSpecification": {
+            "type": "ExternalReference",
+            "keys": [
+              {
+                "type": "GlobalReference",
+                "value": "https://admin-shell.io/DataSpecificationTemplates/DataSpecificationIec61360/3/0"
+              }
+            ]
+          },
+          "dataSpecificationContent": {
+            "preferredName": [
+              {
+                "language": "en",
+                "text": "SET_INSP_WorkerRecord_01"
+              }
+            ],
+            "dataType": "STRING",
+            "definition": [
+              {
+                "language": "en",
+                "text": "An individual worker assignment record for the SET inspection line. Contains the worker identifier and skill level for operator 1 assigned to execute SET inspection process steps across applicable product model variants."
+              }
+            ],
+            "modelType": "DataSpecificationIec61360"
+          }
+        }
+      ],
+      "modelType": "ConceptDescription"
+    },
+    {
+      "idShort": "SET_INSP_WorkerRecord_02",
+      "id": "https://www.smart-factory.kr/ids/cd/SET_INSP_WorkerRecord_02/1/0",
+      "embeddedDataSpecifications": [
+        {
+          "dataSpecification": {
+            "type": "ExternalReference",
+            "keys": [
+              {
+                "type": "GlobalReference",
+                "value": "https://admin-shell.io/DataSpecificationTemplates/DataSpecificationIec61360/3/0"
+              }
+            ]
+          },
+          "dataSpecificationContent": {
+            "preferredName": [
+              {
+                "language": "en",
+                "text": "SET_INSP_WorkerRecord_02"
+              }
+            ],
+            "dataType": "STRING",
+            "definition": [
+              {
+                "language": "en",
+                "text": "An individual worker assignment record for the SET inspection line. Contains the worker identifier and skill level for operator 2 assigned to execute SET inspection process steps across applicable product model variants."
+              }
+            ],
+            "modelType": "DataSpecificationIec61360"
+          }
+        }
+      ],
+      "modelType": "ConceptDescription"
+    },
+    {
+      "idShort": "SET_INSP_WorkerRecord_03",
+      "id": "https://www.smart-factory.kr/ids/cd/SET_INSP_WorkerRecord_03/1/0",
+      "embeddedDataSpecifications": [
+        {
+          "dataSpecification": {
+            "type": "ExternalReference",
+            "keys": [
+              {
+                "type": "GlobalReference",
+                "value": "https://admin-shell.io/DataSpecificationTemplates/DataSpecificationIec61360/3/0"
+              }
+            ]
+          },
+          "dataSpecificationContent": {
+            "preferredName": [
+              {
+                "language": "en",
+                "text": "SET_INSP_WorkerRecord_03"
+              }
+            ],
+            "dataType": "STRING",
+            "definition": [
+              {
+                "language": "en",
+                "text": "An individual worker assignment record for the SET inspection line. Contains the worker identifier and skill level for operator 1 assigned to execute SET inspection process steps across applicable product model variants."
+              }
+            ],
+            "modelType": "DataSpecificationIec61360"
+          }
+        }
+      ],
+      "modelType": "ConceptDescription"
+    },
+    {
+      "idShort": "SET_INSP_WorkerRecord_04",
+      "id": "https://www.smart-factory.kr/ids/cd/SET_INSP_WorkerRecord_04/1/0",
+      "embeddedDataSpecifications": [
+        {
+          "dataSpecification": {
+            "type": "ExternalReference",
+            "keys": [
+              {
+                "type": "GlobalReference",
+                "value": "https://admin-shell.io/DataSpecificationTemplates/DataSpecificationIec61360/3/0"
+              }
+            ]
+          },
+          "dataSpecificationContent": {
+            "preferredName": [
+              {
+                "language": "en",
+                "text": "SET_INSP_WorkerRecord_04"
+              }
+            ],
+            "dataType": "STRING",
+            "definition": [
+              {
+                "language": "en",
+                "text": "An individual worker assignment record for the SET inspection line. Contains the worker identifier and skill level for operator 4 assigned to execute SET inspection process steps across applicable product model variants."
+              }
+            ],
             "modelType": "DataSpecificationIec61360"
           }
         }
