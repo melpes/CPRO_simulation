@@ -97,6 +97,7 @@ class SubmodelElement:
 @dataclass(kw_only=True)
 class Submodel(SubmodelElement):
     """자식 idShort 로 키된 dict."""
+    id: str = ''                                                 # AAS V3 unique identifier (URL)
     value: Dict[str, SubmodelElement] = field(default_factory=dict)
 
 
@@ -155,13 +156,82 @@ class ReferenceElement(SubmodelElement):
     # region [로직]
     @property
     def target(self):
-        """`value` 의 실제 타입을 보고 분기해 대상의 특정 속성값 반환."""
-        if isinstance(self.value, SMEPath):
-            return ...
-        if isinstance(self.value, list):
-            return ...
-
+        """value 의 키들로 대상 SME 를 찾는다. 각 키는 외부 식별자(URL/IRDI) 또는 idShort.
+            - 식별자: 모든 AAS walk 해서 Submodel.id 또는 SME.semanticId 와 직접 일치 비교
+            - idShort: 현재 노드의 자식 dict lookup
+            - 첫 키 resolve 후 나머지를 path 로 시도 → path 깨지면 keys 전체를 list 로 간주
+        """
+        keys = self.value
+        if not keys:
+            return None
+        first = _resolve_identifier(keys[0])
+        if len(keys) == 1:
+            return first
+        # keys[1:] 가 모두 식별자 — path 안에서 찾을 수 있으면 path, 아니면 list
+        if all(_is_identifier(key) for key in keys[1:]):
+            node = first
+            for key in keys[1:]:
+                found = _walk_for_match(node, key)
+                if found is None:
+                    return [_resolve_identifier(key) for key in keys]
+                node = found
+            return node
+        # 첫 식별자 + idShort 들 (단일 path)
+        node = first
+        for key in keys[1:]:
+            node = node.value[key]
+        return node
     # endregion
+# endregion
+
+
+# region
+# ====================================================================
+# 내부 — 외부 식별자 (URL/IRDI) → SME 매칭
+# Submodel.id 또는 SME.semanticId 와 문자열 직접 비교.
+# ====================================================================
+def _is_identifier(key: str) -> bool:
+    """key 가 외부 식별자(IRI URL 또는 IRDI) 인지. idShort 와 구분.
+    - IRI: '://' 포함 (URL)
+    - IRDI: '#' 포함 (ECLASS '0173-1#XX-NNNNNN#VVV', CDD 등)"""
+    return '://' in key or '#' in key
+
+
+def _resolve_identifier(identifier: str):
+    """모든 AAS 의 submodel walk 해서 Submodel.id 또는 SME.semanticId 가
+    identifier 와 정확히 일치하는 SME 반환. 못 찾으면 None."""
+    for entry in _aas_registry.values():
+        aas_list = entry if isinstance(entry, list) else [entry]
+        for aas in aas_list:
+            for submodel in aas.submodels.values():
+                if submodel.id == identifier:
+                    return submodel
+                found = _walk_for_match(submodel, identifier)
+                if found is not None:
+                    return found
+    return None
+
+
+def _walk_for_match(node, target_identifier: str):
+    """node subtree 에서 semanticId == target_identifier 인 SME 찾기 (자기 자신 포함).
+    `value` (Submodel/SMC/SML) 와 `statements` (Entity) 만 자식 컨테이너로 인정.
+    ReferenceElement.value (List[semanticId] str 들) 같은 비-SME 리스트는 자식 아님."""
+    if node.semanticId == target_identifier:
+        return node
+    for children_attr in ('value', 'statements'):
+        children = node.__dict__.get(children_attr)
+        if isinstance(children, dict):
+            for child in children.values():
+                found = _walk_for_match(child, target_identifier)
+                if found is not None:
+                    return found
+        elif isinstance(children, list):
+            for child in children:
+                if isinstance(child, SubmodelElement):
+                    found = _walk_for_match(child, target_identifier)
+                    if found is not None:
+                        return found
+    return None
 # endregion
 
 
@@ -271,7 +341,7 @@ def _build_sme(raw_sme: dict) -> SubmodelElement:
     if modelType == 'Submodel':
         children = {child['idShort']: _build_sme(child)
                     for child in raw_sme.get('submodelElements', [])}
-        return Submodel(**base_fields, value=children)
+        return Submodel(**base_fields, id=raw_sme.get('id', ''), value=children)
     if modelType == 'Entity':
         return Entity(
             **base_fields,
