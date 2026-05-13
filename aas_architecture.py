@@ -203,12 +203,115 @@ _aas_registry: Dict[str, AssetAdministrationShell | List[AssetAdministrationShel
 def load(json_path: str) -> None:
     """JSON 파일 하나 로드. 여러 번 호출해 여러 AAS 를 합쳐 사용.
 
-    동작 (구현 TBD):
-      1. JSON 읽고 AAS idShort 식별
-      2. idShort 가 'ProvisionofSimulationModelsAAS' / 'WorkstationWorkerMatchingDataAAS'
-         이면 해당 모듈 레벨 인스턴스에 채움. MODEL_N 패턴이면 새 AAS 만들어 ProductAAS 리스트에 append.
-      3. submodels 빌드 (재귀)
-      4. ReferenceElement 들은 lazy — target 접근 시점에 _aas_registry 통해 cross-AAS deref
+    AAS idShort 로 라우팅:
+      - 'ProvisionofSimulationModelsAAS' → 모듈 레벨 PSM 인스턴스 채움
+      - 'WorkstationWorkerMatchingDataAAS' → 모듈 레벨 WWM 인스턴스 채움
+      - 그 외 (MODEL_N 등) → 새 AssetAdministrationShell 만들어 ProductAAS 리스트에 append
+
+    ReferenceElement 들은 lazy — target 접근 시점에 _aas_registry 통해 cross-AAS deref (TBD).
     """
-    ...
+    with open(json_path, encoding='utf-8') as file:
+        raw_data = json.load(file)
+
+    aas_idShort = raw_data['assetAdministrationShells'][0]['idShort']
+
+    if aas_idShort == 'ProvisionofSimulationModelsAAS':
+        target_aas = ProvisionofSimulationModelsAAS
+    elif aas_idShort == 'WorkstationWorkerMatchingDataAAS':
+        target_aas = WorkstationWorkerMatchingDataAAS
+    else:
+        target_aas = AssetAdministrationShell()
+        ProductAAS.append(target_aas)
+
+    target_aas.idShort = aas_idShort
+    target_aas.submodels = {
+        raw_submodel['idShort']: _build_sme(raw_submodel)
+        for raw_submodel in raw_data.get('submodels', [])
+    }
+# endregion
+
+
+# region
+# ====================================================================
+# 내부 — JSON dict → SME 인스턴스 빌더 (재귀)
+# ====================================================================
+def _build_sme(raw_sme: dict) -> SubmodelElement:
+    """raw JSON dict → SubmodelElement 인스턴스 (재귀)."""
+
+    # 공통 필드
+    semantic_keys = (raw_sme.get('semanticId') or {}).get('keys') or []
+    semantic_value = semantic_keys[0].get('value', '') if semantic_keys else ''
+    base_fields = {
+        'idShort': raw_sme.get('idShort', ''),
+        'semanticId': semanticId(semantic_value),
+        'Qualifier': Qualifier(
+            (qualifier['type'], _cast_value(qualifier.get('value'), qualifier.get('valueType')))
+            for qualifier in raw_sme.get('qualifiers', [])
+        ),
+    }
+
+    modelType = raw_sme['modelType']
+    if modelType == 'Property':
+        return Property(**base_fields,
+                        value=_cast_value(raw_sme.get('value'), raw_sme.get('valueType')))
+    if modelType == 'Range':
+        valueType = raw_sme.get('valueType')
+        return Range(**base_fields,
+                     min=_cast_value(raw_sme.get('min'), valueType),
+                     max=_cast_value(raw_sme.get('max'), valueType))
+    if modelType == 'SubmodelElementCollection':
+        children = {child['idShort']: _build_sme(child)
+                    for child in raw_sme.get('value', [])}
+        return SubmodelElementCollection(**base_fields, value=children)
+    if modelType == 'SubmodelElementList':
+        return SubmodelElementList(
+            **base_fields,
+            value=[_build_sme(child) for child in raw_sme.get('value', [])],
+        )
+    if modelType == 'Submodel':
+        children = {child['idShort']: _build_sme(child)
+                    for child in raw_sme.get('submodelElements', [])}
+        return Submodel(**base_fields, value=children)
+    if modelType == 'Entity':
+        return Entity(
+            **base_fields,
+            entityType=EntityType(raw_sme['entityType']),
+            statements={child['idShort']: _build_sme(child)
+                      for child in raw_sme.get('statements', [])},
+        )
+    if modelType == 'ReferenceElement':
+        return ReferenceElement(
+            **base_fields,
+            value=_parse_ref_keys(raw_sme.get('value')),
+        )
+    if modelType == 'RelationshipElement':
+        return RelationshipElement(
+            **base_fields,
+            first=_parse_ref_keys(raw_sme.get('first')),
+            second=_parse_ref_keys(raw_sme.get('second')),
+        )
+    # 모르는 modelType — base 로 (시뮬에서 안 쓰는 종류)
+    return SubmodelElement(**base_fields)
+
+
+def _parse_ref_keys(raw_reference: dict | None) -> List[semanticId]:
+    """raw reference dict → List[semanticId]. (List[semanticId] vs SMEPath 분기는 TBD)"""
+    if not raw_reference:
+        return []
+    return [semanticId(key.get('value', '')) for key in raw_reference.get('keys', [])]
+
+
+def _cast_value(raw_value, valueType: str | None):
+    """raw value 를 AAS valueType (xs:int, xs:double 등) 에 맞춰 캐스트.
+    valueType 없거나 알려지지 않은 타입이면 raw 그대로 반환."""
+    if raw_value is None or not valueType:
+        return raw_value
+    type_name = valueType.split(':')[-1]
+    if type_name in ('int', 'integer', 'long', 'short', 'byte'):
+        return int(raw_value)
+    if type_name in ('float', 'double', 'decimal'):
+        return float(raw_value)
+    if type_name == 'boolean':
+        return raw_value in (True, 'true', 'True', 'TRUE', 1, '1')
+    return raw_value
 # endregion
