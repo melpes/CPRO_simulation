@@ -1,1 +1,7 @@
 *.pyc
+ppo_policy.pt
+*.png
+simulation_results.xlsx
+*.lock
+backup*.aasx
+*.zip
