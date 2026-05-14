@@ -268,7 +268,7 @@
                   "description": [
                     {
                       "language": "en",
-                      "text": "HasPart relationship. MODEL_B_NVD1 contains 0\u03A9 jumper resistor MCR01MZPEJ0.00 used for PCB routing and circuit configuration."
+                      "text": "HasPart relationship. MODEL_B_NVD1 contains 0Ω jumper resistor MCR01MZPEJ0.00 used for PCB routing and circuit configuration."
                     }
                   ],
                   "semanticId": {
@@ -705,7 +705,7 @@
                   "description": [
                     {
                       "language": "en",
-                      "text": "HasPart relationship. MODEL_B_NVD1 contains 0\u03A9 resistor used for signal routing and jumper configuration."
+                      "text": "HasPart relationship. MODEL_B_NVD1 contains 0Ω resistor used for signal routing and jumper configuration."
                     }
                   ],
                   "semanticId": {
@@ -792,7 +792,7 @@
                   "description": [
                     {
                       "language": "en",
-                      "text": "HasPart relationship. MODEL_B_NVD1 contains 1.5k\u03A9 chip resistor used for voltage division and signal conditioning."
+                      "text": "HasPart relationship. MODEL_B_NVD1 contains 1.5kΩ chip resistor used for voltage division and signal conditioning."
                     }
                   ],
                   "semanticId": {
@@ -5297,7 +5297,7 @@
               "displayName": [
                 {
                   "language": "en",
-                  "text": "SMT CV74_6IR-R1 *03902607 \uACB0\uD569\uC0AC\uC6A9*"
+                  "text": "SMT CV74_6IR-R1 *03902607 결합사용*"
                 }
               ],
               "description": [
@@ -6046,7 +6046,7 @@
               "displayName": [
                 {
                   "language": "en",
-                  "text": "SMT MSL-R42-3-R1(S5L66) *\uC7AC\uACE0 \uC18C\uC9C4 \uD6C4 03903358 \uC0AC\uC6A9*"
+                  "text": "SMT MSL-R42-3-R1(S5L66) *재고 소진 후 03903358 사용*"
                 }
               ],
               "semanticId": {
@@ -6077,7 +6077,7 @@
                 {
                   "kind": "ValueQualifier",
                   "type": "Quantity",
-                  "valueType": "xs:string",
+                  "valueType": "xs:int",
                   "value": "1"
                 },
                 {
@@ -20699,7 +20699,7 @@
                   "description": [
                     {
                       "language": "en",
-                      "text": "1G PoE\u002B Transformer for Power over Ethernet."
+                      "text": "1G PoE+ Transformer for Power over Ethernet."
                     }
                   ],
                   "semanticId": {
@@ -21399,7 +21399,7 @@
               "displayName": [
                 {
                   "language": "en",
-                  "text": "SMT BT5_IP_JOY *03903208\uC640 \uACB0\uD569\uC0AC\uC6A9*"
+                  "text": "SMT BT5_IP_JOY *03903208와 결합사용*"
                 }
               ],
               "semanticId": {
@@ -22594,7 +22594,7 @@
               "displayName": [
                 {
                   "language": "en",
-                  "text": "SMT BT5_IP_SD *03902835\uC640 \uACB0\uD569\uC0AC\uC6A9*"
+                  "text": "SMT BT5_IP_SD *03902835와 결합사용*"
                 }
               ],
               "description": [
@@ -26256,7 +26256,7 @@
                     }
                   ],
                   "valueType": "xs:float",
-                  "value": "1500",
+                  "value": "0.5",
                   "modelType": "Property"
                 },
                 {
@@ -26286,7 +26286,7 @@
                     }
                   ],
                   "valueType": "xs:int",
-                  "value": "0.5",
+                  "value": "1500",
                   "modelType": "Property"
                 }
               ],
@@ -42254,7 +42254,7 @@
                         {
                           "kind": "ValueQualifier",
                           "type": "Quantity",
-                          "valueType": "xs:int",
+                          "valueType": "xs:float",
                           "value": "1.1"
                         }
                       ],
@@ -42308,7 +42308,7 @@
                         {
                           "kind": "ValueQualifier",
                           "type": "Quantity",
-                          "valueType": "xs:int",
+                          "valueType": "xs:float",
                           "value": "0.1"
                         }
                       ],
@@ -42463,7 +42463,7 @@
       "displayName": [
         {
           "language": "en",
-          "text": "0\u03A9 0402 Chip Resistor"
+          "text": "0Ω 0402 Chip Resistor"
         }
       ],
       "id": "https://www.smart-factory.kr/ids/cd/HasPart_11200008/1/0",
@@ -42487,7 +42487,7 @@
             ],
             "unit": "Ohm",
             "sourceOfDefinition": "BT5(IP-SB)-MP8600(S5L66)-TDN7-H6IR-DG-N(R1)",
-            "symbol": "\u03A9",
+            "symbol": "Ω",
             "dataType": "STRING",
             "definition": [
               {
@@ -42679,7 +42679,7 @@
       "displayName": [
         {
           "language": "en",
-          "text": "1608 0\u03A9 Chip Resistor"
+          "text": "1608 0Ω Chip Resistor"
         }
       ],
       "id": "https://www.smart-factory.kr/ids/cd/HasPart_11200091/1/0",
@@ -42703,7 +42703,7 @@
             ],
             "unit": "Ohm",
             "sourceOfDefinition": "BT5(IP-SB)-MP8600(S5L66)-TDN7-H6IR-DG-N(R1)",
-            "symbol": "\u03A9",
+            "symbol": "Ω",
             "dataType": "STRING",
             "definition": [
               {
@@ -42722,7 +42722,7 @@
       "displayName": [
         {
           "language": "en",
-          "text": "0402 1.5k\u03A9 Chip Resistor"
+          "text": "0402 1.5kΩ Chip Resistor"
         }
       ],
       "id": "https://www.smart-factory.kr/ids/cd/HasPart_11200020/1/0",
@@ -42746,7 +42746,7 @@
             ],
             "unit": "Ohm",
             "sourceOfDefinition": "BT5(IP-SB)-MP8600(S5L66)-TDN7-H6IR-DG-N(R1)",
-            "symbol": "\u03A9",
+            "symbol": "Ω",
             "dataType": "STRING",
             "definition": [
               {
@@ -42838,7 +42838,7 @@
             ],
             "unit": "Ohm",
             "sourceOfDefinition": "BT5(IP-SB)-MP8600(S5L66)-TDN7-H6IR-DG-N(R1)",
-            "symbol": "\u03A9",
+            "symbol": "Ω",
             "dataType": "STRING",
             "definition": [
               {
@@ -43072,7 +43072,7 @@
       "displayName": [
         {
           "language": "en",
-          "text": "30k\u03A9 1% 0402 Chip Resistor"
+          "text": "30kΩ 1% 0402 Chip Resistor"
         }
       ],
       "description": [
@@ -43102,7 +43102,7 @@
             ],
             "unit": "Ohm",
             "sourceOfDefinition": "BT5(IP-SB)-MP8600(S5L66)-TDN7-H6IR-DG-N(R1)",
-            "symbol": "\u03A9",
+            "symbol": "Ω",
             "dataType": "STRING",
             "definition": [
               {
@@ -43361,7 +43361,7 @@
             ],
             "unit": "Ohm",
             "sourceOfDefinition": "BT5(IP-SB)-MP8600(S5L66)-TDN7-H6IR-DG-N(R1)",
-            "symbol": "\u03A9",
+            "symbol": "Ω",
             "dataType": "STRING",
             "definition": [
               {
@@ -44110,7 +44110,7 @@
             "definition": [
               {
                 "language": "en",
-                "text": "A 10\u00B5F 25V X7R multilayer ceramic capacitor used for bulk capacitance and voltage stabilization in power circuits."
+                "text": "A 10µF 25V X7R multilayer ceramic capacitor used for bulk capacitance and voltage stabilization in power circuits."
               }
             ],
             "modelType": "DataSpecificationIec61360"
@@ -44315,7 +44315,7 @@
       "displayName": [
         {
           "language": "en",
-          "text": "Chip Resistor 180k\u03A9"
+          "text": "Chip Resistor 180kΩ"
         }
       ],
       "id": "https://www.smart-factory.kr/ids/cd/HasPart_11200095/1/0",
@@ -44339,7 +44339,7 @@
             ],
             "unit": "Ohm",
             "sourceOfDefinition": "BT5(IP-SB)-MP8600(S5L66)-TDN7-H6IR-DG-N(R1)",
-            "symbol": "\u03A9",
+            "symbol": "Ω",
             "dataType": "STRING",
             "definition": [
               {
@@ -44358,7 +44358,7 @@
       "displayName": [
         {
           "language": "en",
-          "text": "Chip Resistor 0.68\u03A9"
+          "text": "Chip Resistor 0.68Ω"
         }
       ],
       "id": "https://www.smart-factory.kr/ids/cd/HasPart_11200124/1/0",
@@ -44382,7 +44382,7 @@
             ],
             "unit": "Ohm",
             "sourceOfDefinition": "BT5(IP-SB)-MP8600(S5L66)-TDN7-H6IR-DG-N(R1)",
-            "symbol": "\u03A9",
+            "symbol": "Ω",
             "dataType": "STRING",
             "definition": [
               {
@@ -44430,7 +44430,7 @@
             "definition": [
               {
                 "language": "en",
-                "text": "A 1\u00B5F 16V multilayer ceramic capacitor used for decoupling, bypassing, and noise suppression in low-voltage circuits."
+                "text": "A 1µF 16V multilayer ceramic capacitor used for decoupling, bypassing, and noise suppression in low-voltage circuits."
               }
             ],
             "modelType": "DataSpecificationIec61360"
@@ -44444,7 +44444,7 @@
       "displayName": [
         {
           "language": "en",
-          "text": "Chip Resistor 150k\u03A9"
+          "text": "Chip Resistor 150kΩ"
         }
       ],
       "id": "https://www.smart-factory.kr/ids/cd/HasPart_11200127/1/0",
@@ -44468,7 +44468,7 @@
             ],
             "unit": "Ohm",
             "sourceOfDefinition": "BT5(IP-SB)-MP8600(S5L66)-TDN7-H6IR-DG-N(R1)",
-            "symbol": "\u03A9",
+            "symbol": "Ω",
             "dataType": "STRING",
             "definition": [
               {
@@ -44487,7 +44487,7 @@
       "displayName": [
         {
           "language": "en",
-          "text": "Chip Resistor 180k\u03A9"
+          "text": "Chip Resistor 180kΩ"
         }
       ],
       "id": "https://www.smart-factory.kr/ids/cd/HasPart_11200139/1/0",
@@ -44511,7 +44511,7 @@
             ],
             "unit": "Ohm",
             "sourceOfDefinition": "BT5(IP-SB)-MP8600(S5L66)-TDN7-H6IR-DG-N(R1)",
-            "symbol": "\u03A9",
+            "symbol": "Ω",
             "dataType": "STRING",
             "definition": [
               {
@@ -44530,7 +44530,7 @@
       "displayName": [
         {
           "language": "en",
-          "text": "Chip Resistor 2.2k\u03A9"
+          "text": "Chip Resistor 2.2kΩ"
         }
       ],
       "id": "https://www.smart-factory.kr/ids/cd/HasPart_11200148/1/0",
@@ -44554,7 +44554,7 @@
             ],
             "unit": "Ohm",
             "sourceOfDefinition": "BT5(IP-SB)-MP8600(S5L66)-TDN7-H6IR-DG-N(R1)",
-            "symbol": "\u03A9",
+            "symbol": "Ω",
             "dataType": "STRING",
             "definition": [
               {
@@ -44597,7 +44597,7 @@
             ],
             "unit": "Ohm",
             "sourceOfDefinition": "BT5(IP-SB)-MP8600(S5L66)-TDN7-H6IR-DG-N(R1)",
-            "symbol": "\u03A9",
+            "symbol": "Ω",
             "dataType": "STRING",
             "definition": [
               {
@@ -44616,7 +44616,7 @@
       "displayName": [
         {
           "language": "en",
-          "text": "NTC Thermistor 100k\u03A9"
+          "text": "NTC Thermistor 100kΩ"
         }
       ],
       "id": "https://www.smart-factory.kr/ids/cd/HasPart_11201528/1/0",
@@ -44640,7 +44640,7 @@
             ],
             "unit": "Ohm",
             "sourceOfDefinition": "BT5(IP-SB)-MP8600(S5L66)-TDN7-H6IR-DG-N(R1)",
-            "symbol": "\u03A9",
+            "symbol": "Ω",
             "dataType": "STRING",
             "definition": [
               {
@@ -44770,7 +44770,7 @@
             "definition": [
               {
                 "language": "en",
-                "text": "A 10\u00B5H chip inductor used for power supply filtering and EMI suppression in DC-DC circuits."
+                "text": "A 10µH chip inductor used for power supply filtering and EMI suppression in DC-DC circuits."
               }
             ],
             "modelType": "DataSpecificationIec61360"
@@ -44825,7 +44825,7 @@
       "displayName": [
         {
           "language": "en",
-          "text": "Chip Resistor 0.68\u03A9"
+          "text": "Chip Resistor 0.68Ω"
         }
       ],
       "id": "https://www.smart-factory.kr/ids/cd/HasPart_11200267/1/0",
@@ -44849,7 +44849,7 @@
             ],
             "unit": "Ohm",
             "sourceOfDefinition": "BT5(IP-SB)-MP8600(S5L66)-TDN7-H6IR-DG-N(R1)",
-            "symbol": "\u03A9",
+            "symbol": "Ω",
             "dataType": "STRING",
             "definition": [
               {
@@ -45154,7 +45154,7 @@
       "displayName": [
         {
           "language": "en",
-          "text": "Power Resistor 8.2\u03A9 1W"
+          "text": "Power Resistor 8.2Ω 1W"
         }
       ],
       "id": "https://www.smart-factory.kr/ids/cd/HasPart_11201566/1/0",
@@ -45178,7 +45178,7 @@
             ],
             "unit": "Ohm",
             "sourceOfDefinition": "BT5(IP-SB)-MP8600(S5L66)-TDN7-H6IR-DG-N(R1)",
-            "symbol": "\u03A9",
+            "symbol": "Ω",
             "dataType": "STRING",
             "definition": [
               {
@@ -45428,7 +45428,7 @@
       "displayName": [
         {
           "language": "en",
-          "text": "Chip Resistor 100k\u03A9 1%"
+          "text": "Chip Resistor 100kΩ 1%"
         }
       ],
       "id": "https://www.smart-factory.kr/ids/cd/HasPart_11200013/1/0",
@@ -45452,7 +45452,7 @@
             ],
             "unit": "Ohm",
             "sourceOfDefinition": "BT5(IP-SB)-MP8600(S5L66)-TDN7-H6IR-DG-N(R1)",
-            "symbol": "\u03A9",
+            "symbol": "Ω",
             "definition": [
               {
                 "language": "en",
@@ -45470,7 +45470,7 @@
       "displayName": [
         {
           "language": "en",
-          "text": "Chip Resistor 10k\u03A9 1%"
+          "text": "Chip Resistor 10kΩ 1%"
         }
       ],
       "id": "https://www.smart-factory.kr/ids/cd/HasPart_11200585/1/0",
@@ -45494,7 +45494,7 @@
             ],
             "unit": "Ohm",
             "sourceOfDefinition": "BT5(IP-SB)-MP8600(S5L66)-TDN7-H6IR-DG-N(R1)",
-            "symbol": "\u03A9",
+            "symbol": "Ω",
             "dataType": "STRING",
             "definition": [
               {
@@ -45554,7 +45554,7 @@
       "displayName": [
         {
           "language": "en",
-          "text": "Chip Resistor 47k\u03A9"
+          "text": "Chip Resistor 47kΩ"
         }
       ],
       "id": "https://www.smart-factory.kr/ids/cd/HasPart_11200062/1/0",
@@ -45578,7 +45578,7 @@
             ],
             "unit": "Ohm",
             "sourceOfDefinition": "BT5(IP-SB)-MP8600(S5L66)-TDN7-H6IR-DG-N(R1)",
-            "symbol": "\u03A9",
+            "symbol": "Ω",
             "dataType": "STRING",
             "definition": [
               {
@@ -45781,7 +45781,7 @@
             "definition": [
               {
                 "language": "en",
-                "text": "A 10\u00B5F 10V X5R multilayer ceramic capacitor in 0805 package used for decoupling and power supply smoothing."
+                "text": "A 10µF 10V X5R multilayer ceramic capacitor in 0805 package used for decoupling and power supply smoothing."
               }
             ],
             "modelType": "DataSpecificationIec61360"
@@ -45845,7 +45845,7 @@
             "definition": [
               {
                 "language": "en",
-                "text": "A 22\u00B5F 6.3V multilayer ceramic capacitor used for bulk capacitance and power smoothing in low-voltage circuits."
+                "text": "A 22µF 6.3V multilayer ceramic capacitor used for bulk capacitance and power smoothing in low-voltage circuits."
               }
             ],
             "modelType": "DataSpecificationIec61360"
@@ -45919,7 +45919,7 @@
             "definition": [
               {
                 "language": "en",
-                "text": "A high-capacity 100\u00B5F 6.3V multilayer ceramic capacitor used for bulk energy storage and voltage stabilization."
+                "text": "A high-capacity 100µF 6.3V multilayer ceramic capacitor used for bulk energy storage and voltage stabilization."
               }
             ],
             "modelType": "DataSpecificationIec61360"
@@ -45956,7 +45956,7 @@
             "definition": [
               {
                 "language": "en",
-                "text": "A 2.2\u00B5F 6.3V multilayer ceramic capacitor used for decoupling and power supply smoothing."
+                "text": "A 2.2µF 6.3V multilayer ceramic capacitor used for decoupling and power supply smoothing."
               }
             ],
             "modelType": "DataSpecificationIec61360"
@@ -45999,7 +45999,7 @@
             "definition": [
               {
                 "language": "en",
-                "text": "A 22\u00B5F 6.3V multilayer ceramic capacitor in 0603 package used for bulk capacitance and voltage stabilization."
+                "text": "A 22µF 6.3V multilayer ceramic capacitor in 0603 package used for bulk capacitance and voltage stabilization."
               }
             ],
             "modelType": "DataSpecificationIec61360"
@@ -46293,7 +46293,7 @@
             "definition": [
               {
                 "language": "en",
-                "text": "A 2.2\u00B5H chip inductor used for DC-DC converter filtering and power supply noise suppression."
+                "text": "A 2.2µH chip inductor used for DC-DC converter filtering and power supply noise suppression."
               }
             ],
             "modelType": "DataSpecificationIec61360"
@@ -46331,7 +46331,7 @@
             ],
             "unit": "Ohm",
             "sourceOfDefinition": "BT5(IP-SB)-MP8600(S5L66)-TDN7-H6IR-DG-N(R1)",
-            "symbol": "\u03A9",
+            "symbol": "Ω",
             "dataType": "STRING",
             "definition": [
               {
@@ -46379,7 +46379,7 @@
             "definition": [
               {
                 "language": "en",
-                "text": "A 2.2\u00B5H chip inductor used for DC-DC converter filtering and energy storage."
+                "text": "A 2.2µH chip inductor used for DC-DC converter filtering and energy storage."
               }
             ],
             "modelType": "DataSpecificationIec61360"
@@ -46722,7 +46722,7 @@
       "displayName": [
         {
           "language": "en",
-          "text": "Chip Resistor 100\u03A9"
+          "text": "Chip Resistor 100Ω"
         }
       ],
       "id": "https://www.smart-factory.kr/ids/cd/HasPart_11200010/1/0",
@@ -46746,7 +46746,7 @@
             ],
             "unit": "Ohm",
             "sourceOfDefinition": "BT5(IP-SB)-MP8600(S5L66)-TDN7-H6IR-DG-N(R1)",
-            "symbol": "\u03A9",
+            "symbol": "Ω",
             "dataType": "STRING",
             "definition": [
               {
@@ -46765,7 +46765,7 @@
       "displayName": [
         {
           "language": "en",
-          "text": "Chip Resistor 1k\u03A9 1%"
+          "text": "Chip Resistor 1kΩ 1%"
         }
       ],
       "id": "https://www.smart-factory.kr/ids/cd/HasPart_11200011/1/0",
@@ -46789,7 +46789,7 @@
             ],
             "unit": "Ohm",
             "sourceOfDefinition": "BT5(IP-SB)-MP8600(S5L66)-TDN7-H6IR-DG-N(R1)",
-            "symbol": "\u03A9",
+            "symbol": "Ω",
             "dataType": "STRING",
             "definition": [
               {
@@ -46808,7 +46808,7 @@
       "displayName": [
         {
           "language": "en",
-          "text": "Chip Resistor 200\u03A9 1%"
+          "text": "Chip Resistor 200Ω 1%"
         }
       ],
       "id": "https://www.smart-factory.kr/ids/cd/HasPart_11200030/1/0",
@@ -46832,7 +46832,7 @@
             ],
             "unit": "Ohm",
             "sourceOfDefinition": "BT5(IP-SB)-MP8600(S5L66)-TDN7-H6IR-DG-N(R1)",
-            "symbol": "\u03A9",
+            "symbol": "Ω",
             "dataType": "STRING",
             "definition": [
               {
@@ -46851,7 +46851,7 @@
       "displayName": [
         {
           "language": "en",
-          "text": "Chip Resistor 22\u03A9"
+          "text": "Chip Resistor 22Ω"
         }
       ],
       "id": "https://www.smart-factory.kr/ids/cd/HasPart_11200034/1/0",
@@ -46875,7 +46875,7 @@
             ],
             "unit": "Ohm",
             "sourceOfDefinition": "BT5(IP-SB)-MP8600(S5L66)-TDN7-H6IR-DG-N(R1)",
-            "symbol": "\u03A9",
+            "symbol": "Ω",
             "dataType": "STRING",
             "definition": [
               {
@@ -46894,7 +46894,7 @@
       "displayName": [
         {
           "language": "en",
-          "text": "Chip Resistor 2.2k\u03A9"
+          "text": "Chip Resistor 2.2kΩ"
         }
       ],
       "id": "https://www.smart-factory.kr/ids/cd/HasPart_11200036/1/0",
@@ -46918,7 +46918,7 @@
             ],
             "unit": "Ohm",
             "sourceOfDefinition": "BT5(IP-SB)-MP8600(S5L66)-TDN7-H6IR-DG-N(R1)",
-            "symbol": "\u03A9",
+            "symbol": "Ω",
             "dataType": "STRING",
             "definition": [
               {
@@ -46938,7 +46938,7 @@
       "displayName": [
         {
           "language": "en",
-          "text": "Chip Resistor 2.7k\u03A9"
+          "text": "Chip Resistor 2.7kΩ"
         }
       ],
       "id": "https://www.smart-factory.kr/ids/cd/HasPart_11200041/1/0",
@@ -46962,7 +46962,7 @@
             ],
             "unit": "Ohm",
             "sourceOfDefinition": "BT5(IP-SB)-MP8600(S5L66)-TDN7-H6IR-DG-N(R1)",
-            "symbol": "\u03A9",
+            "symbol": "Ω",
             "dataType": "STRING",
             "definition": [
               {
@@ -46981,7 +46981,7 @@
       "displayName": [
         {
           "language": "en",
-          "text": "Chip Resistor 75\u03A9"
+          "text": "Chip Resistor 75Ω"
         }
       ],
       "id": "https://www.smart-factory.kr/ids/cd/HasPart_11200078/1/0",
@@ -47005,7 +47005,7 @@
             ],
             "unit": "Ohm",
             "sourceOfDefinition": "BT5(IP-SB)-MP8600(S5L66)-TDN7-H6IR-DG-N(R1)",
-            "symbol": "\u03A9",
+            "symbol": "Ω",
             "dataType": "STRING",
             "definition": [
               {
@@ -47024,7 +47024,7 @@
       "displayName": [
         {
           "language": "en",
-          "text": "Ferrite Bead 120\u03A9"
+          "text": "Ferrite Bead 120Ω"
         }
       ],
       "id": "https://www.smart-factory.kr/ids/cd/HasPart_11200610/1/0",
@@ -47048,7 +47048,7 @@
             ],
             "unit": "Ohm",
             "sourceOfDefinition": "BT5(IP-SB)-MP8600(S5L66)-TDN7-H6IR-DG-N(R1)",
-            "symbol": "\u03A9",
+            "symbol": "Ω",
             "dataType": "STRING",
             "definition": [
               {
@@ -47067,7 +47067,7 @@
       "displayName": [
         {
           "language": "en",
-          "text": "Chip Resistor 10M\u03A9"
+          "text": "Chip Resistor 10MΩ"
         }
       ],
       "id": "https://www.smart-factory.kr/ids/cd/HasPart_11200735/1/0",
@@ -47091,7 +47091,7 @@
             ],
             "unit": "Ohm",
             "sourceOfDefinition": "BT5(IP-SB)-MP8600(S5L66)-TDN7-H6IR-DG-N(R1)",
-            "symbol": "\u03A9",
+            "symbol": "Ω",
             "dataType": "STRING",
             "definition": [
               {
@@ -47134,7 +47134,7 @@
             ],
             "unit": "Ohm",
             "sourceOfDefinition": "BT5(IP-SB)-MP8600(S5L66)-TDN7-H6IR-DG-N(R1)",
-            "symbol": "\u03A9",
+            "symbol": "Ω",
             "dataType": "STRING",
             "definition": [
               {
@@ -47153,7 +47153,7 @@
       "displayName": [
         {
           "language": "en",
-          "text": "Chip Resistor 240\u03A9"
+          "text": "Chip Resistor 240Ω"
         }
       ],
       "id": "https://www.smart-factory.kr/ids/cd/HasPart_11200882/1/0",
@@ -47177,7 +47177,7 @@
             ],
             "unit": "Ohm",
             "sourceOfDefinition": "BT5(IP-SB)-MP8600(S5L66)-TDN7-H6IR-DG-N(R1)",
-            "symbol": "\u03A9",
+            "symbol": "Ω",
             "dataType": "STRING",
             "definition": [
               {
@@ -47196,7 +47196,7 @@
       "displayName": [
         {
           "language": "en",
-          "text": "Chip Resistor 25.5k\u03A9 1%"
+          "text": "Chip Resistor 25.5kΩ 1%"
         }
       ],
       "id": "https://www.smart-factory.kr/ids/cd/HasPart_11200907/1/0",
@@ -47220,7 +47220,7 @@
             ],
             "unit": "Ohm",
             "sourceOfDefinition": "BT5(IP-SB)-MP8600(S5L66)-TDN7-H6IR-DG-N(R1)",
-            "symbol": "\u03A9",
+            "symbol": "Ω",
             "dataType": "STRING",
             "definition": [
               {
@@ -47239,7 +47239,7 @@
       "displayName": [
         {
           "language": "en",
-          "text": "Chip Resistor 4.53k\u03A9 1%"
+          "text": "Chip Resistor 4.53kΩ 1%"
         }
       ],
       "id": "https://www.smart-factory.kr/ids/cd/HasPart_11200909/1/0",
@@ -47263,7 +47263,7 @@
             ],
             "unit": "Ohm",
             "sourceOfDefinition": "BT5(IP-SB)-MP8600(S5L66)-TDN7-H6IR-DG-N(R1)",
-            "symbol": "\u03A9",
+            "symbol": "Ω",
             "dataType": "STRING",
             "definition": [
               {
@@ -47282,7 +47282,7 @@
       "displayName": [
         {
           "language": "en",
-          "text": "Chip Resistor 5.1k\u03A9"
+          "text": "Chip Resistor 5.1kΩ"
         }
       ],
       "id": "https://www.smart-factory.kr/ids/cd/HasPart_11200951/1/0",
@@ -47306,7 +47306,7 @@
             ],
             "unit": "Ohm",
             "sourceOfDefinition": "BT5(IP-SB)-MP8600(S5L66)-TDN7-H6IR-DG-N(R1)",
-            "symbol": "\u03A9",
+            "symbol": "Ω",
             "dataType": "STRING",
             "definition": [
               {
@@ -47325,7 +47325,7 @@
       "displayName": [
         {
           "language": "en",
-          "text": "Chip Resistor 180k\u03A9"
+          "text": "Chip Resistor 180kΩ"
         }
       ],
       "id": "https://www.smart-factory.kr/ids/cd/HasPart_11201295/1/0",
@@ -47349,7 +47349,7 @@
             ],
             "unit": "Ohm",
             "sourceOfDefinition": "BT5(IP-SB)-MP8600(S5L66)-TDN7-H6IR-DG-N(R1)",
-            "symbol": "\u03A9",
+            "symbol": "Ω",
             "dataType": "STRING",
             "definition": [
               {
@@ -47368,7 +47368,7 @@
       "displayName": [
         {
           "language": "en",
-          "text": "Chip Resistor 68k\u03A9"
+          "text": "Chip Resistor 68kΩ"
         }
       ],
       "id": "https://www.smart-factory.kr/ids/cd/HasPart_11201327/1/0",
@@ -47392,7 +47392,7 @@
             ],
             "unit": "Ohm",
             "sourceOfDefinition": "BT5(IP-SB)-MP8600(S5L66)-TDN7-H6IR-DG-N(R1)",
-            "symbol": "\u03A9",
+            "symbol": "Ω",
             "dataType": "STRING",
             "definition": [
               {
@@ -47411,7 +47411,7 @@
       "displayName": [
         {
           "language": "en",
-          "text": "Chip Resistor 39k\u03A9"
+          "text": "Chip Resistor 39kΩ"
         }
       ],
       "id": "https://www.smart-factory.kr/ids/cd/HasPart_11201359/1/0",
@@ -47435,7 +47435,7 @@
             ],
             "unit": "Ohm",
             "sourceOfDefinition": "BT5(IP-SB)-MP8600(S5L66)-TDN7-H6IR-DG-N(R1)",
-            "symbol": "\u03A9",
+            "symbol": "Ω",
             "dataType": "STRING",
             "definition": [
               {
@@ -47454,7 +47454,7 @@
       "displayName": [
         {
           "language": "en",
-          "text": "Chip Resistor 150k\u03A9 1%"
+          "text": "Chip Resistor 150kΩ 1%"
         }
       ],
       "id": "https://www.smart-factory.kr/ids/cd/HasPart_11201524/1/0",
@@ -47478,7 +47478,7 @@
             ],
             "unit": "Ohm",
             "sourceOfDefinition": "BT5(IP-SB)-MP8600(S5L66)-TDN7-H6IR-DG-N(R1)",
-            "symbol": "\u03A9",
+            "symbol": "Ω",
             "dataType": "STRING",
             "definition": [
               {
@@ -47632,7 +47632,7 @@
             "definition": [
               {
                 "language": "en",
-                "text": "A 0.01\u00B5F 63V multilayer ceramic capacitor used for decoupling and noise suppression."
+                "text": "A 0.01µF 63V multilayer ceramic capacitor used for decoupling and noise suppression."
               }
             ],
             "modelType": "DataSpecificationIec61360"
@@ -47815,7 +47815,7 @@
             "definition": [
               {
                 "language": "en",
-                "text": "A 0.22\u00B5F 50V multilayer ceramic capacitor used for decoupling and noise suppression."
+                "text": "A 0.22µF 50V multilayer ceramic capacitor used for decoupling and noise suppression."
               }
             ],
             "modelType": "DataSpecificationIec61360"
@@ -47858,7 +47858,7 @@
             "definition": [
               {
                 "language": "en",
-                "text": "A 0.1\u00B5F 50V multilayer ceramic capacitor in 0805 package used for decoupling and high-frequency noise suppression."
+                "text": "A 0.1µF 50V multilayer ceramic capacitor in 0805 package used for decoupling and high-frequency noise suppression."
               }
             ],
             "modelType": "DataSpecificationIec61360"
@@ -47955,7 +47955,7 @@
             "definition": [
               {
                 "language": "en",
-                "text": "A 330\u00B5F 25V electrolytic capacitor used for bulk energy storage and power smoothing (through-hole type)."
+                "text": "A 330µF 25V electrolytic capacitor used for bulk energy storage and power smoothing (through-hole type)."
               }
             ],
             "modelType": "DataSpecificationIec61360"
@@ -48052,7 +48052,7 @@
             "definition": [
               {
                 "language": "en",
-                "text": "A 47\u00B5F 63V electrolytic capacitor used for bulk capacitance and power filtering (through-hole type)."
+                "text": "A 47µF 63V electrolytic capacitor used for bulk capacitance and power filtering (through-hole type)."
               }
             ],
             "modelType": "DataSpecificationIec61360"
@@ -48138,7 +48138,7 @@
             "definition": [
               {
                 "language": "en",
-                "text": "A 22\u00B5F 16V multilayer ceramic capacitor used for bulk capacitance and power smoothing."
+                "text": "A 22µF 16V multilayer ceramic capacitor used for bulk capacitance and power smoothing."
               }
             ],
             "modelType": "DataSpecificationIec61360"
@@ -48180,7 +48180,7 @@
             "definition": [
               {
                 "language": "en",
-                "text": "A 2.2\u00B5F 100V multilayer ceramic capacitor used in high-voltage power circuits."
+                "text": "A 2.2µF 100V multilayer ceramic capacitor used in high-voltage power circuits."
               }
             ],
             "modelType": "DataSpecificationIec61360"
@@ -48223,7 +48223,7 @@
             "definition": [
               {
                 "language": "en",
-                "text": "A 10\u00B5F 16V multilayer ceramic capacitor used for decoupling and power smoothing."
+                "text": "A 10µF 16V multilayer ceramic capacitor used for decoupling and power smoothing."
               }
             ],
             "modelType": "DataSpecificationIec61360"
@@ -48341,7 +48341,7 @@
             "definition": [
               {
                 "language": "en",
-                "text": "A 0.1\u00B5F 100V multilayer ceramic capacitor in 0805 package used for high-voltage decoupling and noise suppression."
+                "text": "A 0.1µF 100V multilayer ceramic capacitor in 0805 package used for high-voltage decoupling and noise suppression."
               }
             ],
             "modelType": "DataSpecificationIec61360"
@@ -48384,7 +48384,7 @@
             "definition": [
               {
                 "language": "en",
-                "text": "A 0.1\u00B5F 100V multilayer ceramic capacitor (2012 size) used for high-voltage decoupling."
+                "text": "A 0.1µF 100V multilayer ceramic capacitor (2012 size) used for high-voltage decoupling."
               }
             ],
             "modelType": "DataSpecificationIec61360"
@@ -49276,7 +49276,7 @@
             "definition": [
               {
                 "language": "en",
-                "text": "A 10\u00B5H chip inductor used for DC-DC converter filtering and energy storage."
+                "text": "A 10µH chip inductor used for DC-DC converter filtering and energy storage."
               }
             ],
             "modelType": "DataSpecificationIec61360"
@@ -49738,7 +49738,7 @@
       "displayName": [
         {
           "language": "en",
-          "text": "Chip Resistor 10k\u03A9"
+          "text": "Chip Resistor 10kΩ"
         }
       ],
       "id": "https://www.smart-factory.kr/ids/cd/HasPart_11200012/1/0",
@@ -49762,7 +49762,7 @@
             ],
             "unit": "Ohm",
             "sourceOfDefinition": "BT5(IP-SB)-MP8600(S5L66)-TDN7-H6IR-DG-N(R1)",
-            "symbol": "\u03A9",
+            "symbol": "Ω",
             "dataType": "STRING",
             "definition": [
               {
@@ -49786,7 +49786,7 @@
       "displayName": [
         {
           "language": "en",
-          "text": "Chip Resistor 1.2k\u03A9"
+          "text": "Chip Resistor 1.2kΩ"
         }
       ],
       "id": "https://www.smart-factory.kr/ids/cd/HasPart_11200015/1/0",
@@ -49810,7 +49810,7 @@
             ],
             "unit": "Ohm",
             "sourceOfDefinition": "BT5(IP-SB)-MP8600(S5L66)-TDN7-H6IR-DG-N(R1)",
-            "symbol": "\u03A9",
+            "symbol": "Ω",
             "dataType": "STRING",
             "definition": [
               {
@@ -49829,7 +49829,7 @@
       "displayName": [
         {
           "language": "en",
-          "text": "Chip Resistor 20k\u03A9 1%"
+          "text": "Chip Resistor 20kΩ 1%"
         }
       ],
       "id": "https://www.smart-factory.kr/ids/cd/HasPart_11200032/1/0",
@@ -49853,7 +49853,7 @@
             ],
             "unit": "Ohm",
             "sourceOfDefinition": "BT5(IP-SB)-MP8600(S5L66)-TDN7-H6IR-DG-N(R1)",
-            "symbol": "\u03A9",
+            "symbol": "Ω",
             "dataType": "STRING",
             "definition": [
               {
@@ -49876,7 +49876,7 @@
       "displayName": [
         {
           "language": "en",
-          "text": "Chip Resistor 220\u03A9 1%"
+          "text": "Chip Resistor 220Ω 1%"
         }
       ],
       "id": "https://www.smart-factory.kr/ids/cd/HasPart_11200035/1/0",
@@ -49900,7 +49900,7 @@
             ],
             "unit": "Ohm",
             "sourceOfDefinition": "BT5(IP-SB)-MP8600(S5L66)-TDN7-H6IR-DG-N(R1)",
-            "symbol": "\u03A9",
+            "symbol": "Ω",
             "dataType": "STRING",
             "definition": [
               {
@@ -49954,7 +49954,7 @@
       "displayName": [
         {
           "language": "en",
-          "text": "Chip Resistor 330\u03A9"
+          "text": "Chip Resistor 330Ω"
         }
       ],
       "id": "https://www.smart-factory.kr/ids/cd/HasPart_11200048/1/0",
@@ -49978,7 +49978,7 @@
             ],
             "unit": "Ohm",
             "sourceOfDefinition": "BT5(IP-SB)-MP8600(S5L66)-TDN7-H6IR-DG-N(R1)",
-            "symbol": "\u03A9",
+            "symbol": "Ω",
             "dataType": "STRING",
             "definition": [
               {
@@ -50032,7 +50032,7 @@
       "displayName": [
         {
           "language": "en",
-          "text": "Chip Resistor 1k\u03A9"
+          "text": "Chip Resistor 1kΩ"
         }
       ],
       "id": "https://www.smart-factory.kr/ids/cd/HasPart_11200097/1/0",
@@ -50056,7 +50056,7 @@
             ],
             "unit": "Ohm",
             "sourceOfDefinition": "BT5(IP-SB)-MP8600(S5L66)-TDN7-H6IR-DG-N(R1)",
-            "symbol": "\u03A9",
+            "symbol": "Ω",
             "dataType": "STRING",
             "definition": [
               {
@@ -50075,7 +50075,7 @@
       "displayName": [
         {
           "language": "en",
-          "text": "Chip Resistor 100k\u03A9"
+          "text": "Chip Resistor 100kΩ"
         }
       ],
       "id": "https://www.smart-factory.kr/ids/cd/HasPart_11200101/1/0",
@@ -50099,7 +50099,7 @@
             ],
             "unit": "Ohm",
             "sourceOfDefinition": "BT5(IP-SB)-MP8600(S5L66)-TDN7-H6IR-DG-N(R1)",
-            "symbol": "\u03A9",
+            "symbol": "Ω",
             "dataType": "STRING",
             "definition": [
               {
@@ -50118,7 +50118,7 @@
       "displayName": [
         {
           "language": "en",
-          "text": "Chip Resistor 75\u03A9"
+          "text": "Chip Resistor 75Ω"
         }
       ],
       "id": "https://www.smart-factory.kr/ids/cd/HasPart_11200110/1/0",
@@ -50142,7 +50142,7 @@
             ],
             "unit": "Ohm",
             "sourceOfDefinition": "BT5(IP-SB)-MP8600(S5L66)-TDN7-H6IR-DG-N(R1)",
-            "symbol": "\u03A9",
+            "symbol": "Ω",
             "dataType": "STRING",
             "definition": [
               {
@@ -50161,7 +50161,7 @@
       "displayName": [
         {
           "language": "en",
-          "text": "Chip Resistor 110k\u03A9"
+          "text": "Chip Resistor 110kΩ"
         }
       ],
       "id": "https://www.smart-factory.kr/ids/cd/HasPart_11200116/1/0",
@@ -50185,7 +50185,7 @@
             ],
             "unit": "Ohm",
             "sourceOfDefinition": "BT5(IP-SB)-MP8600(S5L66)-TDN7-H6IR-DG-N(R1)",
-            "symbol": "\u03A9",
+            "symbol": "Ω",
             "dataType": "STRING",
             "definition": [
               {
@@ -50204,7 +50204,7 @@
       "displayName": [
         {
           "language": "en",
-          "text": "Chip Resistor 15k\u03A9 1%"
+          "text": "Chip Resistor 15kΩ 1%"
         }
       ],
       "id": "https://www.smart-factory.kr/ids/cd/HasPart_11200125/1/0",
@@ -50228,7 +50228,7 @@
             ],
             "unit": "Ohm",
             "sourceOfDefinition": "BT5(IP-SB)-MP8600(S5L66)-TDN7-H6IR-DG-N(R1)",
-            "symbol": "\u03A9",
+            "symbol": "Ω",
             "dataType": "STRING",
             "definition": [
               {
@@ -50247,7 +50247,7 @@
       "displayName": [
         {
           "language": "en",
-          "text": "Chip Resistor 68k\u03A9"
+          "text": "Chip Resistor 68kΩ"
         }
       ],
       "id": "https://www.smart-factory.kr/ids/cd/HasPart_11200136/1/0",
@@ -50271,7 +50271,7 @@
             ],
             "unit": "Ohm",
             "sourceOfDefinition": "BT5(IP-SB)-MP8600(S5L66)-TDN7-H6IR-DG-N(R1)",
-            "symbol": "\u03A9",
+            "symbol": "Ω",
             "dataType": "STRING",
             "definition": [
               {
@@ -50290,7 +50290,7 @@
       "displayName": [
         {
           "language": "en",
-          "text": "Chip Resistor 2k\u03A9"
+          "text": "Chip Resistor 2kΩ"
         }
       ],
       "id": "https://www.smart-factory.kr/ids/cd/HasPart_11200143/1/0",
@@ -50314,7 +50314,7 @@
             ],
             "unit": "Ohm",
             "sourceOfDefinition": "BT5(IP-SB)-MP8600(S5L66)-TDN7-H6IR-DG-N(R1)",
-            "symbol": "\u03A9",
+            "symbol": "Ω",
             "dataType": "STRING",
             "definition": [
               {
@@ -50333,7 +50333,7 @@
       "displayName": [
         {
           "language": "en",
-          "text": "Chip Resistor 22\u03A9"
+          "text": "Chip Resistor 22Ω"
         }
       ],
       "id": "https://www.smart-factory.kr/ids/cd/HasPart_11200146/1/0",
@@ -50357,7 +50357,7 @@
             ],
             "unit": "Ohm",
             "sourceOfDefinition": "BT5(IP-SB)-MP8600(S5L66)-TDN7-H6IR-DG-N(R1)",
-            "symbol": "\u03A9",
+            "symbol": "Ω",
             "dataType": "STRING",
             "definition": [
               {
@@ -50403,7 +50403,7 @@
       "displayName": [
         {
           "language": "en",
-          "text": "Chip Resistor 3.9k\u03A9"
+          "text": "Chip Resistor 3.9kΩ"
         }
       ],
       "id": "https://www.smart-factory.kr/ids/cd/HasPart_11200177/1/0",
@@ -50427,7 +50427,7 @@
             ],
             "unit": "Ohm",
             "sourceOfDefinition": "BT5(IP-SB)-MP8600(S5L66)-TDN7-H6IR-DG-N(R1)",
-            "symbol": "\u03A9",
+            "symbol": "Ω",
             "dataType": "STRING",
             "definition": [
               {
@@ -50446,7 +50446,7 @@
       "displayName": [
         {
           "language": "en",
-          "text": "Chip Resistor 470k\u03A9"
+          "text": "Chip Resistor 470kΩ"
         }
       ],
       "id": "https://www.smart-factory.kr/ids/cd/HasPart_11200186/1/0",
@@ -50470,7 +50470,7 @@
             ],
             "unit": "Ohm",
             "sourceOfDefinition": "BT5(IP-SB)-MP8600(S5L66)-TDN7-H6IR-DG-N(R1)",
-            "symbol": "\u03A9",
+            "symbol": "Ω",
             "dataType": "STRING",
             "definition": [
               {
@@ -50489,7 +50489,7 @@
       "displayName": [
         {
           "language": "en",
-          "text": "Chip Resistor 5.1k\u03A9"
+          "text": "Chip Resistor 5.1kΩ"
         }
       ],
       "id": "https://www.smart-factory.kr/ids/cd/HasPart_11200188/1/0",
@@ -50513,7 +50513,7 @@
             ],
             "unit": "Ohm",
             "sourceOfDefinition": "BT5(IP-SB)-MP8600(S5L66)-TDN7-H6IR-DG-N(R1)",
-            "symbol": "\u03A9",
+            "symbol": "Ω",
             "dataType": "STRING",
             "definition": [
               {
@@ -50532,7 +50532,7 @@
       "displayName": [
         {
           "language": "en",
-          "text": "Chip Resistor 56k\u03A9"
+          "text": "Chip Resistor 56kΩ"
         }
       ],
       "id": "https://www.smart-factory.kr/ids/cd/HasPart_11200194/1/0",
@@ -50556,7 +50556,7 @@
             ],
             "unit": "Ohm",
             "sourceOfDefinition": "BT5(IP-SB)-MP8600(S5L66)-TDN7-H6IR-DG-N(R1)",
-            "symbol": "\u03A9",
+            "symbol": "Ω",
             "dataType": "STRING",
             "definition": [
               {
@@ -50599,7 +50599,7 @@
             ],
             "unit": "Ohm",
             "sourceOfDefinition": "BT5(IP-SB)-MP8600(S5L66)-TDN7-H6IR-DG-N(R1)",
-            "symbol": "\u03A9",
+            "symbol": "Ω",
             "dataType": "STRING",
             "definition": [
               {
@@ -50618,7 +50618,7 @@
       "displayName": [
         {
           "language": "en",
-          "text": "Chip Resistor 27k\u03A9"
+          "text": "Chip Resistor 27kΩ"
         }
       ],
       "id": "https://www.smart-factory.kr/ids/cd/HasPart_11200259/1/0",
@@ -50642,7 +50642,7 @@
             ],
             "unit": "Ohm",
             "sourceOfDefinition": "BT5(IP-SB)-MP8600(S5L66)-TDN7-H6IR-DG-N(R1)",
-            "symbol": "\u03A9",
+            "symbol": "Ω",
             "dataType": "STRING",
             "definition": [
               {
@@ -50679,7 +50679,7 @@
             ],
             "unit": "Ohm",
             "sourceOfDefinition": "BT5(IP-SB)-MP8600(S5L66)-TDN7-H6IR-DG-N(R1)",
-            "symbol": "\u03A9",
+            "symbol": "Ω",
             "dataType": "STRING",
             "definition": [
               {
@@ -50698,7 +50698,7 @@
       "displayName": [
         {
           "language": "en",
-          "text": "Chip Resistor 2k\u03A9 1%"
+          "text": "Chip Resistor 2kΩ 1%"
         }
       ],
       "id": "https://www.smart-factory.kr/ids/cd/HasPart_11200326/1/0",
@@ -50722,7 +50722,7 @@
             ],
             "unit": "Ohm",
             "sourceOfDefinition": "BT5(IP-SB)-MP8600(S5L66)-TDN7-H6IR-DG-N(R1)",
-            "symbol": "\u03A9",
+            "symbol": "Ω",
             "dataType": "STRING",
             "definition": [
               {
@@ -50741,7 +50741,7 @@
       "displayName": [
         {
           "language": "en",
-          "text": "Chip Resistor 3.9k\u03A9"
+          "text": "Chip Resistor 3.9kΩ"
         }
       ],
       "id": "https://www.smart-factory.kr/ids/cd/HasPart_11200330/1/0",
@@ -50765,7 +50765,7 @@
             ],
             "unit": "Ohm",
             "sourceOfDefinition": "BT5(IP-SB)-MP8600(S5L66)-TDN7-H6IR-DG-N(R1)",
-            "symbol": "\u03A9",
+            "symbol": "Ω",
             "dataType": "STRING",
             "definition": [
               {
@@ -50784,7 +50784,7 @@
       "displayName": [
         {
           "language": "en",
-          "text": "Chip Resistor 510\u03A9"
+          "text": "Chip Resistor 510Ω"
         }
       ],
       "id": "https://www.smart-factory.kr/ids/cd/HasPart_11200334/1/0",
@@ -50808,7 +50808,7 @@
             ],
             "unit": "Ohm",
             "sourceOfDefinition": "BT5(IP-SB)-MP8600(S5L66)-TDN7-H6IR-DG-N(R1)",
-            "symbol": "\u03A9",
+            "symbol": "Ω",
             "dataType": "STRING",
             "definition": [
               {
@@ -50851,7 +50851,7 @@
             ],
             "unit": "Ohm",
             "sourceOfDefinition": "BT5(IP-SB)-MP8600(S5L66)-TDN7-H6IR-DG-N(R1)",
-            "symbol": "\u03A9",
+            "symbol": "Ω",
             "dataType": "STRING",
             "definition": [
               {
@@ -50870,7 +50870,7 @@
       "displayName": [
         {
           "language": "en",
-          "text": "Chip Resistor 1.5\u03A9"
+          "text": "Chip Resistor 1.5Ω"
         }
       ],
       "id": "https://www.smart-factory.kr/ids/cd/HasPart_11200338/1/0",
@@ -50894,7 +50894,7 @@
             ],
             "unit": "Ohm",
             "sourceOfDefinition": "BT5(IP-SB)-MP8600(S5L66)-TDN7-H6IR-DG-N(R1)",
-            "symbol": "\u03A9",
+            "symbol": "Ω",
             "dataType": "STRING",
             "definition": [
               {
@@ -50913,7 +50913,7 @@
       "displayName": [
         {
           "language": "en",
-          "text": "Chip Resistor 49.9\u03A9 1%"
+          "text": "Chip Resistor 49.9Ω 1%"
         }
       ],
       "id": "https://www.smart-factory.kr/ids/cd/HasPart_11200345/1/0",
@@ -50937,7 +50937,7 @@
             ],
             "unit": "Ohm",
             "sourceOfDefinition": "BT5(IP-SB)-MP8600(S5L66)-TDN7-H6IR-DG-N(R1)",
-            "symbol": "\u03A9",
+            "symbol": "Ω",
             "dataType": "STRING",
             "definition": [
               {
@@ -50956,7 +50956,7 @@
       "displayName": [
         {
           "language": "en",
-          "text": "Chip Resistor 12k\u03A9 1%"
+          "text": "Chip Resistor 12kΩ 1%"
         }
       ],
       "id": "https://www.smart-factory.kr/ids/cd/HasPart_11200572/1/0",
@@ -50980,7 +50980,7 @@
             ],
             "unit": "Ohm",
             "sourceOfDefinition": "BT5(IP-SB)-MP8600(S5L66)-TDN7-H6IR-DG-N(R1)",
-            "symbol": "\u03A9",
+            "symbol": "Ω",
             "dataType": "STRING",
             "definition": [
               {
@@ -51053,7 +51053,7 @@
       "displayName": [
         {
           "language": "en",
-          "text": "Chip Resistor 13k\u03A9"
+          "text": "Chip Resistor 13kΩ"
         }
       ],
       "id": "https://www.smart-factory.kr/ids/cd/HasPart_11200644/1/0",
@@ -51077,7 +51077,7 @@
             ],
             "unit": "Ohm",
             "sourceOfDefinition": "BT5(IP-SB)-MP8600(S5L66)-TDN7-H6IR-DG-N(R1)",
-            "symbol": "\u03A9",
+            "symbol": "Ω",
             "dataType": "STRING",
             "definition": [
               {
@@ -51096,7 +51096,7 @@
       "displayName": [
         {
           "language": "en",
-          "text": "Chip Resistor 0.2\u03A9"
+          "text": "Chip Resistor 0.2Ω"
         }
       ],
       "id": "https://www.smart-factory.kr/ids/cd/HasPart_11200712/1/0",
@@ -51120,7 +51120,7 @@
             ],
             "unit": "Ohm",
             "sourceOfDefinition": "BT5(IP-SB)-MP8600(S5L66)-TDN7-H6IR-DG-N(R1)",
-            "symbol": "\u03A9",
+            "symbol": "Ω",
             "dataType": "STRING",
             "definition": [
               {
@@ -51139,7 +51139,7 @@
       "displayName": [
         {
           "language": "en",
-          "text": "Chip Resistor 90.9k\u03A9 1%"
+          "text": "Chip Resistor 90.9kΩ 1%"
         }
       ],
       "id": "https://www.smart-factory.kr/ids/cd/HasPart_11200754/1/0",
@@ -51163,7 +51163,7 @@
             ],
             "unit": "Ohm",
             "sourceOfDefinition": "BT5(IP-SB)-MP8600(S5L66)-TDN7-H6IR-DG-N(R1)",
-            "symbol": "\u03A9",
+            "symbol": "Ω",
             "dataType": "STRING",
             "definition": [
               {
@@ -51186,7 +51186,7 @@
       "displayName": [
         {
           "language": "en",
-          "text": "Chip Resistor 220\u03A9"
+          "text": "Chip Resistor 220Ω"
         }
       ],
       "id": "https://www.smart-factory.kr/ids/cd/HasPart_11200799/1/0",
@@ -51210,7 +51210,7 @@
             ],
             "unit": "Ohm",
             "sourceOfDefinition": "BT5(IP-SB)-MP8600(S5L66)-TDN7-H6IR-DG-N(R1)",
-            "symbol": "\u03A9",
+            "symbol": "Ω",
             "dataType": "STRING",
             "definition": [
               {
@@ -51229,7 +51229,7 @@
       "displayName": [
         {
           "language": "en",
-          "text": "Chip Resistor 4.7k\u03A9"
+          "text": "Chip Resistor 4.7kΩ"
         }
       ],
       "id": "https://www.smart-factory.kr/ids/cd/HasPart_11200822/1/0",
@@ -51253,7 +51253,7 @@
             ],
             "unit": "Ohm",
             "sourceOfDefinition": "BT5(IP-SB)-MP8600(S5L66)-TDN7-H6IR-DG-N(R1)",
-            "symbol": "\u03A9",
+            "symbol": "Ω",
             "dataType": "STRING",
             "definition": [
               {
@@ -51272,7 +51272,7 @@
       "displayName": [
         {
           "language": "en",
-          "text": "Chip Resistor 12.1k\u03A9 1%"
+          "text": "Chip Resistor 12.1kΩ 1%"
         }
       ],
       "id": "https://www.smart-factory.kr/ids/cd/HasPart_11200872/1/0",
@@ -51296,7 +51296,7 @@
             ],
             "unit": "Ohm",
             "sourceOfDefinition": "BT5(IP-SB)-MP8600(S5L66)-TDN7-H6IR-DG-N(R1)",
-            "symbol": "\u03A9",
+            "symbol": "Ω",
             "dataType": "STRING",
             "definition": [
               {
@@ -51315,7 +51315,7 @@
       "displayName": [
         {
           "language": "en",
-          "text": "Chip Resistor 40.2k\u03A9 1%"
+          "text": "Chip Resistor 40.2kΩ 1%"
         }
       ],
       "id": "https://www.smart-factory.kr/ids/cd/HasPart_11200903/1/0",
@@ -51339,7 +51339,7 @@
             ],
             "unit": "Ohm",
             "sourceOfDefinition": "BT5(IP-SB)-MP8600(S5L66)-TDN7-H6IR-DG-N(R1)",
-            "symbol": "\u03A9",
+            "symbol": "Ω",
             "dataType": "STRING",
             "definition": [
               {
@@ -51358,7 +51358,7 @@
       "displayName": [
         {
           "language": "en",
-          "text": "Chip Resistor 12.7k\u03A9"
+          "text": "Chip Resistor 12.7kΩ"
         }
       ],
       "id": "https://www.smart-factory.kr/ids/cd/HasPart_11201373/1/0",
@@ -51382,7 +51382,7 @@
             ],
             "unit": "Ohm",
             "sourceOfDefinition": "BT5(IP-SB)-MP8600(S5L66)-TDN7-H6IR-DG-N(R1)",
-            "symbol": "\u03A9",
+            "symbol": "Ω",
             "dataType": "STRING",
             "definition": [
               {
@@ -51402,7 +51402,7 @@
       "displayName": [
         {
           "language": "en",
-          "text": "PoE\u002B Transformer HX6096NL"
+          "text": "PoE+ Transformer HX6096NL"
         }
       ],
       "id": "https://www.smart-factory.kr/ids/cd/HasPart_11500092/1/0",
@@ -51429,7 +51429,7 @@
             "definition": [
               {
                 "language": "en",
-                "text": "A 1G PoE\u002B Ethernet transformer used for isolated power delivery and data coupling in Power over Ethernet applications."
+                "text": "A 1G PoE+ Ethernet transformer used for isolated power delivery and data coupling in Power over Ethernet applications."
               }
             ],
             "modelType": "DataSpecificationIec61360"
@@ -51820,7 +51820,7 @@
       "displayName": [
         {
           "language": "en",
-          "text": "Chip Resistor 4.7k\u03A9"
+          "text": "Chip Resistor 4.7kΩ"
         }
       ],
       "id": "https://www.smart-factory.kr/ids/cd/HasPart_11200061/1/0",
@@ -51844,7 +51844,7 @@
             ],
             "unit": "Ohm",
             "sourceOfDefinition": "BT5(IP-SB)-MP8600(S5L66)-TDN7-H6IR-DG-N(R1)",
-            "symbol": "\u03A9",
+            "symbol": "Ω",
             "dataType": "STRING",
             "definition": [
               {
@@ -52176,7 +52176,7 @@
       "displayName": [
         {
           "language": "en",
-          "text": "SMT BT5_IP_SD *03902835\uC640 \uACB0\uD569\uC0AC\uC6A9*"
+          "text": "SMT BT5_IP_SD *03902835와 결합사용*"
         }
       ],
       "id": "https://www.smart-factory.kr/ids/cd/PCB_03903208/1/0",
@@ -57072,7 +57072,7 @@
       "displayName": [
         {
           "language": "en",
-          "text": "Rubber O-Ring \u0026 Gasket"
+          "text": "Rubber O-Ring & Gasket"
         }
       ],
       "id": "https://www.smart-factory.kr/ids/cd/RUBBER_ORING/1/0",
@@ -57112,7 +57112,7 @@
       "displayName": [
         {
           "language": "en",
-          "text": "Cable \u0026 FPCB"
+          "text": "Cable & FPCB"
         }
       ],
       "id": "https://www.smart-factory.kr/ids/cd/CABLE_FILM_PCB/1/0",
@@ -57378,7 +57378,7 @@
             "definition": [
               {
                 "language": "en",
-                "text": "Image sensor component (CCD or CMOS) that converts optical images into electronic signals. It is one of the most critical components determining the camera\u0027s image quality and performance."
+                "text": "Image sensor component (CCD or CMOS) that converts optical images into electronic signals. It is one of the most critical components determining the camera's image quality and performance."
               }
             ],
             "modelType": "DataSpecificationIec61360"
@@ -57432,7 +57432,7 @@
       "displayName": [
         {
           "language": "en",
-          "text": "Switch \u0026 Fuse"
+          "text": "Switch & Fuse"
         }
       ],
       "id": "https://www.smart-factory.kr/ids/cd/SWITCH_FUSE/1/0",

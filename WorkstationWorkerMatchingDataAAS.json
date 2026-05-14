@@ -321,112 +321,6 @@
                   "value": [
                     {
                       "category": "PARAMETER",
-                      "idShort": "WorkStartTime",
-                      "semanticId": {
-                        "type": "ModelReference",
-                        "keys": [
-                          {
-                            "type": "ConceptDescription",
-                            "value": "https://www.smart-factory.kr/ids/cd/WorkStartTime/1/0"
-                          }
-                        ]
-                      },
-                      "qualifiers": [
-                        {
-                          "semanticId": {
-                            "type": "ExternalReference",
-                            "keys": [
-                              {
-                                "type": "GlobalReference",
-                                "value": "https://admin-shell.io/SubmodelTemplates/Cardinality/1/0"
-                              }
-                            ]
-                          },
-                          "kind": "TemplateQualifier",
-                          "type": "SMT/Cardinality",
-                          "valueType": "xs:string",
-                          "value": "One"
-                        }
-                      ],
-                      "valueType": "xs:time",
-                      "value": "9:00",
-                      "modelType": "Property"
-                    },
-                    {
-                      "category": "PARAMETER",
-                      "idShort": "WorkEndTime",
-                      "semanticId": {
-                        "type": "ModelReference",
-                        "keys": [
-                          {
-                            "type": "ConceptDescription",
-                            "value": "https://www.smart-factory.kr/ids/cd/WorkEndTime/1/0"
-                          }
-                        ]
-                      },
-                      "qualifiers": [
-                        {
-                          "semanticId": {
-                            "type": "ExternalReference",
-                            "keys": [
-                              {
-                                "type": "GlobalReference",
-                                "value": "https://admin-shell.io/SubmodelTemplates/Cardinality/1/0"
-                              }
-                            ]
-                          },
-                          "kind": "TemplateQualifier",
-                          "type": "SMT/Cardinality",
-                          "valueType": "xs:string",
-                          "value": "One"
-                        }
-                      ],
-                      "valueType": "xs:time",
-                      "value": "18:00",
-                      "modelType": "Property"
-                    },
-                    {
-                      "category": "PARAMETER",
-                      "idShort": "BreakDurationMin",
-                      "description": [
-                        {
-                          "language": "en",
-                          "text": "The total scheduled break duration per working day at a manufacturing workstation, expressed in minutes. Includes all rest periods such as lunch breaks. Effective working time per day is calculated as the difference between work end time and work start time minus the total break duration."
-                        }
-                      ],
-                      "semanticId": {
-                        "type": "ModelReference",
-                        "keys": [
-                          {
-                            "type": "ConceptDescription",
-                            "value": "https://www.smart-factory.kr/ids/cd/BreakDurationMin/1/0"
-                          }
-                        ]
-                      },
-                      "qualifiers": [
-                        {
-                          "semanticId": {
-                            "type": "ExternalReference",
-                            "keys": [
-                              {
-                                "type": "GlobalReference",
-                                "value": "https://www.smart-factory.kr/ids/cd/BreakDurationMin/1/0"
-                              }
-                            ]
-                          },
-                          "kind": "TemplateQualifier",
-                          "type": "SMT/Cardinality",
-                          "valueType": "xs:string",
-                          "value": "One"
-                        }
-                      ],
-                      "valueType": "xs:time",
-                      "min": "12:00",
-                      "max": "13:00",
-                      "modelType": "Range"
-                    },
-                    {
-                      "category": "PARAMETER",
                       "idShort": "WorkstationConfigurationRecords",
                       "semanticId": {
                         "type": "ModelReference",
@@ -927,112 +821,6 @@
                     }
                   ],
                   "value": [
-                    {
-                      "category": "PARAMETER",
-                      "idShort": "WorkStartTime",
-                      "semanticId": {
-                        "type": "ModelReference",
-                        "keys": [
-                          {
-                            "type": "ConceptDescription",
-                            "value": "https://www.smart-factory.kr/ids/cd/WorkStartTime/1/0"
-                          }
-                        ]
-                      },
-                      "qualifiers": [
-                        {
-                          "semanticId": {
-                            "type": "ExternalReference",
-                            "keys": [
-                              {
-                                "type": "GlobalReference",
-                                "value": "https://admin-shell.io/SubmodelTemplates/Cardinality/1/0"
-                              }
-                            ]
-                          },
-                          "kind": "TemplateQualifier",
-                          "type": "SMT/Cardinality",
-                          "valueType": "xs:string",
-                          "value": "One"
-                        }
-                      ],
-                      "valueType": "xs:time",
-                      "value": "9:00",
-                      "modelType": "Property"
-                    },
-                    {
-                      "category": "PARAMETER",
-                      "idShort": "WorkEndTime",
-                      "semanticId": {
-                        "type": "ModelReference",
-                        "keys": [
-                          {
-                            "type": "ConceptDescription",
-                            "value": "https://www.smart-factory.kr/ids/cd/WorkEndTime/1/0"
-                          }
-                        ]
-                      },
-                      "qualifiers": [
-                        {
-                          "semanticId": {
-                            "type": "ExternalReference",
-                            "keys": [
-                              {
-                                "type": "GlobalReference",
-                                "value": "https://admin-shell.io/SubmodelTemplates/Cardinality/1/0"
-                              }
-                            ]
-                          },
-                          "kind": "TemplateQualifier",
-                          "type": "SMT/Cardinality",
-                          "valueType": "xs:string",
-                          "value": "One"
-                        }
-                      ],
-                      "valueType": "xs:time",
-                      "value": "18:00",
-                      "modelType": "Property"
-                    },
-                    {
-                      "category": "PARAMETER",
-                      "idShort": "BreakDurationMin",
-                      "description": [
-                        {
-                          "language": "en",
-                          "text": "The total scheduled break duration per working day at a manufacturing workstation, expressed in minutes. Includes all rest periods such as lunch breaks. Effective working time per day is calculated as the difference between work end time and work start time minus the total break duration."
-                        }
-                      ],
-                      "semanticId": {
-                        "type": "ModelReference",
-                        "keys": [
-                          {
-                            "type": "ConceptDescription",
-                            "value": "https://www.smart-factory.kr/ids/cd/BreakDurationMin/1/0"
-                          }
-                        ]
-                      },
-                      "qualifiers": [
-                        {
-                          "semanticId": {
-                            "type": "ExternalReference",
-                            "keys": [
-                              {
-                                "type": "GlobalReference",
-                                "value": "https://www.smart-factory.kr/ids/cd/BreakDurationMin/1/0"
-                              }
-                            ]
-                          },
-                          "kind": "TemplateQualifier",
-                          "type": "SMT/Cardinality",
-                          "valueType": "xs:string",
-                          "value": "One"
-                        }
-                      ],
-                      "valueType": "xs:time",
-                      "min": "12:00",
-                      "max": "13:00",
-                      "modelType": "Range"
-                    },
                     {
                       "category": "PARAMETER",
                       "idShort": "WorkstationConfigurationRecords",
@@ -1766,112 +1554,6 @@
                   "value": [
                     {
                       "category": "PARAMETER",
-                      "idShort": "WorkStartTime",
-                      "semanticId": {
-                        "type": "ModelReference",
-                        "keys": [
-                          {
-                            "type": "ConceptDescription",
-                            "value": "https://www.smart-factory.kr/ids/cd/WorkStartTime/1/0"
-                          }
-                        ]
-                      },
-                      "qualifiers": [
-                        {
-                          "semanticId": {
-                            "type": "ExternalReference",
-                            "keys": [
-                              {
-                                "type": "GlobalReference",
-                                "value": "https://admin-shell.io/SubmodelTemplates/Cardinality/1/0"
-                              }
-                            ]
-                          },
-                          "kind": "TemplateQualifier",
-                          "type": "SMT/Cardinality",
-                          "valueType": "xs:string",
-                          "value": "One"
-                        }
-                      ],
-                      "valueType": "xs:time",
-                      "value": "9:00",
-                      "modelType": "Property"
-                    },
-                    {
-                      "category": "PARAMETER",
-                      "idShort": "WorkEndTime",
-                      "semanticId": {
-                        "type": "ModelReference",
-                        "keys": [
-                          {
-                            "type": "ConceptDescription",
-                            "value": "https://www.smart-factory.kr/ids/cd/WorkEndTime/1/0"
-                          }
-                        ]
-                      },
-                      "qualifiers": [
-                        {
-                          "semanticId": {
-                            "type": "ExternalReference",
-                            "keys": [
-                              {
-                                "type": "GlobalReference",
-                                "value": "https://admin-shell.io/SubmodelTemplates/Cardinality/1/0"
-                              }
-                            ]
-                          },
-                          "kind": "TemplateQualifier",
-                          "type": "SMT/Cardinality",
-                          "valueType": "xs:string",
-                          "value": "One"
-                        }
-                      ],
-                      "valueType": "xs:time",
-                      "value": "18:00",
-                      "modelType": "Property"
-                    },
-                    {
-                      "category": "PARAMETER",
-                      "idShort": "BreakDurationMin",
-                      "description": [
-                        {
-                          "language": "en",
-                          "text": "The total scheduled break duration per working day at a manufacturing workstation, expressed in minutes. Includes all rest periods such as lunch breaks. Effective working time per day is calculated as the difference between work end time and work start time minus the total break duration."
-                        }
-                      ],
-                      "semanticId": {
-                        "type": "ModelReference",
-                        "keys": [
-                          {
-                            "type": "ConceptDescription",
-                            "value": "https://www.smart-factory.kr/ids/cd/BreakDurationMin/1/0"
-                          }
-                        ]
-                      },
-                      "qualifiers": [
-                        {
-                          "semanticId": {
-                            "type": "ExternalReference",
-                            "keys": [
-                              {
-                                "type": "GlobalReference",
-                                "value": "https://www.smart-factory.kr/ids/cd/BreakDurationMin/1/0"
-                              }
-                            ]
-                          },
-                          "kind": "TemplateQualifier",
-                          "type": "SMT/Cardinality",
-                          "valueType": "xs:string",
-                          "value": "One"
-                        }
-                      ],
-                      "valueType": "xs:time",
-                      "min": "12:00",
-                      "max": "13:00",
-                      "modelType": "Range"
-                    },
-                    {
-                      "category": "PARAMETER",
                       "idShort": "WorkstationConfigurationRecords",
                       "semanticId": {
                         "type": "ModelReference",
@@ -2460,112 +2142,6 @@
                     }
                   ],
                   "value": [
-                    {
-                      "category": "PARAMETER",
-                      "idShort": "WorkStartTime",
-                      "semanticId": {
-                        "type": "ModelReference",
-                        "keys": [
-                          {
-                            "type": "ConceptDescription",
-                            "value": "https://www.smart-factory.kr/ids/cd/WorkStartTime/1/0"
-                          }
-                        ]
-                      },
-                      "qualifiers": [
-                        {
-                          "semanticId": {
-                            "type": "ExternalReference",
-                            "keys": [
-                              {
-                                "type": "GlobalReference",
-                                "value": "https://admin-shell.io/SubmodelTemplates/Cardinality/1/0"
-                              }
-                            ]
-                          },
-                          "kind": "TemplateQualifier",
-                          "type": "SMT/Cardinality",
-                          "valueType": "xs:string",
-                          "value": "One"
-                        }
-                      ],
-                      "valueType": "xs:time",
-                      "value": "9:00",
-                      "modelType": "Property"
-                    },
-                    {
-                      "category": "PARAMETER",
-                      "idShort": "WorkEndTime",
-                      "semanticId": {
-                        "type": "ModelReference",
-                        "keys": [
-                          {
-                            "type": "ConceptDescription",
-                            "value": "https://www.smart-factory.kr/ids/cd/WorkEndTime/1/0"
-                          }
-                        ]
-                      },
-                      "qualifiers": [
-                        {
-                          "semanticId": {
-                            "type": "ExternalReference",
-                            "keys": [
-                              {
-                                "type": "GlobalReference",
-                                "value": "https://admin-shell.io/SubmodelTemplates/Cardinality/1/0"
-                              }
-                            ]
-                          },
-                          "kind": "TemplateQualifier",
-                          "type": "SMT/Cardinality",
-                          "valueType": "xs:string",
-                          "value": "One"
-                        }
-                      ],
-                      "valueType": "xs:time",
-                      "value": "18:00",
-                      "modelType": "Property"
-                    },
-                    {
-                      "category": "PARAMETER",
-                      "idShort": "BreakDurationMin",
-                      "description": [
-                        {
-                          "language": "en",
-                          "text": "The total scheduled break duration per working day at a manufacturing workstation, expressed in minutes. Includes all rest periods such as lunch breaks. Effective working time per day is calculated as the difference between work end time and work start time minus the total break duration."
-                        }
-                      ],
-                      "semanticId": {
-                        "type": "ModelReference",
-                        "keys": [
-                          {
-                            "type": "ConceptDescription",
-                            "value": "https://www.smart-factory.kr/ids/cd/BreakDurationMin/1/0"
-                          }
-                        ]
-                      },
-                      "qualifiers": [
-                        {
-                          "semanticId": {
-                            "type": "ExternalReference",
-                            "keys": [
-                              {
-                                "type": "GlobalReference",
-                                "value": "https://www.smart-factory.kr/ids/cd/BreakDurationMin/1/0"
-                              }
-                            ]
-                          },
-                          "kind": "TemplateQualifier",
-                          "type": "SMT/Cardinality",
-                          "valueType": "xs:string",
-                          "value": "One"
-                        }
-                      ],
-                      "valueType": "xs:time",
-                      "min": "12:00",
-                      "max": "13:00",
-                      "modelType": "Range"
-                    },
                     {
                       "category": "PARAMETER",
                       "idShort": "WorkstationConfigurationRecords",
@@ -4339,112 +3915,6 @@
                   "value": [
                     {
                       "category": "PARAMETER",
-                      "idShort": "WorkStartTime",
-                      "semanticId": {
-                        "type": "ModelReference",
-                        "keys": [
-                          {
-                            "type": "ConceptDescription",
-                            "value": "https://www.smart-factory.kr/ids/cd/WorkStartTime/1/0"
-                          }
-                        ]
-                      },
-                      "qualifiers": [
-                        {
-                          "semanticId": {
-                            "type": "ExternalReference",
-                            "keys": [
-                              {
-                                "type": "GlobalReference",
-                                "value": "https://admin-shell.io/SubmodelTemplates/Cardinality/1/0"
-                              }
-                            ]
-                          },
-                          "kind": "TemplateQualifier",
-                          "type": "SMT/Cardinality",
-                          "valueType": "xs:string",
-                          "value": "One"
-                        }
-                      ],
-                      "valueType": "xs:time",
-                      "value": "9:00",
-                      "modelType": "Property"
-                    },
-                    {
-                      "category": "PARAMETER",
-                      "idShort": "WorkEndTime",
-                      "semanticId": {
-                        "type": "ModelReference",
-                        "keys": [
-                          {
-                            "type": "ConceptDescription",
-                            "value": "https://www.smart-factory.kr/ids/cd/WorkEndTime/1/0"
-                          }
-                        ]
-                      },
-                      "qualifiers": [
-                        {
-                          "semanticId": {
-                            "type": "ExternalReference",
-                            "keys": [
-                              {
-                                "type": "GlobalReference",
-                                "value": "https://admin-shell.io/SubmodelTemplates/Cardinality/1/0"
-                              }
-                            ]
-                          },
-                          "kind": "TemplateQualifier",
-                          "type": "SMT/Cardinality",
-                          "valueType": "xs:string",
-                          "value": "One"
-                        }
-                      ],
-                      "valueType": "xs:time",
-                      "value": "18:00",
-                      "modelType": "Property"
-                    },
-                    {
-                      "category": "PARAMETER",
-                      "idShort": "BreakDurationMin",
-                      "description": [
-                        {
-                          "language": "en",
-                          "text": "The total scheduled break duration per working day at a manufacturing workstation, expressed in minutes. Includes all rest periods such as lunch breaks. Effective working time per day is calculated as the difference between work end time and work start time minus the total break duration."
-                        }
-                      ],
-                      "semanticId": {
-                        "type": "ModelReference",
-                        "keys": [
-                          {
-                            "type": "ConceptDescription",
-                            "value": "https://www.smart-factory.kr/ids/cd/BreakDurationMin/1/0"
-                          }
-                        ]
-                      },
-                      "qualifiers": [
-                        {
-                          "semanticId": {
-                            "type": "ExternalReference",
-                            "keys": [
-                              {
-                                "type": "GlobalReference",
-                                "value": "https://www.smart-factory.kr/ids/cd/BreakDurationMin/1/0"
-                              }
-                            ]
-                          },
-                          "kind": "TemplateQualifier",
-                          "type": "SMT/Cardinality",
-                          "valueType": "xs:string",
-                          "value": "One"
-                        }
-                      ],
-                      "valueType": "xs:time",
-                      "min": "12:00",
-                      "max": "13:00",
-                      "modelType": "Range"
-                    },
-                    {
-                      "category": "PARAMETER",
                       "idShort": "AssignedProcessGroups",
                       "description": [
                         {
@@ -6191,112 +5661,6 @@
                   "value": [
                     {
                       "category": "PARAMETER",
-                      "idShort": "WorkStartTime",
-                      "semanticId": {
-                        "type": "ModelReference",
-                        "keys": [
-                          {
-                            "type": "ConceptDescription",
-                            "value": "https://www.smart-factory.kr/ids/cd/WorkStartTime/1/0"
-                          }
-                        ]
-                      },
-                      "qualifiers": [
-                        {
-                          "semanticId": {
-                            "type": "ExternalReference",
-                            "keys": [
-                              {
-                                "type": "GlobalReference",
-                                "value": "https://admin-shell.io/SubmodelTemplates/Cardinality/1/0"
-                              }
-                            ]
-                          },
-                          "kind": "TemplateQualifier",
-                          "type": "SMT/Cardinality",
-                          "valueType": "xs:string",
-                          "value": "One"
-                        }
-                      ],
-                      "valueType": "xs:time",
-                      "value": "9:00",
-                      "modelType": "Property"
-                    },
-                    {
-                      "category": "PARAMETER",
-                      "idShort": "WorkEndTime",
-                      "semanticId": {
-                        "type": "ModelReference",
-                        "keys": [
-                          {
-                            "type": "ConceptDescription",
-                            "value": "https://www.smart-factory.kr/ids/cd/WorkEndTime/1/0"
-                          }
-                        ]
-                      },
-                      "qualifiers": [
-                        {
-                          "semanticId": {
-                            "type": "ExternalReference",
-                            "keys": [
-                              {
-                                "type": "GlobalReference",
-                                "value": "https://admin-shell.io/SubmodelTemplates/Cardinality/1/0"
-                              }
-                            ]
-                          },
-                          "kind": "TemplateQualifier",
-                          "type": "SMT/Cardinality",
-                          "valueType": "xs:string",
-                          "value": "One"
-                        }
-                      ],
-                      "valueType": "xs:time",
-                      "value": "18:00",
-                      "modelType": "Property"
-                    },
-                    {
-                      "category": "PARAMETER",
-                      "idShort": "BreakDurationMin",
-                      "description": [
-                        {
-                          "language": "en",
-                          "text": "The total scheduled break duration per working day at a manufacturing workstation, expressed in minutes. Includes all rest periods such as lunch breaks. Effective working time per day is calculated as the difference between work end time and work start time minus the total break duration."
-                        }
-                      ],
-                      "semanticId": {
-                        "type": "ModelReference",
-                        "keys": [
-                          {
-                            "type": "ConceptDescription",
-                            "value": "https://www.smart-factory.kr/ids/cd/BreakDurationMin/1/0"
-                          }
-                        ]
-                      },
-                      "qualifiers": [
-                        {
-                          "semanticId": {
-                            "type": "ExternalReference",
-                            "keys": [
-                              {
-                                "type": "GlobalReference",
-                                "value": "https://www.smart-factory.kr/ids/cd/BreakDurationMin/1/0"
-                              }
-                            ]
-                          },
-                          "kind": "TemplateQualifier",
-                          "type": "SMT/Cardinality",
-                          "valueType": "xs:string",
-                          "value": "One"
-                        }
-                      ],
-                      "valueType": "xs:time",
-                      "min": "12:00",
-                      "max": "13:00",
-                      "modelType": "Range"
-                    },
-                    {
-                      "category": "PARAMETER",
                       "idShort": "AssignedProcessGroups",
                       "description": [
                         {
@@ -7088,112 +6452,6 @@
                     }
                   ],
                   "value": [
-                    {
-                      "category": "PARAMETER",
-                      "idShort": "WorkStartTime",
-                      "semanticId": {
-                        "type": "ModelReference",
-                        "keys": [
-                          {
-                            "type": "ConceptDescription",
-                            "value": "https://www.smart-factory.kr/ids/cd/WorkStartTime/1/0"
-                          }
-                        ]
-                      },
-                      "qualifiers": [
-                        {
-                          "semanticId": {
-                            "type": "ExternalReference",
-                            "keys": [
-                              {
-                                "type": "GlobalReference",
-                                "value": "https://admin-shell.io/SubmodelTemplates/Cardinality/1/0"
-                              }
-                            ]
-                          },
-                          "kind": "TemplateQualifier",
-                          "type": "SMT/Cardinality",
-                          "valueType": "xs:string",
-                          "value": "One"
-                        }
-                      ],
-                      "valueType": "xs:time",
-                      "value": "9:00",
-                      "modelType": "Property"
-                    },
-                    {
-                      "category": "PARAMETER",
-                      "idShort": "WorkEndTime",
-                      "semanticId": {
-                        "type": "ModelReference",
-                        "keys": [
-                          {
-                            "type": "ConceptDescription",
-                            "value": "https://www.smart-factory.kr/ids/cd/WorkEndTime/1/0"
-                          }
-                        ]
-                      },
-                      "qualifiers": [
-                        {
-                          "semanticId": {
-                            "type": "ExternalReference",
-                            "keys": [
-                              {
-                                "type": "GlobalReference",
-                                "value": "https://admin-shell.io/SubmodelTemplates/Cardinality/1/0"
-                              }
-                            ]
-                          },
-                          "kind": "TemplateQualifier",
-                          "type": "SMT/Cardinality",
-                          "valueType": "xs:string",
-                          "value": "One"
-                        }
-                      ],
-                      "valueType": "xs:time",
-                      "value": "18:00",
-                      "modelType": "Property"
-                    },
-                    {
-                      "category": "PARAMETER",
-                      "idShort": "BreakDurationMin",
-                      "description": [
-                        {
-                          "language": "en",
-                          "text": "The total scheduled break duration per working day at a manufacturing workstation, expressed in minutes. Includes all rest periods such as lunch breaks. Effective working time per day is calculated as the difference between work end time and work start time minus the total break duration."
-                        }
-                      ],
-                      "semanticId": {
-                        "type": "ModelReference",
-                        "keys": [
-                          {
-                            "type": "ConceptDescription",
-                            "value": "https://www.smart-factory.kr/ids/cd/BreakDurationMin/1/0"
-                          }
-                        ]
-                      },
-                      "qualifiers": [
-                        {
-                          "semanticId": {
-                            "type": "ExternalReference",
-                            "keys": [
-                              {
-                                "type": "GlobalReference",
-                                "value": "https://www.smart-factory.kr/ids/cd/BreakDurationMin/1/0"
-                              }
-                            ]
-                          },
-                          "kind": "TemplateQualifier",
-                          "type": "SMT/Cardinality",
-                          "valueType": "xs:string",
-                          "value": "One"
-                        }
-                      ],
-                      "valueType": "xs:time",
-                      "min": "12:00",
-                      "max": "13:00",
-                      "modelType": "Range"
-                    },
                     {
                       "category": "PARAMETER",
                       "idShort": "AssignedProcessGroups",
@@ -8129,112 +7387,6 @@
                   "value": [
                     {
                       "category": "PARAMETER",
-                      "idShort": "WorkStartTime",
-                      "semanticId": {
-                        "type": "ModelReference",
-                        "keys": [
-                          {
-                            "type": "ConceptDescription",
-                            "value": "https://www.smart-factory.kr/ids/cd/WorkStartTime/1/0"
-                          }
-                        ]
-                      },
-                      "qualifiers": [
-                        {
-                          "semanticId": {
-                            "type": "ExternalReference",
-                            "keys": [
-                              {
-                                "type": "GlobalReference",
-                                "value": "https://admin-shell.io/SubmodelTemplates/Cardinality/1/0"
-                              }
-                            ]
-                          },
-                          "kind": "TemplateQualifier",
-                          "type": "SMT/Cardinality",
-                          "valueType": "xs:string",
-                          "value": "One"
-                        }
-                      ],
-                      "valueType": "xs:time",
-                      "value": "9:00",
-                      "modelType": "Property"
-                    },
-                    {
-                      "category": "PARAMETER",
-                      "idShort": "WorkEndTime",
-                      "semanticId": {
-                        "type": "ModelReference",
-                        "keys": [
-                          {
-                            "type": "ConceptDescription",
-                            "value": "https://www.smart-factory.kr/ids/cd/WorkEndTime/1/0"
-                          }
-                        ]
-                      },
-                      "qualifiers": [
-                        {
-                          "semanticId": {
-                            "type": "ExternalReference",
-                            "keys": [
-                              {
-                                "type": "GlobalReference",
-                                "value": "https://admin-shell.io/SubmodelTemplates/Cardinality/1/0"
-                              }
-                            ]
-                          },
-                          "kind": "TemplateQualifier",
-                          "type": "SMT/Cardinality",
-                          "valueType": "xs:string",
-                          "value": "One"
-                        }
-                      ],
-                      "valueType": "xs:time",
-                      "value": "18:00",
-                      "modelType": "Property"
-                    },
-                    {
-                      "category": "PARAMETER",
-                      "idShort": "BreakDurationMin",
-                      "description": [
-                        {
-                          "language": "en",
-                          "text": "The total scheduled break duration per working day at a manufacturing workstation, expressed in minutes. Includes all rest periods such as lunch breaks. Effective working time per day is calculated as the difference between work end time and work start time minus the total break duration."
-                        }
-                      ],
-                      "semanticId": {
-                        "type": "ModelReference",
-                        "keys": [
-                          {
-                            "type": "ConceptDescription",
-                            "value": "https://www.smart-factory.kr/ids/cd/BreakDurationMin/1/0"
-                          }
-                        ]
-                      },
-                      "qualifiers": [
-                        {
-                          "semanticId": {
-                            "type": "ExternalReference",
-                            "keys": [
-                              {
-                                "type": "GlobalReference",
-                                "value": "https://www.smart-factory.kr/ids/cd/BreakDurationMin/1/0"
-                              }
-                            ]
-                          },
-                          "kind": "TemplateQualifier",
-                          "type": "SMT/Cardinality",
-                          "valueType": "xs:string",
-                          "value": "One"
-                        }
-                      ],
-                      "valueType": "xs:time",
-                      "min": "12:00",
-                      "max": "13:00",
-                      "modelType": "Range"
-                    },
-                    {
-                      "category": "PARAMETER",
                       "idShort": "AssignedProcessGroups",
                       "description": [
                         {
@@ -8273,12 +7425,6 @@
                         {
                           "category": "PARAMETER",
                           "idShort": "",
-                          "description": [
-                            {
-                              "language": "en",
-                              "text": "Reference to the aging test process group for MODEL_A (VD7AgingTest). OQC sampling inspection is applied to 5% of units completing VD7AgingTest across all model variants."
-                            }
-                          ],
                           "semanticId": {
                             "type": "ModelReference",
                             "keys": [
@@ -8293,65 +7439,7 @@
                             "keys": [
                               {
                                 "type": "GlobalReference",
-                                "value": "https://www.smart-factory.kr/ids/cd/VD7_OQC/1/0"
-                              }
-                            ]
-                          },
-                          "modelType": "ReferenceElement"
-                        },
-                        {
-                          "category": "PARAMETER",
-                          "idShort": "",
-                          "description": [
-                            {
-                              "language": "en",
-                              "text": "Reference to the aging test process group for MODEL_A (VD7AgingTest). OQC sampling inspection is applied to 5% of units completing VD7AgingTest across all model variants."
-                            }
-                          ],
-                          "semanticId": {
-                            "type": "ModelReference",
-                            "keys": [
-                              {
-                                "type": "ConceptDescription",
-                                "value": "https://www.smart-factory.kr/ids/cd/AssignedProcessGroups/1/0"
-                              }
-                            ]
-                          },
-                          "value": {
-                            "type": "ExternalReference",
-                            "keys": [
-                              {
-                                "type": "GlobalReference",
-                                "value": "https://www.smart-factory.kr/ids/cd/BT5_OQC/1/0"
-                              }
-                            ]
-                          },
-                          "modelType": "ReferenceElement"
-                        },
-                        {
-                          "category": "PARAMETER",
-                          "idShort": "",
-                          "description": [
-                            {
-                              "language": "en",
-                              "text": "Reference to the aging test process group for MODEL_A (VD7AgingTest). OQC sampling inspection is applied to 5% of units completing VD7AgingTest across all model variants."
-                            }
-                          ],
-                          "semanticId": {
-                            "type": "ModelReference",
-                            "keys": [
-                              {
-                                "type": "ConceptDescription",
-                                "value": "https://www.smart-factory.kr/ids/cd/AssignedProcessGroups/1/0"
-                              }
-                            ]
-                          },
-                          "value": {
-                            "type": "ExternalReference",
-                            "keys": [
-                              {
-                                "type": "GlobalReference",
-                                "value": "https://www.smart-factory.kr/ids/cd/NVD_OQC/1/0"
+                                "value": "https://www.smart-factory.kr/ids/cd/OQC/1/0"
                               }
                             ]
                           },
@@ -8888,12 +7976,6 @@
                 {
                   "category": "PARAMETER",
                   "idShort": "WWM_RMALine",
-                  "description": [
-                    {
-                      "language": "en",
-                      "text": ""
-                    }
-                  ],
                   "semanticId": {
                     "type": "ModelReference",
                     "keys": [
@@ -8921,112 +8003,6 @@
                     }
                   ],
                   "value": [
-                    {
-                      "category": "PARAMETER",
-                      "idShort": "WorkStartTime",
-                      "semanticId": {
-                        "type": "ModelReference",
-                        "keys": [
-                          {
-                            "type": "ConceptDescription",
-                            "value": "https://www.smart-factory.kr/ids/cd/WorkStartTime/1/0"
-                          }
-                        ]
-                      },
-                      "qualifiers": [
-                        {
-                          "semanticId": {
-                            "type": "ExternalReference",
-                            "keys": [
-                              {
-                                "type": "GlobalReference",
-                                "value": "https://admin-shell.io/SubmodelTemplates/Cardinality/1/0"
-                              }
-                            ]
-                          },
-                          "kind": "TemplateQualifier",
-                          "type": "SMT/Cardinality",
-                          "valueType": "xs:string",
-                          "value": "One"
-                        }
-                      ],
-                      "valueType": "xs:time",
-                      "value": "9:00",
-                      "modelType": "Property"
-                    },
-                    {
-                      "category": "PARAMETER",
-                      "idShort": "WorkEndTime",
-                      "semanticId": {
-                        "type": "ModelReference",
-                        "keys": [
-                          {
-                            "type": "ConceptDescription",
-                            "value": "https://www.smart-factory.kr/ids/cd/WorkEndTime/1/0"
-                          }
-                        ]
-                      },
-                      "qualifiers": [
-                        {
-                          "semanticId": {
-                            "type": "ExternalReference",
-                            "keys": [
-                              {
-                                "type": "GlobalReference",
-                                "value": "https://admin-shell.io/SubmodelTemplates/Cardinality/1/0"
-                              }
-                            ]
-                          },
-                          "kind": "TemplateQualifier",
-                          "type": "SMT/Cardinality",
-                          "valueType": "xs:string",
-                          "value": "One"
-                        }
-                      ],
-                      "valueType": "xs:time",
-                      "value": "18:00",
-                      "modelType": "Property"
-                    },
-                    {
-                      "category": "PARAMETER",
-                      "idShort": "BreakDurationMin",
-                      "description": [
-                        {
-                          "language": "en",
-                          "text": "The total scheduled break duration per working day at a manufacturing workstation, expressed in minutes. Includes all rest periods such as lunch breaks. Effective working time per day is calculated as the difference between work end time and work start time minus the total break duration."
-                        }
-                      ],
-                      "semanticId": {
-                        "type": "ModelReference",
-                        "keys": [
-                          {
-                            "type": "ConceptDescription",
-                            "value": "https://www.smart-factory.kr/ids/cd/BreakDurationMin/1/0"
-                          }
-                        ]
-                      },
-                      "qualifiers": [
-                        {
-                          "semanticId": {
-                            "type": "ExternalReference",
-                            "keys": [
-                              {
-                                "type": "GlobalReference",
-                                "value": "https://www.smart-factory.kr/ids/cd/BreakDurationMin/1/0"
-                              }
-                            ]
-                          },
-                          "kind": "TemplateQualifier",
-                          "type": "SMT/Cardinality",
-                          "valueType": "xs:string",
-                          "value": "One"
-                        }
-                      ],
-                      "valueType": "xs:time",
-                      "min": "12:00",
-                      "max": "13:00",
-                      "modelType": "Range"
-                    },
                     {
                       "category": "PARAMETER",
                       "idShort": "AssignedProcessGroups",
@@ -9081,59 +8057,7 @@
                             "keys": [
                               {
                                 "type": "GlobalReference",
-                                "value": "https://www.smart-factory.kr/ids/cd/VD7_RMA/1/0"
-                              }
-                            ]
-                          },
-                          "modelType": "ReferenceElement"
-                        },
-                        {
-                          "category": "PARAMETER",
-                          "idShort": "",
-                          "semanticId": {
-                            "type": "ModelReference",
-                            "keys": [
-                              {
-                                "type": "ConceptDescription",
-                                "value": "https://www.smart-factory.kr/ids/cd/AssignedProcessGroups/1/0"
-                              }
-                            ]
-                          },
-                          "value": {
-                            "type": "ExternalReference",
-                            "keys": [
-                              {
-                                "type": "GlobalReference",
-                                "value": "https://www.smart-factory.kr/ids/cd/BT5_RMA/1/0"
-                              }
-                            ]
-                          },
-                          "modelType": "ReferenceElement"
-                        },
-                        {
-                          "category": "PARAMETER",
-                          "idShort": "",
-                          "description": [
-                            {
-                              "language": "en",
-                              "text": "Reference to the aging test process group for MODEL_C (NVDAgingTest)."
-                            }
-                          ],
-                          "semanticId": {
-                            "type": "ModelReference",
-                            "keys": [
-                              {
-                                "type": "ConceptDescription",
-                                "value": "https://www.smart-factory.kr/ids/cd/AssignedProcessGroups/1/0"
-                              }
-                            ]
-                          },
-                          "value": {
-                            "type": "ExternalReference",
-                            "keys": [
-                              {
-                                "type": "GlobalReference",
-                                "value": "https://www.smart-factory.kr/ids/cd/NVD_RMA/1/0"
+                                "value": "https://www.smart-factory.kr/ids/cd/RMA/1/0"
                               }
                             ]
                           },
@@ -9947,112 +8871,6 @@
                     }
                   ],
                   "value": [
-                    {
-                      "category": "PARAMETER",
-                      "idShort": "WorkStartTime",
-                      "semanticId": {
-                        "type": "ModelReference",
-                        "keys": [
-                          {
-                            "type": "ConceptDescription",
-                            "value": "https://www.smart-factory.kr/ids/cd/WorkStartTime/1/0"
-                          }
-                        ]
-                      },
-                      "qualifiers": [
-                        {
-                          "semanticId": {
-                            "type": "ExternalReference",
-                            "keys": [
-                              {
-                                "type": "GlobalReference",
-                                "value": "https://admin-shell.io/SubmodelTemplates/Cardinality/1/0"
-                              }
-                            ]
-                          },
-                          "kind": "TemplateQualifier",
-                          "type": "SMT/Cardinality",
-                          "valueType": "xs:string",
-                          "value": "One"
-                        }
-                      ],
-                      "valueType": "xs:time",
-                      "value": "9:00",
-                      "modelType": "Property"
-                    },
-                    {
-                      "category": "PARAMETER",
-                      "idShort": "WorkEndTime",
-                      "semanticId": {
-                        "type": "ModelReference",
-                        "keys": [
-                          {
-                            "type": "ConceptDescription",
-                            "value": "https://www.smart-factory.kr/ids/cd/WorkEndTime/1/0"
-                          }
-                        ]
-                      },
-                      "qualifiers": [
-                        {
-                          "semanticId": {
-                            "type": "ExternalReference",
-                            "keys": [
-                              {
-                                "type": "GlobalReference",
-                                "value": "https://admin-shell.io/SubmodelTemplates/Cardinality/1/0"
-                              }
-                            ]
-                          },
-                          "kind": "TemplateQualifier",
-                          "type": "SMT/Cardinality",
-                          "valueType": "xs:string",
-                          "value": "One"
-                        }
-                      ],
-                      "valueType": "xs:time",
-                      "value": "18:00",
-                      "modelType": "Property"
-                    },
-                    {
-                      "category": "PARAMETER",
-                      "idShort": "BreakDurationMin",
-                      "description": [
-                        {
-                          "language": "en",
-                          "text": "The total scheduled break duration per working day at a manufacturing workstation, expressed in minutes. Includes all rest periods such as lunch breaks. Effective working time per day is calculated as the difference between work end time and work start time minus the total break duration."
-                        }
-                      ],
-                      "semanticId": {
-                        "type": "ModelReference",
-                        "keys": [
-                          {
-                            "type": "ConceptDescription",
-                            "value": "https://www.smart-factory.kr/ids/cd/BreakDurationMin/1/0"
-                          }
-                        ]
-                      },
-                      "qualifiers": [
-                        {
-                          "semanticId": {
-                            "type": "ExternalReference",
-                            "keys": [
-                              {
-                                "type": "GlobalReference",
-                                "value": "https://www.smart-factory.kr/ids/cd/BreakDurationMin/1/0"
-                              }
-                            ]
-                          },
-                          "kind": "TemplateQualifier",
-                          "type": "SMT/Cardinality",
-                          "valueType": "xs:string",
-                          "value": "One"
-                        }
-                      ],
-                      "valueType": "xs:time",
-                      "min": "12:00",
-                      "max": "13:00",
-                      "modelType": "Range"
-                    },
                     {
                       "category": "PARAMETER",
                       "idShort": "AssignedProcessGroups",
@@ -10995,6 +9813,112 @@
             }
           ],
           "modelType": "SubmodelElementCollection"
+        },
+        {
+          "category": "PARAMETER",
+          "idShort": "WorkStartTime",
+          "semanticId": {
+            "type": "ModelReference",
+            "keys": [
+              {
+                "type": "ConceptDescription",
+                "value": "https://www.smart-factory.kr/ids/cd/WorkStartTime/1/0"
+              }
+            ]
+          },
+          "qualifiers": [
+            {
+              "semanticId": {
+                "type": "ExternalReference",
+                "keys": [
+                  {
+                    "type": "GlobalReference",
+                    "value": "https://admin-shell.io/SubmodelTemplates/Cardinality/1/0"
+                  }
+                ]
+              },
+              "kind": "TemplateQualifier",
+              "type": "SMT/Cardinality",
+              "valueType": "xs:string",
+              "value": "One"
+            }
+          ],
+          "valueType": "xs:time",
+          "value": "9:00",
+          "modelType": "Property"
+        },
+        {
+          "category": "PARAMETER",
+          "idShort": "BreakDurationMin",
+          "description": [
+            {
+              "language": "en",
+              "text": "The total scheduled break duration per working day at a manufacturing workstation, expressed in minutes. Includes all rest periods such as lunch breaks. Effective working time per day is calculated as the difference between work end time and work start time minus the total break duration."
+            }
+          ],
+          "semanticId": {
+            "type": "ModelReference",
+            "keys": [
+              {
+                "type": "ConceptDescription",
+                "value": "https://www.smart-factory.kr/ids/cd/BreakDurationMin/1/0"
+              }
+            ]
+          },
+          "qualifiers": [
+            {
+              "semanticId": {
+                "type": "ExternalReference",
+                "keys": [
+                  {
+                    "type": "GlobalReference",
+                    "value": "https://www.smart-factory.kr/ids/cd/BreakDurationMin/1/0"
+                  }
+                ]
+              },
+              "kind": "TemplateQualifier",
+              "type": "SMT/Cardinality",
+              "valueType": "xs:string",
+              "value": "One"
+            }
+          ],
+          "valueType": "xs:time",
+          "min": "12:00",
+          "max": "13:00",
+          "modelType": "Range"
+        },
+        {
+          "category": "PARAMETER",
+          "idShort": "WorkEndTime",
+          "semanticId": {
+            "type": "ModelReference",
+            "keys": [
+              {
+                "type": "ConceptDescription",
+                "value": "https://www.smart-factory.kr/ids/cd/WorkEndTime/1/0"
+              }
+            ]
+          },
+          "qualifiers": [
+            {
+              "semanticId": {
+                "type": "ExternalReference",
+                "keys": [
+                  {
+                    "type": "GlobalReference",
+                    "value": "https://admin-shell.io/SubmodelTemplates/Cardinality/1/0"
+                  }
+                ]
+              },
+              "kind": "TemplateQualifier",
+              "type": "SMT/Cardinality",
+              "valueType": "xs:string",
+              "value": "One"
+            }
+          ],
+          "valueType": "xs:time",
+          "value": "18:00",
+          "modelType": "Property"
         }
       ],
       "modelType": "Submodel"
@@ -13474,12 +12398,6 @@
               }
             ],
             "dataType": "STRING",
-            "definition": [
-              {
-                "language": "en",
-                "text": ""
-              }
-            ],
             "modelType": "DataSpecificationIec61360"
           }
         }

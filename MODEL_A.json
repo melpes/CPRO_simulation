@@ -104,7 +104,7 @@
             },
             {
               "language": "en",
-              "text": "VD7 \uBC29\uC218 \uCF00\uC774\uBE14 \uCE74\uBA54\uB77C (\uBC29\uC218 CABLE)"
+              "text": "VD7 방수 케이블 카메라 (방수 CABLE)"
             }
           ],
           "description": [
@@ -137,7 +137,7 @@
               "description": [
                 {
                   "language": "en",
-                  "text": "This is the main SMT PCB for the product, identified as SMT MBR5600_IP-R2. It serves as the primary printed circuit board that integrates all electronic components for the device\u0027s functionality. Item spec: REV2 [Rev.200609]."
+                  "text": "This is the main SMT PCB for the product, identified as SMT MBR5600_IP-R2. It serves as the primary printed circuit board that integrates all electronic components for the device's functionality. Item spec: REV2 [Rev.200609]."
                 }
               ],
               "semanticId": {
@@ -352,18 +352,27 @@
                     }
                   ],
                   "first": {
-                    "type": "ModelReference",
+                    "type": "ExternalReference",
+                    "referredSemanticId": {
+                      "type": "ModelReference",
+                      "keys": [
+                        {
+                          "type": "Submodel",
+                          "value": "https://admin-shell.io/idta/SubmodelTemplate/HierarchicalStructuresBoM/1/1"
+                        },
+                        {
+                          "type": "Entity",
+                          "value": "MODEL_A_VD7"
+                        },
+                        {
+                          "type": "Entity",
+                          "value": "PCB_03203204"
+                        }
+                      ]
+                    },
                     "keys": [
                       {
-                        "type": "Submodel",
-                        "value": "https://admin-shell.io/idta/SubmodelTemplate/HierarchicalStructuresBoM/1/1"
-                      },
-                      {
-                        "type": "Entity",
-                        "value": "MODEL_A_VD7"
-                      },
-                      {
-                        "type": "Entity",
+                        "type": "GlobalReference",
                         "value": "PCB_03203204"
                       }
                     ]
@@ -671,21 +680,26 @@
                   ],
                   "first": {
                     "type": "ExternalReference",
+                    "referredSemanticId": {
+                      "type": "ModelReference",
+                      "keys": [
+                        {
+                          "type": "Submodel",
+                          "value": "https://admin-shell.io/idta/SubmodelTemplate/HierarchicalStructuresBoM/1/1"
+                        },
+                        {
+                          "type": "Entity",
+                          "value": "MODEL_A_VD7"
+                        },
+                        {
+                          "type": "Entity",
+                          "value": "PCB_03203204"
+                        }
+                      ]
+                    },
                     "keys": [
                       {
                         "type": "GlobalReference",
-                        "value": "PCB_03203204"
-                      },
-                      {
-                        "type": "Submodel",
-                        "value": "https://admin-shell.io/idta/SubmodelTemplate/HierarchicalStructuresBoM/1/1"
-                      },
-                      {
-                        "type": "Entity",
-                        "value": "MODEL_A_VD7"
-                      },
-                      {
-                        "type": "Entity",
                         "value": "PCB_03203204"
                       }
                     ]
@@ -884,21 +898,26 @@
                   ],
                   "first": {
                     "type": "ExternalReference",
+                    "referredSemanticId": {
+                      "type": "ModelReference",
+                      "keys": [
+                        {
+                          "type": "Submodel",
+                          "value": "https://admin-shell.io/idta/SubmodelTemplate/HierarchicalStructuresBoM/1/1"
+                        },
+                        {
+                          "type": "Entity",
+                          "value": "MODEL_A_VD7"
+                        },
+                        {
+                          "type": "Entity",
+                          "value": "PCB_03203204"
+                        }
+                      ]
+                    },
                     "keys": [
                       {
                         "type": "GlobalReference",
-                        "value": "PCB_03203204"
-                      },
-                      {
-                        "type": "Submodel",
-                        "value": "https://admin-shell.io/idta/SubmodelTemplate/HierarchicalStructuresBoM/1/1"
-                      },
-                      {
-                        "type": "Entity",
-                        "value": "MODEL_A_VD7"
-                      },
-                      {
-                        "type": "Entity",
                         "value": "PCB_03203204"
                       }
                     ]
@@ -988,21 +1007,26 @@
                   ],
                   "first": {
                     "type": "ExternalReference",
+                    "referredSemanticId": {
+                      "type": "ModelReference",
+                      "keys": [
+                        {
+                          "type": "Submodel",
+                          "value": "https://admin-shell.io/idta/SubmodelTemplate/HierarchicalStructuresBoM/1/1"
+                        },
+                        {
+                          "type": "Entity",
+                          "value": "MODEL_A_VD7"
+                        },
+                        {
+                          "type": "Entity",
+                          "value": "PCB_03203204"
+                        }
+                      ]
+                    },
                     "keys": [
                       {
                         "type": "GlobalReference",
-                        "value": "PCB_03203204"
-                      },
-                      {
-                        "type": "Submodel",
-                        "value": "https://admin-shell.io/idta/SubmodelTemplate/HierarchicalStructuresBoM/1/1"
-                      },
-                      {
-                        "type": "Entity",
-                        "value": "MODEL_A_VD7"
-                      },
-                      {
-                        "type": "Entity",
                         "value": "PCB_03203204"
                       }
                     ]
@@ -1415,21 +1439,26 @@
                   ],
                   "first": {
                     "type": "ExternalReference",
+                    "referredSemanticId": {
+                      "type": "ModelReference",
+                      "keys": [
+                        {
+                          "type": "Submodel",
+                          "value": "https://admin-shell.io/idta/SubmodelTemplate/HierarchicalStructuresBoM/1/1"
+                        },
+                        {
+                          "type": "Entity",
+                          "value": "MODEL_A_VD7"
+                        },
+                        {
+                          "type": "Entity",
+                          "value": "PCB_03203204"
+                        }
+                      ]
+                    },
                     "keys": [
                       {
                         "type": "GlobalReference",
-                        "value": "PCB_03203204"
-                      },
-                      {
-                        "type": "Submodel",
-                        "value": "https://admin-shell.io/idta/SubmodelTemplate/HierarchicalStructuresBoM/1/1"
-                      },
-                      {
-                        "type": "Entity",
-                        "value": "MODEL_A_VD7"
-                      },
-                      {
-                        "type": "Entity",
                         "value": "PCB_03203204"
                       }
                     ]
@@ -3041,7 +3070,7 @@
                   "description": [
                     {
                       "language": "en",
-                      "text": "HasPart relationship. PCB 03203204 contains a 15k ohm precision chip resistor (15KR(1005)-F/MCR01MZPF1502). Used for precise voltage division and feedback networks. Item spec: RES/ 15K0 1\uFF05 1/16W SM 0402."
+                      "text": "HasPart relationship. PCB 03203204 contains a 15k ohm precision chip resistor (15KR(1005)-F/MCR01MZPF1502). Used for precise voltage division and feedback networks. Item spec: RES/ 15K0 1％ 1/16W SM 0402."
                     }
                   ],
                   "semanticId": {
@@ -3146,7 +3175,7 @@
                   "description": [
                     {
                       "language": "en",
-                      "text": "HasPart relationship. PCB 03203204 contains a 47k ohm chip resistor (47KR(1005)\uFF0FCR1005-473-J). Used for pull-up and general purpose resistance in logic circuits. Item spec: RESISTOR CHIP."
+                      "text": "HasPart relationship. PCB 03203204 contains a 47k ohm chip resistor (47KR(1005)／CR1005-473-J). Used for pull-up and general purpose resistance in logic circuits. Item spec: RESISTOR CHIP."
                     }
                   ],
                   "semanticId": {
@@ -3356,7 +3385,7 @@
                   "description": [
                     {
                       "language": "en",
-                      "text": "HasPart relationship. PCB 03203204 contains a 10k ohm precision chip resistor (10KR(1005)-F/MCR01MZP5F1002). Used for voltage division and gain setting in analog circuits. Item spec: RES 10K0 1\uFF05 0.063W SM 0402."
+                      "text": "HasPart relationship. PCB 03203204 contains a 10k ohm precision chip resistor (10KR(1005)-F/MCR01MZP5F1002). Used for voltage division and gain setting in analog circuits. Item spec: RES 10K0 1％ 0.063W SM 0402."
                     }
                   ],
                   "semanticId": {
@@ -3461,7 +3490,7 @@
                   "description": [
                     {
                       "language": "en",
-                      "text": "HasPart relationship. PCB 03203204 contains a ferrite bead chip (MMZ1005Y301C / CIM05J241NC). Used for EMI suppression and high-frequency noise filtering on power and signal lines. Item spec: \uB3C4\uAE09(BEAD CHIP)."
+                      "text": "HasPart relationship. PCB 03203204 contains a ferrite bead chip (MMZ1005Y301C / CIM05J241NC). Used for EMI suppression and high-frequency noise filtering on power and signal lines. Item spec: 도급(BEAD CHIP)."
                     }
                   ],
                   "semanticId": {
@@ -3530,26 +3559,31 @@
                   },
                   "second": {
                     "type": "ExternalReference",
+                    "referredSemanticId": {
+                      "type": "ModelReference",
+                      "keys": [
+                        {
+                          "type": "Submodel",
+                          "value": "https://admin-shell.io/idta/SubmodelTemplate/HierarchicalStructuresBoM/1/1"
+                        },
+                        {
+                          "type": "Entity",
+                          "value": "MODEL_A_VD7"
+                        },
+                        {
+                          "type": "Entity",
+                          "value": "PCB_03203204"
+                        },
+                        {
+                          "type": "RelationshipElement",
+                          "value": "HasPart_11200647"
+                        }
+                      ]
+                    },
                     "keys": [
                       {
                         "type": "GlobalReference",
                         "value": "11200647"
-                      },
-                      {
-                        "type": "Submodel",
-                        "value": "https://admin-shell.io/idta/SubmodelTemplate/HierarchicalStructuresBoM/1/1"
-                      },
-                      {
-                        "type": "Entity",
-                        "value": "MODEL_A_VD7"
-                      },
-                      {
-                        "type": "Entity",
-                        "value": "PCB_03203204"
-                      },
-                      {
-                        "type": "RelationshipElement",
-                        "value": "HasPart_11200647"
                       }
                     ]
                   },
@@ -3561,7 +3595,7 @@
                   "description": [
                     {
                       "language": "en",
-                      "text": "HasPart relationship. PCB 03203204 contains a 49.9k ohm precision chip resistor (49.9K(1005)-F/MCR01MZP5F4992). Used for precise voltage division and current sensing. Item spec: RES 49.9K OHM 1/16W 1\uFF05 0402 SMD."
+                      "text": "HasPart relationship. PCB 03203204 contains a 49.9k ohm precision chip resistor (49.9K(1005)-F/MCR01MZP5F4992). Used for precise voltage division and current sensing. Item spec: RES 49.9K OHM 1/16W 1％ 0402 SMD."
                     }
                   ],
                   "semanticId": {
@@ -3666,7 +3700,7 @@
                   "description": [
                     {
                       "language": "en",
-                      "text": "HasPart relationship. PCB 03203204 contains a 13.3k ohm precision chip resistor (13.3K 1%(CR1005-1332-F)). Used for accurate voltage division in sensor and control circuits. Item spec: \uB3C4\uAE09(RES CHIP/1005)."
+                      "text": "HasPart relationship. PCB 03203204 contains a 13.3k ohm precision chip resistor (13.3K 1%(CR1005-1332-F)). Used for accurate voltage division in sensor and control circuits. Item spec: 도급(RES CHIP/1005)."
                     }
                   ],
                   "semanticId": {
@@ -3771,7 +3805,7 @@
                   "description": [
                     {
                       "language": "en",
-                      "text": "HasPart relationship. PCB 03203204 contains a 510 ohm chip resistor (510\u2126(511)). Used for current limiting and LED driving circuits. Item spec: RES CHIP/1005/ 1/16W / J."
+                      "text": "HasPart relationship. PCB 03203204 contains a 510 ohm chip resistor (510Ω(511)). Used for current limiting and LED driving circuits. Item spec: RES CHIP/1005/ 1/16W / J."
                     }
                   ],
                   "semanticId": {
@@ -3981,7 +4015,7 @@
                   "description": [
                     {
                       "language": "en",
-                      "text": "HasPart relationship. PCB 03203204 contains a sub sensor PCB (MBR5600_IP-R2). Used as a daughter board for image sensor mounting and signal routing. Item spec: SENSOR PCB/2X3[20.06.03]/\uC815\uBC30\uC5F4/1.6T(\u002B10% \uACF5\uCC28) /4LY/\uBE14\uB799\uBB34\uAD11."
+                      "text": "HasPart relationship. PCB 03203204 contains a sub sensor PCB (MBR5600_IP-R2). Used as a daughter board for image sensor mounting and signal routing. Item spec: SENSOR PCB/2X3[20.06.03]/정배열/1.6T(+10% 공차) /4LY/블랙무광."
                     }
                   ],
                   "semanticId": {
@@ -4086,7 +4120,7 @@
                   "description": [
                     {
                       "language": "en",
-                      "text": "HasPart relationship. PCB 03203204 contains a CMOS image sensor (IMX335LQN-C). Used for high-quality image capture in cameras and vision systems. Item spec: CMOS Sensor, 1/2.8\u201D 5.04M/BGA 88P."
+                      "text": "HasPart relationship. PCB 03203204 contains a CMOS image sensor (IMX335LQN-C). Used for high-quality image capture in cameras and vision systems. Item spec: CMOS Sensor, 1/2.8” 5.04M/BGA 88P."
                     }
                   ],
                   "semanticId": {
@@ -5448,7 +5482,7 @@
                       "kind": "ValueQualifier",
                       "type": "Quantity",
                       "valueType": "xs:int",
-                      "value": "One"
+                      "value": "1"
                     },
                     {
                       "kind": "ConceptQualifier",
@@ -5485,26 +5519,31 @@
                   },
                   "second": {
                     "type": "ExternalReference",
+                    "referredSemanticId": {
+                      "type": "ModelReference",
+                      "keys": [
+                        {
+                          "type": "Submodel",
+                          "value": "https://admin-shell.io/idta/SubmodelTemplate/HierarchicalStructuresBoM/1/1"
+                        },
+                        {
+                          "type": "Entity",
+                          "value": "MODEL_A_VD7"
+                        },
+                        {
+                          "type": "Entity",
+                          "value": "PCB_03902715"
+                        },
+                        {
+                          "type": "RelationshipElement",
+                          "value": "HasPart_10200041"
+                        }
+                      ]
+                    },
                     "keys": [
                       {
                         "type": "GlobalReference",
                         "value": "10200041"
-                      },
-                      {
-                        "type": "Submodel",
-                        "value": "https://admin-shell.io/idta/SubmodelTemplate/HierarchicalStructuresBoM/1/1"
-                      },
-                      {
-                        "type": "Entity",
-                        "value": "MODEL_A_VD7"
-                      },
-                      {
-                        "type": "Entity",
-                        "value": "PCB_03902715"
-                      },
-                      {
-                        "type": "RelationshipElement",
-                        "value": "HasPart_10200041"
                       }
                     ]
                   },
@@ -5664,21 +5703,26 @@
                   ],
                   "first": {
                     "type": "ExternalReference",
+                    "referredSemanticId": {
+                      "type": "ModelReference",
+                      "keys": [
+                        {
+                          "type": "Submodel",
+                          "value": "https://admin-shell.io/idta/SubmodelTemplate/HierarchicalStructuresBoM/1/1"
+                        },
+                        {
+                          "type": "Entity",
+                          "value": "MODEL_A_VD7"
+                        },
+                        {
+                          "type": "Entity",
+                          "value": "PCB_03902715"
+                        }
+                      ]
+                    },
                     "keys": [
                       {
                         "type": "GlobalReference",
-                        "value": "PCB_03902175"
-                      },
-                      {
-                        "type": "Submodel",
-                        "value": "https://admin-shell.io/idta/SubmodelTemplate/HierarchicalStructuresBoM/1/1"
-                      },
-                      {
-                        "type": "Entity",
-                        "value": "MODEL_A_VD7"
-                      },
-                      {
-                        "type": "Entity",
                         "value": "PCB_03902715"
                       }
                     ]
@@ -5825,7 +5869,7 @@
                   "description": [
                     {
                       "language": "en",
-                      "text": "HasPart relationship. PCB 03203204 contains an IR cut filter sensor (NJL7302L-F3). Used for infrared cut filtering in camera modules. Item spec: SENSOR (\uC218\uC0BD) *IR CUT \uD544\uD130 \uAE30\uB2A5 \uB0B4\uC7A5\uD615*."
+                      "text": "HasPart relationship. PCB 03203204 contains an IR cut filter sensor (NJL7302L-F3). Used for infrared cut filtering in camera modules. Item spec: SENSOR (수삽) *IR CUT 필터 기능 내장형*."
                     }
                   ],
                   "semanticId": {
@@ -6035,7 +6079,7 @@
                   "description": [
                     {
                       "language": "en",
-                      "text": "HasPart relationship. PCB 03203204 contains a micro CR dome IR wire harness (TMT5P-50-5PWS). Used for connecting infrared components. Item spec: (CP12WIR020-A) MICRO CR DOME IR (MEGA\uC6A9)."
+                      "text": "HasPart relationship. PCB 03203204 contains a micro CR dome IR wire harness (TMT5P-50-5PWS). Used for connecting infrared components. Item spec: (CP12WIR020-A) MICRO CR DOME IR (MEGA용)."
                     }
                   ],
                   "semanticId": {
@@ -6209,26 +6253,31 @@
                   },
                   "second": {
                     "type": "ExternalReference",
+                    "referredSemanticId": {
+                      "type": "ModelReference",
+                      "keys": [
+                        {
+                          "type": "Submodel",
+                          "value": "https://admin-shell.io/idta/SubmodelTemplate/HierarchicalStructuresBoM/1/1"
+                        },
+                        {
+                          "type": "Entity",
+                          "value": "MODEL_A_VD7"
+                        },
+                        {
+                          "type": "Entity",
+                          "value": "PCB_03902715"
+                        },
+                        {
+                          "type": "RelationshipElement",
+                          "value": "HasPart_10500048"
+                        }
+                      ]
+                    },
                     "keys": [
                       {
                         "type": "GlobalReference",
                         "value": "10500048"
-                      },
-                      {
-                        "type": "Submodel",
-                        "value": "https://admin-shell.io/idta/SubmodelTemplate/HierarchicalStructuresBoM/1/1"
-                      },
-                      {
-                        "type": "Entity",
-                        "value": "MODEL_A_VD7"
-                      },
-                      {
-                        "type": "Entity",
-                        "value": "PCB_03902715"
-                      },
-                      {
-                        "type": "RelationshipElement",
-                        "value": "HasPart_10500048"
                       }
                     ]
                   },
@@ -6240,7 +6289,7 @@
                   "description": [
                     {
                       "language": "en",
-                      "text": "HasPart relationship. PCB 03203204 contains an LED driver diode (XPEIFR-L). Used for high-brightness LED applications. Item spec: DIODE CHIP/LED SMD/1000mA 1.9V/60\uB3C4."
+                      "text": "HasPart relationship. PCB 03203204 contains an LED driver diode (XPEIFR-L). Used for high-brightness LED applications. Item spec: DIODE CHIP/LED SMD/1000mA 1.9V/60도."
                     }
                   ],
                   "semanticId": {
@@ -6309,26 +6358,31 @@
                   },
                   "second": {
                     "type": "ExternalReference",
+                    "referredSemanticId": {
+                      "type": "ModelReference",
+                      "keys": [
+                        {
+                          "type": "Submodel",
+                          "value": "https://admin-shell.io/idta/SubmodelTemplate/HierarchicalStructuresBoM/1/1"
+                        },
+                        {
+                          "type": "Entity",
+                          "value": "MODEL_A_VD7"
+                        },
+                        {
+                          "type": "Entity",
+                          "value": "PCB_03902715"
+                        },
+                        {
+                          "type": "RelationshipElement",
+                          "value": "HasPart_10500281"
+                        }
+                      ]
+                    },
                     "keys": [
                       {
                         "type": "GlobalReference",
                         "value": "10500281"
-                      },
-                      {
-                        "type": "Submodel",
-                        "value": "https://admin-shell.io/idta/SubmodelTemplate/HierarchicalStructuresBoM/1/1"
-                      },
-                      {
-                        "type": "Entity",
-                        "value": "MODEL_A_VD7"
-                      },
-                      {
-                        "type": "Entity",
-                        "value": "PCB_03902715"
-                      },
-                      {
-                        "type": "RelationshipElement",
-                        "value": "HasPart_10500281"
                       }
                     ]
                   },
@@ -6340,7 +6394,7 @@
                   "description": [
                     {
                       "language": "en",
-                      "text": "HasPart relationship. PCB 03203204 contains a switch DIP (YSS-1202/06P). Used for configuration and mode selection on the board. Item spec: SWITCH DIP (\uC218\uC0BD)."
+                      "text": "HasPart relationship. PCB 03203204 contains a switch DIP (YSS-1202/06P). Used for configuration and mode selection on the board. Item spec: SWITCH DIP (수삽)."
                     }
                   ],
                   "semanticId": {
@@ -6445,7 +6499,7 @@
                   "description": [
                     {
                       "language": "en",
-                      "text": "HasPart relationship. PCB 03203204 contains an LED sub PCB (VD7_H2IR-R1). Used as a daughter board for LED mounting. Item spec: LED PCB/3X4[20.03.24]/\uC5C7\uBC30\uC5F4/1.2T/4LV/\uBE14\uB799\uBB34\uAD11."
+                      "text": "HasPart relationship. PCB 03203204 contains an LED sub PCB (VD7_H2IR-R1). Used as a daughter board for LED mounting. Item spec: LED PCB/3X4[20.03.24]/엇배열/1.2T/4LV/블랙무광."
                     }
                   ],
                   "semanticId": {
@@ -6514,80 +6568,35 @@
                   },
                   "second": {
                     "type": "ExternalReference",
+                    "referredSemanticId": {
+                      "type": "ModelReference",
+                      "keys": [
+                        {
+                          "type": "Submodel",
+                          "value": "https://admin-shell.io/idta/SubmodelTemplate/HierarchicalStructuresBoM/1/1"
+                        },
+                        {
+                          "type": "Entity",
+                          "value": "MODEL_A_VD7"
+                        },
+                        {
+                          "type": "Entity",
+                          "value": "PCB_03902715"
+                        },
+                        {
+                          "type": "RelationshipElement",
+                          "value": "HasPart_11102146"
+                        }
+                      ]
+                    },
                     "keys": [
                       {
                         "type": "GlobalReference",
                         "value": "11102146"
-                      },
-                      {
-                        "type": "Submodel",
-                        "value": "https://admin-shell.io/idta/SubmodelTemplate/HierarchicalStructuresBoM/1/1"
-                      },
-                      {
-                        "type": "Entity",
-                        "value": "MODEL_A_VD7"
-                      },
-                      {
-                        "type": "Entity",
-                        "value": "PCB_03902715"
-                      },
-                      {
-                        "type": "RelationshipElement",
-                        "value": "HasPart_11102146"
                       }
                     ]
                   },
                   "modelType": "RelationshipElement"
-                },
-                {
-                  "category": "PARAMETER",
-                  "idShort": "P20901652",
-                  "description": [
-                    {
-                      "language": "en",
-                      "text": "Injection-moulded gimbal rotation limits bracket used in BOTTOM ASSY completion (Process 50-2). Restricts the rotational range of the gimbal sub-assembly within the bottom case housing to prevent mechanical over-travel. Material: PC (SABIC) LEXAN 141R-701 BK. Part spec: CP18MOL024-A. Compatible with ECO LINE camera variant. Correct installation orientation must be confirmed visually against reference photograph during assembly. Quantity per unit: 1."
-                    }
-                  ],
-                  "semanticId": {
-                    "type": "ModelReference",
-                    "keys": [
-                      {
-                        "type": "ConceptDescription",
-                        "value": "https://www.smart-factory.kr/ids/cd/P20901652/1/0"
-                      }
-                    ]
-                  },
-                  "qualifiers": [
-                    {
-                      "semanticId": {
-                        "type": "ExternalReference",
-                        "keys": [
-                          {
-                            "type": "GlobalReference",
-                            "value": "https://admin-shell.io/SubmodelTemplates/Cardinality/1/0"
-                          }
-                        ]
-                      },
-                      "kind": "TemplateQualifier",
-                      "type": "Ent/Cardinality",
-                      "valueType": "xs:string",
-                      "value": "One"
-                    },
-                    {
-                      "kind": "ValueQualifier",
-                      "type": "Quantity",
-                      "valueType": "xs:int",
-                      "value": "1"
-                    },
-                    {
-                      "kind": "ConceptQualifier",
-                      "type": "Category",
-                      "valueType": "xs:string",
-                      "value": "MOL"
-                    }
-                  ],
-                  "entityType": "CoManagedEntity",
-                  "modelType": "Entity"
                 }
               ],
               "entityType": "SelfManagedEntity",
@@ -7124,7 +7133,7 @@
                     "keys": [
                       {
                         "type": "GlobalReference",
-                        "value": "PCB\u002B03903424"
+                        "value": "PCB+03903424"
                       }
                     ]
                   },
@@ -8109,7 +8118,7 @@
                   "description": [
                     {
                       "language": "en",
-                      "text": "HasPart relationship. PCB 03203204 contains a 4-pin 1.25mm pitch SMT connector (53398-0471 / TM1252S-04 / MH-4AB). Used for compact wire-to-board connection, specifically for Molex PicoBlade series. Item spec: CONNECTOR SMD/1.25mm-04P/ST/SMD (MOLEX \uCEE4\uB125\uD130 \uC0AC\uC6A9\uD568)."
+                      "text": "HasPart relationship. PCB 03203204 contains a 4-pin 1.25mm pitch SMT connector (53398-0471 / TM1252S-04 / MH-4AB). Used for compact wire-to-board connection, specifically for Molex PicoBlade series. Item spec: CONNECTOR SMD/1.25mm-04P/ST/SMD (MOLEX 커넥터 사용함)."
                     }
                   ],
                   "semanticId": {
@@ -8214,7 +8223,7 @@
                   "description": [
                     {
                       "language": "en",
-                      "text": "HasPart relationship. PCB 03203204 contains a 4-pin 1.0mm pitch SMT connector (1.0T-1-04A). Used for high-density board-to-cable or board-to-board connections. Item spec: CONNECTOR SMD/1.0mm-04P/ST SMD(\uD2F0\uC564\uD14D)."
+                      "text": "HasPart relationship. PCB 03203204 contains a 4-pin 1.0mm pitch SMT connector (1.0T-1-04A). Used for high-density board-to-cable or board-to-board connections. Item spec: CONNECTOR SMD/1.0mm-04P/ST SMD(티앤텍)."
                     }
                   ],
                   "semanticId": {
@@ -8634,7 +8643,7 @@
                   "description": [
                     {
                       "language": "en",
-                      "text": "HasPart relationship. PCB 03203204 contains a 32.768kHz crystal oscillator (DST310S/DST310SA). Used as the main clock source for real-time clock and low-power timing. Item spec: XTAL 32.768KHz 20PPM 12.5pF MAX Rs=70k -40~\u002B85 SM 3.2X1.5MM."
+                      "text": "HasPart relationship. PCB 03203204 contains a 32.768kHz crystal oscillator (DST310S/DST310SA). Used as the main clock source for real-time clock and low-power timing. Item spec: XTAL 32.768KHz 20PPM 12.5pF MAX Rs=70k -40~+85 SM 3.2X1.5MM."
                     }
                   ],
                   "semanticId": {
@@ -11427,26 +11436,31 @@
                   },
                   "second": {
                     "type": "ExternalReference",
+                    "referredSemanticId": {
+                      "type": "ModelReference",
+                      "keys": [
+                        {
+                          "type": "Submodel",
+                          "value": "https://admin-shell.io/idta/SubmodelTemplate/HierarchicalStructuresBoM/1/1"
+                        },
+                        {
+                          "type": "Entity",
+                          "value": "MODEL_A_VD7"
+                        },
+                        {
+                          "type": "Entity",
+                          "value": "PCB_03903424"
+                        },
+                        {
+                          "type": "RelationshipElement",
+                          "value": "HasPart_10700898"
+                        }
+                      ]
+                    },
                     "keys": [
                       {
                         "type": "GlobalReference",
                         "value": "10700898"
-                      },
-                      {
-                        "type": "Submodel",
-                        "value": "https://admin-shell.io/idta/SubmodelTemplate/HierarchicalStructuresBoM/1/1"
-                      },
-                      {
-                        "type": "Entity",
-                        "value": "MODEL_A_VD7"
-                      },
-                      {
-                        "type": "Entity",
-                        "value": "PCB_03903424"
-                      },
-                      {
-                        "type": "RelationshipElement",
-                        "value": "HasPart_10700898"
                       }
                     ]
                   },
@@ -11737,26 +11751,31 @@
                   },
                   "second": {
                     "type": "ExternalReference",
+                    "referredSemanticId": {
+                      "type": "ModelReference",
+                      "keys": [
+                        {
+                          "type": "Submodel",
+                          "value": "https://admin-shell.io/idta/SubmodelTemplate/HierarchicalStructuresBoM/1/1"
+                        },
+                        {
+                          "type": "Entity",
+                          "value": "MODEL_A_VD7"
+                        },
+                        {
+                          "type": "Entity",
+                          "value": "PCB_03903424"
+                        },
+                        {
+                          "type": "RelationshipElement",
+                          "value": "HasPart_10701526"
+                        }
+                      ]
+                    },
                     "keys": [
                       {
                         "type": "GlobalReference",
                         "value": "10701526"
-                      },
-                      {
-                        "type": "Submodel",
-                        "value": "https://admin-shell.io/idta/SubmodelTemplate/HierarchicalStructuresBoM/1/1"
-                      },
-                      {
-                        "type": "Entity",
-                        "value": "MODEL_A_VD7"
-                      },
-                      {
-                        "type": "Entity",
-                        "value": "PCB_03903424"
-                      },
-                      {
-                        "type": "RelationshipElement",
-                        "value": "HasPart_10701526"
                       }
                     ]
                   },
@@ -15224,7 +15243,7 @@
                   "description": [
                     {
                       "language": "en",
-                      "text": "HasPart relationship. PCB 03203204 contains a 27k ohm chip resistor (27KR(3216)/CR3216-273). Used for voltage division. Item spec: \uB3C4\uAE09(RESISTOR CHIP)."
+                      "text": "HasPart relationship. PCB 03203204 contains a 27k ohm chip resistor (27KR(3216)/CR3216-273). Used for voltage division. Item spec: 도급(RESISTOR CHIP)."
                     }
                   ],
                   "semanticId": {
@@ -15329,7 +15348,7 @@
                   "description": [
                     {
                       "language": "en",
-                      "text": "HasPart relationship. PCB 03203204 contains a 510 ohm chip resistor (510R(2012)/CR2012-511-J). Used for current limiting. Item spec: \uB3C4\uAE09(RESISTOR CHIP)."
+                      "text": "HasPart relationship. PCB 03203204 contains a 510 ohm chip resistor (510R(2012)/CR2012-511-J). Used for current limiting. Item spec: 도급(RESISTOR CHIP)."
                     }
                   ],
                   "semanticId": {
@@ -15749,7 +15768,7 @@
                   "description": [
                     {
                       "language": "en",
-                      "text": "HasPart relationship. PCB 03203204 contains a 0.2 ohm chip resistor (0.2R(CR3216-R20J)). Used for current sensing. Item spec: \uB3C4\uAE09(RESISTOR CHIP)."
+                      "text": "HasPart relationship. PCB 03203204 contains a 0.2 ohm chip resistor (0.2R(CR3216-R20J)). Used for current sensing. Item spec: 도급(RESISTOR CHIP)."
                     }
                   ],
                   "semanticId": {
@@ -15963,7 +15982,7 @@
               "description": [
                 {
                   "language": "en",
-                  "text": "Lens assembly component used in SENSOR BOARD assembly (Process 20). M12 mount, 4IR, 5 megapixel fixed lens. Spec: 1/2.5\u0022, 4mm, F2.0, 5Mega pixel, Fixed. Quantity per unit: 1."
+                  "text": "Lens assembly component used in SENSOR BOARD assembly (Process 20). M12 mount, 4IR, 5 megapixel fixed lens. Spec: 1/2.5\", 4mm, F2.0, 5Mega pixel, Fixed. Quantity per unit: 1."
                 }
               ],
               "semanticId": {
@@ -16163,7 +16182,7 @@
               "description": [
                 {
                   "language": "en",
-                  "text": "Binding screw used in SENSOR BOARD assembly (Process 20) for fastening the lens holder onto the sensor board. Type: M/S PH\u002B M1.4x4.0, black finish. Spec: SCREW / CV75T DV2812. Torque spec: 0.8~1.2 kgf\u00B7cm (confirmed periodically using torque meter). Quantity per unit: 1."
+                  "text": "Binding screw used in SENSOR BOARD assembly (Process 20) for fastening the lens holder onto the sensor board. Type: M/S PH+ M1.4x4.0, black finish. Spec: SCREW / CV75T DV2812. Torque spec: 0.8~1.2 kgf·cm (confirmed periodically using torque meter). Quantity per unit: 1."
                 }
               ],
               "semanticId": {
@@ -16263,7 +16282,7 @@
               "description": [
                 {
                   "language": "en",
-                  "text": "Cross-head machine screw used in SENSOR BOARD integration assembly (Process 20-1) for fastening the lens holder sub-assembly onto the main board PCB. Type: M/S CH(#0)\u002B M2.0x4.0, black finish, head height 3.5mm. Spec: BOLT \uACF5\uC6A9, LENS HOLDER STANDARD. Torque spec: 1.5~2 kgf\u00B7cm (confirmed periodically using torque meter). Quantity per unit: 2."
+                  "text": "Cross-head machine screw used in SENSOR BOARD integration assembly (Process 20-1) for fastening the lens holder sub-assembly onto the main board PCB. Type: M/S CH(#0)+ M2.0x4.0, black finish, head height 3.5mm. Spec: BOLT 공용, LENS HOLDER STANDARD. Torque spec: 1.5~2 kgf·cm (confirmed periodically using torque meter). Quantity per unit: 2."
                 }
               ],
               "semanticId": {
@@ -16313,7 +16332,7 @@
               "description": [
                 {
                   "language": "en",
-                  "text": "DC gimbal front housing for HIGH POWER 2IR configuration used in GIMBAL ASS\u0027Y (Process 40). Material: ADC12-1 black anodised die-cast aluminium. Part spec: CP18DCT042-D. Ver.B stock to be consumed before Ver.D is used. Quantity per unit: 1."
+                  "text": "DC gimbal front housing for HIGH POWER 2IR configuration used in GIMBAL ASS'Y (Process 40). Material: ADC12-1 black anodised die-cast aluminium. Part spec: CP18DCT042-D. Ver.B stock to be consumed before Ver.D is used. Quantity per unit: 1."
                 }
               ],
               "semanticId": {
@@ -16363,7 +16382,7 @@
               "description": [
                 {
                   "language": "en",
-                  "text": "IR rubber seal for mini dome camera used in GIMBAL ASS\u0027Y (Process 40). Placed between IR PCB and gimbal front housing to provide sealing and vibration damping. Material: rubber hardness 60, black. Part spec: CP16RUB014-A. Orientation must be confirmed against reference photograph during assembly. Quantity per unit: 1."
+                  "text": "IR rubber seal for mini dome camera used in GIMBAL ASS'Y (Process 40). Placed between IR PCB and gimbal front housing to provide sealing and vibration damping. Material: rubber hardness 60, black. Part spec: CP16RUB014-A. Orientation must be confirmed against reference photograph during assembly. Quantity per unit: 1."
                 }
               ],
               "semanticId": {
@@ -16413,7 +16432,7 @@
               "description": [
                 {
                   "language": "en",
-                  "text": "Cross-head machine screw used in GIMBAL ASS\u0027Y (Process 40) for fastening IR PCB and gimbal front housing components. Type: M/S CH(#0)\u002B M2.0x3.0, black finish, head height 3.5mm. Spec: BOLT/CCTV5. Torque spec: 1.5~2 kgf\u00B7cm (confirmed periodically using torque meter). Quantity per unit: 3."
+                  "text": "Cross-head machine screw used in GIMBAL ASS'Y (Process 40) for fastening IR PCB and gimbal front housing components. Type: M/S CH(#0)+ M2.0x3.0, black finish, head height 3.5mm. Spec: BOLT/CCTV5. Torque spec: 1.5~2 kgf·cm (confirmed periodically using torque meter). Quantity per unit: 3."
                 }
               ],
               "semanticId": {
@@ -16463,7 +16482,7 @@
               "description": [
                 {
                   "language": "en",
-                  "text": "Injection-moulded gimbal module bracket with TDN mount used in GIMBAL ASS\u0027Y integration (Process 40-1). Compatible with micro CR dome and mini dome camera variants. Material: PC GE 141R-701 BK. Part spec: CP09MOL011-D. IR harness direction must be confirmed against reference photograph during assembly. Quantity per unit: 1."
+                  "text": "Injection-moulded gimbal module bracket with TDN mount used in GIMBAL ASS'Y integration (Process 40-1). Compatible with micro CR dome and mini dome camera variants. Material: PC GE 141R-701 BK. Part spec: CP09MOL011-D. IR harness direction must be confirmed against reference photograph during assembly. Quantity per unit: 1."
                 }
               ],
               "semanticId": {
@@ -16513,7 +16532,7 @@
               "description": [
                 {
                   "language": "en",
-                  "text": "Injection-moulded gimbal tilt bracket used in GIMBAL ASS\u0027Y integration (Process 40-1). Compatible with GIMBAL IX micro CR dome camera variant. Material: PC-BK GE 141R 701BK. Part spec: CP08MOL034-B. IR rubber and lens centre alignment must be confirmed visually during assembly. Quantity per unit: 1."
+                  "text": "Injection-moulded gimbal tilt bracket used in GIMBAL ASS'Y integration (Process 40-1). Compatible with GIMBAL IX micro CR dome camera variant. Material: PC-BK GE 141R 701BK. Part spec: CP08MOL034-B. IR rubber and lens centre alignment must be confirmed visually during assembly. Quantity per unit: 1."
                 }
               ],
               "semanticId": {
@@ -16563,7 +16582,7 @@
               "description": [
                 {
                   "language": "en",
-                  "text": "Tapping screw used in GIMBAL ASS\u0027Y integration (Process 40-1) for fastening gimbal module bracket and tilt bracket components. Type: T/S-2 CH\u002B D2.0x15.0, SUS black finish, half-thread. Spec: SCREW-MICRO CR DOME. Torque spec: 1.5~2 kgf\u00B7cm (confirmed periodically using torque meter). Quantity per unit: 3."
+                  "text": "Tapping screw used in GIMBAL ASS'Y integration (Process 40-1) for fastening gimbal module bracket and tilt bracket components. Type: T/S-2 CH+ D2.0x15.0, SUS black finish, half-thread. Spec: SCREW-MICRO CR DOME. Torque spec: 1.5~2 kgf·cm (confirmed periodically using torque meter). Quantity per unit: 3."
                 }
               ],
               "semanticId": {
@@ -16663,7 +16682,7 @@
               "description": [
                 {
                   "language": "en",
-                  "text": "Cable rubber grommet for waterproof cable routing used in BOTTOM CASE assembly (Process 50). Compatible with cable outer diameter range \u00D86~6.8 mm. Designed specifically for VD7 waterproof cable variant. Installed into the bottom case housing to provide sealing around the cable entry point. Quantity per unit: 1."
+                  "text": "Cable rubber grommet for waterproof cable routing used in BOTTOM CASE assembly (Process 50). Compatible with cable outer diameter range Ø6~6.8 mm. Designed specifically for VD7 waterproof cable variant. Installed into the bottom case housing to provide sealing around the cable entry point. Quantity per unit: 1."
                 }
               ],
               "semanticId": {
@@ -16713,7 +16732,7 @@
               "description": [
                 {
                   "language": "en",
-                  "text": "Waterproof cable assembly with RJ45 and DC jack connector used in BOTTOM CASE assembly (Process 50). Type: 15001HS9P-300-RJ45\u002BDCJ(BLACK)-6T207B40, outer diameter 19.5 mm. Material spec: CP14CAB031-C, compatible with CV65(IP), CVD8, and mini dome waterproof cable variants. Used with IP PCB 03903424. Quantity per unit: 1."
+                  "text": "Waterproof cable assembly with RJ45 and DC jack connector used in BOTTOM CASE assembly (Process 50). Type: 15001HS9P-300-RJ45+DCJ(BLACK)-6T207B40, outer diameter 19.5 mm. Material spec: CP14CAB031-C, compatible with CV65(IP), CVD8, and mini dome waterproof cable variants. Used with IP PCB 03903424. Quantity per unit: 1."
                 }
               ],
               "semanticId": {
@@ -16863,7 +16882,7 @@
               "description": [
                 {
                   "language": "en",
-                  "text": "Cross-head machine screw used in BOTTOM ASSY integration (Process 50-1, qty 3) and BOTTOM ASSY completion (Process 50-2, qty 4) for fastening the main board PCB and gimbal support bracket components onto the bottom case housing. Type: M/S CH(#0)\u002B M2.0x5.0, black finish, head height 3.5mm. Spec: BOLT, common use. Torque spec: 1.5~2 kgf\u00B7cm (confirmed periodically using torque meter). Total quantity across both processes per unit: 7."
+                  "text": "Cross-head machine screw used in BOTTOM ASSY integration (Process 50-1, qty 3) and BOTTOM ASSY completion (Process 50-2, qty 4) for fastening the main board PCB and gimbal support bracket components onto the bottom case housing. Type: M/S CH(#0)+ M2.0x5.0, black finish, head height 3.5mm. Spec: BOLT, common use. Torque spec: 1.5~2 kgf·cm (confirmed periodically using torque meter). Total quantity across both processes per unit: 7."
                 }
               ],
               "semanticId": {
@@ -17057,7 +17076,7 @@
               "description": [
                 {
                   "language": "en",
-                  "text": "Adhesive vent used in UPPER ASS\u0027Y (Process 80). Attached to the upper case to provide pressure equalisation between the interior and exterior of the camera housing while preventing moisture and contaminant ingress. Replacement product for VE70308. Attachment must be confirmed free of tearing, scratches, and incomplete bonding. Quantity per unit: 1."
+                  "text": "Adhesive vent used in UPPER ASS'Y (Process 80). Attached to the upper case to provide pressure equalisation between the interior and exterior of the camera housing while preventing moisture and contaminant ingress. Replacement product for VE70308. Attachment must be confirmed free of tearing, scratches, and incomplete bonding. Quantity per unit: 1."
                 }
               ],
               "semanticId": {
@@ -17107,7 +17126,7 @@
               "description": [
                 {
                   "language": "en",
-                  "text": "DC upper case for mini dome camera UDP variant used in UPPER ASS\u0027Y (Process 80). Provides the upper structural enclosure of the IP dome camera housing. Revised per ECO438 (Rev1.1, 2020-02-03): upper case press process changed. Further revised per ECO754 (Rev1.9, 2024-10-25): upper case geometry updated. Adhesive vent and dome stopper are assembled onto this component. "
+                  "text": "DC upper case for mini dome camera UDP variant used in UPPER ASS'Y (Process 80). Provides the upper structural enclosure of the IP dome camera housing. Revised per ECO438 (Rev1.1, 2020-02-03): upper case press process changed. Further revised per ECO754 (Rev1.9, 2024-10-25): upper case geometry updated. Adhesive vent and dome stopper are assembled onto this component. "
                 }
               ],
               "semanticId": {
@@ -17157,7 +17176,7 @@
               "description": [
                 {
                   "language": "en",
-                  "text": "Injection-moulded dome cover for micro CR dome camera with black printing used in UPPER ASS\u0027Y (Process 80). Outsourced injection-moulded component. Provides the transparent or tinted optical dome enclosure of the upper housing. Black printing applied to outer surface per product specification. Absence of foreign matter on inner dome surface must be confirmed visually before assembly. Quantity per unit: 1."
+                  "text": "Injection-moulded dome cover for micro CR dome camera with black printing used in UPPER ASS'Y (Process 80). Outsourced injection-moulded component. Provides the transparent or tinted optical dome enclosure of the upper housing. Black printing applied to outer surface per product specification. Absence of foreign matter on inner dome surface must be confirmed visually before assembly. Quantity per unit: 1."
                 }
               ],
               "semanticId": {
@@ -17207,7 +17226,7 @@
               "description": [
                 {
                   "language": "en",
-                  "text": "Bubble gasket for VD7 upper housing used in UPPER ASS\u0027Y (Process 80). Placed between the dome cover and the upper case to provide sealing and prevent moisture ingress. Revised per ECO656 (Rev1.8, 2023-05-24): bubble changed. Further revised per ECO754 (Rev1.9, 2024-10-25): bubble gasket geometry updated. Assembly orientation must be confirmed against reference photograph. Quantity per unit: 1."
+                  "text": "Bubble gasket for VD7 upper housing used in UPPER ASS'Y (Process 80). Placed between the dome cover and the upper case to provide sealing and prevent moisture ingress. Revised per ECO656 (Rev1.8, 2023-05-24): bubble changed. Further revised per ECO754 (Rev1.9, 2024-10-25): bubble gasket geometry updated. Assembly orientation must be confirmed against reference photograph. Quantity per unit: 1."
                 }
               ],
               "semanticId": {
@@ -17257,7 +17276,7 @@
               "description": [
                 {
                   "language": "en",
-                  "text": "Press dome stopper for EN672 mini dome camera used in UPPER ASS\u0027Y (Process 80). Mechanically retains the dome cover within the upper case housing and prevents rotational displacement during operation. Part spec: CP15PRE001-B. Version change must be confirmed before use per process caution note. Quantity per unit: 1."
+                  "text": "Press dome stopper for EN672 mini dome camera used in UPPER ASS'Y (Process 80). Mechanically retains the dome cover within the upper case housing and prevents rotational displacement during operation. Part spec: CP15PRE001-B. Version change must be confirmed before use per process caution note. Quantity per unit: 1."
                 }
               ],
               "semanticId": {
@@ -17307,7 +17326,7 @@
               "description": [
                 {
                   "language": "en",
-                  "text": "Machine screw used in UPPER ASS\u0027Y (Process 80) for fastening upper case housing components. Type: M3x4.0, head height 5.7 mm, Phillips cross-head, white finish. Torque spec: 2~3 kgf\u00B7cm (confirmed periodically using torque meter). Screw thread wear and idle fastening must be prevented during assembly. Quantity per unit: 4."
+                  "text": "Machine screw used in UPPER ASS'Y (Process 80) for fastening upper case housing components. Type: M3x4.0, head height 5.7 mm, Phillips cross-head, white finish. Torque spec: 2~3 kgf·cm (confirmed periodically using torque meter). Screw thread wear and idle fastening must be prevented during assembly. Quantity per unit: 4."
                 }
               ],
               "semanticId": {
@@ -17357,7 +17376,7 @@
               "description": [
                 {
                   "language": "en",
-                  "text": "Main gasket for mini dome camera used in UPPER ASS\u0027Y completion (Process 80-1). Placed between the upper case and the bottom case housing to provide primary environmental sealing of the assembled camera module. Current stock to be consumed before version D is used. Gasket must be confirmed seated without displacement from the case groove before screw fastening. Absence of foreign matter confirmed visually. Quantity per unit: 1."
+                  "text": "Main gasket for mini dome camera used in UPPER ASS'Y completion (Process 80-1). Placed between the upper case and the bottom case housing to provide primary environmental sealing of the assembled camera module. Current stock to be consumed before version D is used. Gasket must be confirmed seated without displacement from the case groove before screw fastening. Absence of foreign matter confirmed visually. Quantity per unit: 1."
                 }
               ],
               "semanticId": {
@@ -17407,7 +17426,7 @@
               "description": [
                 {
                   "language": "en",
-                  "text": "Torx head machine screw used in UPPER ASS\u0027Y completion (Process 80-1) for fastening the upper case and bottom case housing assemblies together. Type: M3x12.0, tap length 4 mm, head diameter \u00D86.7 mm, Torx 20 drive. Torque spec: 2~3 kgf\u00B7cm (confirmed periodically using torque meter). Upper case surface scratching must be prevented during fastening. Quantity per unit: 3."
+                  "text": "Torx head machine screw used in UPPER ASS'Y completion (Process 80-1) for fastening the upper case and bottom case housing assemblies together. Type: M3x12.0, tap length 4 mm, head diameter Ø6.7 mm, Torx 20 drive. Torque spec: 2~3 kgf·cm (confirmed periodically using torque meter). Upper case surface scratching must be prevented during fastening. Quantity per unit: 3."
                 }
               ],
               "semanticId": {
@@ -17457,7 +17476,7 @@
               "description": [
                 {
                   "language": "en",
-                  "text": "IR sponge for mini dome camera used in SET ASS\u0027Y (Process 90). Placed between the IR PCB and the upper housing to absorb infrared light leakage and prevent internal reflection. Cleaned with methyl alcohol before assembly to remove oil and foreign matter. Absence of contamination confirmed visually after cleaning. Quantity per unit: 1."
+                  "text": "IR sponge for mini dome camera used in SET ASS'Y (Process 90). Placed between the IR PCB and the upper housing to absorb infrared light leakage and prevent internal reflection. Cleaned with methyl alcohol before assembly to remove oil and foreign matter. Absence of contamination confirmed visually after cleaning. Quantity per unit: 1."
                 }
               ],
               "semanticId": {
@@ -17507,7 +17526,7 @@
               "description": [
                 {
                   "language": "en",
-                  "text": "Dome cover protective film for VD7 used in SET ASS\u0027Y (Process 90). Applied to the outer surface of the dome cover to protect against scratches and contamination during final assembly and handling. Added per ECO630 (Rev1.7, 2023-01-02): internal protective film addition. Film must be confirmed fully adhered without lifting or misalignment before the unit proceeds to aging test. Quantity per unit: 1."
+                  "text": "Dome cover protective film for VD7 used in SET ASS'Y (Process 90). Applied to the outer surface of the dome cover to protect against scratches and contamination during final assembly and handling. Added per ECO630 (Rev1.7, 2023-01-02): internal protective film addition. Film must be confirmed fully adhered without lifting or misalignment before the unit proceeds to aging test. Quantity per unit: 1."
                 }
               ],
               "semanticId": {
@@ -17707,7 +17726,7 @@
               "description": [
                 {
                   "language": "en",
-                  "text": "Tapping screw used in packaging (Process 110) as a field installation accessory. Type: T/S-1 PHL\u002B D4x35, stainless steel finish. Material changed from nickel to stainless steel after stock depletion per process instruction. Included in product packaging for end user installation use. Absence of accessory confirmed by visual inspection before packaging closure. Quantity per unit: 1."
+                  "text": "Tapping screw used in packaging (Process 110) as a field installation accessory. Type: T/S-1 PHL+ D4x35, stainless steel finish. Material changed from nickel to stainless steel after stock depletion per process instruction. Included in product packaging for end user installation use. Absence of accessory confirmed by visual inspection before packaging closure. Quantity per unit: 1."
                 }
               ],
               "semanticId": {
@@ -18250,6 +18269,56 @@
               ],
               "entityType": "CoManagedEntity",
               "modelType": "Entity"
+            },
+            {
+              "category": "PARAMETER",
+              "idShort": "P20901652",
+              "description": [
+                {
+                  "language": "en",
+                  "text": "Injection-moulded gimbal rotation limits bracket used in BOTTOM ASSY completion (Process 50-2). Restricts the rotational range of the gimbal sub-assembly within the bottom case housing to prevent mechanical over-travel. Material: PC (SABIC) LEXAN 141R-701 BK. Part spec: CP18MOL024-A. Compatible with ECO LINE camera variant. Correct installation orientation must be confirmed visually against reference photograph during assembly. Quantity per unit: 1."
+                }
+              ],
+              "semanticId": {
+                "type": "ModelReference",
+                "keys": [
+                  {
+                    "type": "ConceptDescription",
+                    "value": "https://www.smart-factory.kr/ids/cd/P20901652/1/0"
+                  }
+                ]
+              },
+              "qualifiers": [
+                {
+                  "semanticId": {
+                    "type": "ExternalReference",
+                    "keys": [
+                      {
+                        "type": "GlobalReference",
+                        "value": "https://admin-shell.io/SubmodelTemplates/Cardinality/1/0"
+                      }
+                    ]
+                  },
+                  "kind": "TemplateQualifier",
+                  "type": "Ent/Cardinality",
+                  "valueType": "xs:string",
+                  "value": "One"
+                },
+                {
+                  "kind": "ValueQualifier",
+                  "type": "Quantity",
+                  "valueType": "xs:int",
+                  "value": "1"
+                },
+                {
+                  "kind": "ConceptQualifier",
+                  "type": "Category",
+                  "valueType": "xs:string",
+                  "value": "MOL"
+                }
+              ],
+              "entityType": "CoManagedEntity",
+              "modelType": "Entity"
             }
           ],
           "entityType": "SelfManagedEntity",
@@ -18492,7 +18561,7 @@
                     }
                   ],
                   "valueType": "xs:float",
-                  "value": "1500",
+                  "value": "0.5",
                   "modelType": "Property"
                 },
                 {
@@ -18522,7 +18591,7 @@
                     }
                   ],
                   "valueType": "xs:int",
-                  "value": "0.5",
+                  "value": "1500",
                   "modelType": "Property"
                 }
               ],
@@ -22493,7 +22562,7 @@
           "description": [
             {
               "language": "en",
-              "text": "A collection of process dependency type definitions used across all manufacturing process steps in CPRO camera assembly. Contains three enumerated values \u2014 SEQUENCE, JOIN, and FORK \u2014 each defining a distinct structural relationship between a process step and its predecessors. Referenced by DepType Property in each process step Collection via valueId."
+              "text": "A collection of process dependency type definitions used across all manufacturing process steps in CPRO camera assembly. Contains three enumerated values — SEQUENCE, JOIN, and FORK — each defining a distinct structural relationship between a process step and its predecessors. Referenced by DepType Property in each process step Collection via valueId."
             }
           ],
           "semanticId": {
@@ -22649,7 +22718,7 @@
           "description": [
             {
               "language": "en",
-              "text": "Firmware input process group for MODEL_A VD7(IP-SB)-MBR5600(S3L)-TDN7-H2IR-WH-N(R1)(\uBC29\uC218 CABLE). Contains four sequential steps: IP F/W loading (10), F/W verification (10-1), secondary confirmation (10-2), and MAC/model name programming (10-3). Each step shares worker group WORKER_FW (2 persons), equipment NO44-FW_JIG (capacity 6, rated power 0 kW), and cycle time 25 s per step. Total cycle time: 100 s. Input material per unit: PCB 03903424 (SMT NVD7_S3L-2-R2, qty 1). Revision 2.0 issued 2025-08-21."
+              "text": "Firmware input process group for MODEL_A VD7(IP-SB)-MBR5600(S3L)-TDN7-H2IR-WH-N(R1)(방수 CABLE). Contains four sequential steps: IP F/W loading (10), F/W verification (10-1), secondary confirmation (10-2), and MAC/model name programming (10-3). Each step shares worker group WORKER_FW (2 persons), equipment NO44-FW_JIG (capacity 6, rated power 0 kW), and cycle time 25 s per step. Total cycle time: 100 s. Input material per unit: PCB 03903424 (SMT NVD7_S3L-2-R2, qty 1). Revision 2.0 issued 2025-08-21."
             }
           ],
           "semanticId": {
@@ -22712,7 +22781,7 @@
               "description": [
                 {
                   "language": "en",
-                  "text": "Process 10 \u2014 IP F/W Input. Firmware data is loaded into PCB 03903424 (SMT NVD7_S3L-2-R2, qty 1) via USB Jig Board. Jig pin must be connected with power in OFF state before initiating data transfer. Revision 2.0 issued 2025-08-21: PCB unified to 03903424 (previously 03903194 until stock depletion)."
+                  "text": "Process 10 — IP F/W Input. Firmware data is loaded into PCB 03903424 (SMT NVD7_S3L-2-R2, qty 1) via USB Jig Board. Jig pin must be connected with power in OFF state before initiating data transfer. Revision 2.0 issued 2025-08-21: PCB unified to 03903424 (previously 03903194 until stock depletion)."
                 }
               ],
               "semanticId": {
@@ -22975,23 +23044,6 @@
                       ],
                       "value": {
                         "type": "ExternalReference",
-                        "referredSemanticId": {
-                          "type": "ModelReference",
-                          "keys": [
-                            {
-                              "type": "Submodel",
-                              "value": "https://admin-shell.io/idta/SubmodelTemplate/HierarchicalStructuresBoM/1/1"
-                            },
-                            {
-                              "type": "Entity",
-                              "value": "MODEL_A_VD7"
-                            },
-                            {
-                              "type": "Entity",
-                              "value": "PCB_03903424"
-                            }
-                          ]
-                        },
                         "keys": [
                           {
                             "type": "GlobalReference",
@@ -23016,7 +23068,7 @@
                   "description": [
                     {
                       "language": "en",
-                      "text": "F/W input process. Equipment: F/W JIG (no direct power) \u002B Computer (0.15kW \u00D7 6) \u002B Monitor (0.0155kW \u00D7 6) allocated equally across 4 MODULE_FW processes by CT ratio 25%."
+                      "text": "F/W input process. Equipment: F/W JIG (no direct power) + Computer (0.15kW × 6) + Monitor (0.0155kW × 6) allocated equally across 4 MODULE_FW processes by CT ratio 25%."
                     }
                   ],
                   "semanticId": {
@@ -23049,7 +23101,7 @@
               "description": [
                 {
                   "language": "en",
-                  "text": "Process 10-1 \u2014 IP F/W verification. Firmware data loaded in process 10 is verified against product and buyer specification using OEM specification document. No additional input materials consumed at this step. Equipment: input program \u2014 criterion: DATA input confirmed (computer bug managemen). Cautiton: firmware must match product and buyer specification; observe input sequence order."
+                  "text": "Process 10-1 — IP F/W verification. Firmware data loaded in process 10 is verified against product and buyer specification using OEM specification document. No additional input materials consumed at this step. Equipment: input program — criterion: DATA input confirmed (computer bug managemen). Cautiton: firmware must match product and buyer specification; observe input sequence order."
                 }
               ],
               "semanticId": {
@@ -23303,7 +23355,7 @@
               "description": [
                 {
                   "language": "en",
-                  "text": "Process 10-2 \u2014 IP F/W secondary confirmation. Confirms 100% completion of firmware input performed in process 10 and 10-1. Firmware compliance with product and buyer specification is re-confirmed using OEM specification document. No additional input materials consumed at this step. Equipment: input program \u2014 criterion: DATA input confirmed (computer bug management). Caution: confirm full input completion before proceeding; observe input sequence order."
+                  "text": "Process 10-2 — IP F/W secondary confirmation. Confirms 100% completion of firmware input performed in process 10 and 10-1. Firmware compliance with product and buyer specification is re-confirmed using OEM specification document. No additional input materials consumed at this step. Equipment: input program — criterion: DATA input confirmed (computer bug management). Caution: confirm full input completion before proceeding; observe input sequence order."
                 }
               ],
               "semanticId": {
@@ -23557,7 +23609,7 @@
               "description": [
                 {
                   "language": "en",
-                  "text": "Process 10-3 \u2014 MAC address and MODEL name input. Unique MAC address (assigned per unit) and model name (NAF3-OLAH4) are programmed into the device using the input program. MAC address must not be duplicated across units; model name input must be verified via cpro show command. No additional input materials consumed at this step. Revision 1.6 issued 2021-09-23: MAC label attachment position changed. Output of this step proceeds to process 30 (VD7_30_FOCUS)."
+                  "text": "Process 10-3 — MAC address and MODEL name input. Unique MAC address (assigned per unit) and model name (NAF3-OLAH4) are programmed into the device using the input program. MAC address must not be duplicated across units; model name input must be verified via cpro show command. No additional input materials consumed at this step. Revision 1.6 issued 2021-09-23: MAC label attachment position changed. Output of this step proceeds to process 30 (VD7_30_FOCUS)."
                 }
               ],
               "semanticId": {
@@ -23814,7 +23866,7 @@
           "description": [
             {
               "language": "en",
-              "text": "Sensor board assembly process group for MODEL_A VD7(IP-SB)-MBR5600(S3L)-TDN7-H2IR-WH-N(R1)(\uBC29\uC218 CABLE). Contains two sequential steps: SENSOR BOARD assembly (20) and SENSOR BOARD integration onto main board (20-1). Step 20 assembles M12 CNC-machined lens holder (20502140) and TDN actuator (50100541) onto the sensor board. Step 20-1 mounts the completed sensor board sub-assembly onto main board PCB (03203124). Both steps share worker group WORKER_LENS_HOLDER (4 persons). Total cycle time: 215 s. Sub-assemblies are transferred to the next line via CART (transfer qty: 80 units). Revision 1.4 issued 2021-04-07: lens holder post-processing changed to CNC machining (ECO514)."
+              "text": "Sensor board assembly process group for MODEL_A VD7(IP-SB)-MBR5600(S3L)-TDN7-H2IR-WH-N(R1)(방수 CABLE). Contains two sequential steps: SENSOR BOARD assembly (20) and SENSOR BOARD integration onto main board (20-1). Step 20 assembles M12 CNC-machined lens holder (20502140) and TDN actuator (50100541) onto the sensor board. Step 20-1 mounts the completed sensor board sub-assembly onto main board PCB (03203124). Both steps share worker group WORKER_LENS_HOLDER (4 persons). Total cycle time: 215 s. Sub-assemblies are transferred to the next line via CART (transfer qty: 80 units). Revision 1.4 issued 2021-04-07: lens holder post-processing changed to CNC machining (ECO514)."
             }
           ],
           "semanticId": {
@@ -23862,7 +23914,7 @@
               "description": [
                 {
                   "language": "en",
-                  "text": "Process 20 \u2014 SENSOR BOARD assembly. M12 CNC-machined lens holder (20502140), TDN actuator (50100541, NX-X-05B25C 21/145), M12 lens (10800565), lens fix nut (20901092), and screw (30300592) are assembled onto the sensor board sub-assembly. 5 input materials consumed per unit. Equipment: electric driver \u2014 torque spec 0.8~1.2 kgf\u00B7cm. Revision 1.4 issued 2021-04-07: lens holder post-processing changed to CNC machining (ECO514)."
+                  "text": "Process 20 — SENSOR BOARD assembly. M12 CNC-machined lens holder (20502140), TDN actuator (50100541, NX-X-05B25C 21/145), M12 lens (10800565), lens fix nut (20901092), and screw (30300592) are assembled onto the sensor board sub-assembly. 5 input materials consumed per unit. Equipment: electric driver — torque spec 0.8~1.2 kgf·cm. Revision 1.4 issued 2021-04-07: lens holder post-processing changed to CNC machining (ECO514)."
                 }
               ],
               "semanticId": {
@@ -24066,7 +24118,7 @@
                   "description": [
                     {
                       "language": "en",
-                      "text": "Sensor board assembly. Compressor (CKV300 22kW \u002B HS100E 75kW) allocated by CT ratio 34.29% within MODULE group."
+                      "text": "Sensor board assembly. Compressor (CKV300 22kW + HS100E 75kW) allocated by CT ratio 34.29% within MODULE group."
                     }
                   ],
                   "semanticId": {
@@ -24324,7 +24376,7 @@
               "description": [
                 {
                   "language": "en",
-                  "text": "Process 20-1 \u2014 SENSOR BOARD integration onto main board PCB (03203124, SMT MBR5600_IP-R1). The completed sensor board sub-assembly from process 20 is mounted onto the main board PCB using sponge insulation seat (21200743, qty 1) and cross-head screws (30300125, qty 2). Torque spec: 1.5~2 kgf\u00B7cm. TDN orientation, absence of foreign matter, and connector integrity must be confirmed visually. Upon completion, sub-assemblies are transferred to the next line via CART (transfer qty: 80 units per batch)."
+                  "text": "Process 20-1 — SENSOR BOARD integration onto main board PCB (03203124, SMT MBR5600_IP-R1). The completed sensor board sub-assembly from process 20 is mounted onto the main board PCB using sponge insulation seat (21200743, qty 1) and cross-head screws (30300125, qty 2). Torque spec: 1.5~2 kgf·cm. TDN orientation, absence of foreign matter, and connector integrity must be confirmed visually. Upon completion, sub-assemblies are transferred to the next line via CART (transfer qty: 80 units per batch)."
                 }
               ],
               "semanticId": {
@@ -24732,7 +24784,7 @@
           "description": [
             {
               "language": "en",
-              "text": "Focus adjustment process group for MODEL_A VD7(IP-SB)-MBR5600(S3L)-TDN7-H2IR-WH-N(R1)(\uBC29\uC218 CABLE). Contains one step: FOCUS SETTING (30). Focus is adjusted using dome cover during inspection. Lens protrusion measured at 15 mm using vernier caliper. Absence of foreign matter and connector integrity confirmed visually. Worker group: WORKER_SENSOR_FOCUS (3 persons). Cycle time: 100 s. Predecessor: VD7_10-3_MAC (Process 10-3)."
+              "text": "Focus adjustment process group for MODEL_A VD7(IP-SB)-MBR5600(S3L)-TDN7-H2IR-WH-N(R1)(방수 CABLE). Contains one step: FOCUS SETTING (30). Focus is adjusted using dome cover during inspection. Lens protrusion measured at 15 mm using vernier caliper. Absence of foreign matter and connector integrity confirmed visually. Worker group: WORKER_SENSOR_FOCUS (3 persons). Cycle time: 100 s. Predecessor: VD7_10-3_MAC (Process 10-3)."
             }
           ],
           "semanticId": {
@@ -24780,7 +24832,7 @@
               "description": [
                 {
                   "language": "en",
-                  "text": "Process 30 \u2014 FOCUS SETTING. Optical focus is adjusted on the sensor board sub-assembly received from process 10-3 (MAC/MODEL name input). Focus quality is assessed visually using dome cover as reference fixture. Lens protrusion confirmed at 15 mm using vernier caliper. Absence of foreign matter and connector integrity confirmed visually before step completion. No input materials consumed at this step."
+                  "text": "Process 30 — FOCUS SETTING. Optical focus is adjusted on the sensor board sub-assembly received from process 10-3 (MAC/MODEL name input). Focus quality is assessed visually using dome cover as reference fixture. Lens protrusion confirmed at 15 mm using vernier caliper. Absence of foreign matter and connector integrity confirmed visually before step completion. No input materials consumed at this step."
                 }
               ],
               "semanticId": {
@@ -25037,7 +25089,7 @@
           "description": [
             {
               "language": "en",
-              "text": "Gimbal assembly process group for MODEL_A VD7(IP-SB)-MBR5600(S3L)-TDN7-H2IR-WH-N(R1)(\uBC29\uC218 CABLE). Contains two steps: GIMBAL ASS\u0027Y (40) and GIMBAL ASS\u0027Y integration (40-1). Step 40 assembles gimbal front housing, IR PCB (03902715), IR rubber, and screws onto the gimbal unit. Step 40-1 is a JOIN step that merges the completed gimbal sub-assembly (40) with the sensor board sub-assembly (20-1), mounting gimbal module bracket and tilt bracket. Both steps share worker group WORKER_SET (16 persons). Total cycle time: 45 s. Revision 1.1 issued 2020-07-28: LED bracket changed (ECO467)."
+              "text": "Gimbal assembly process group for MODEL_A VD7(IP-SB)-MBR5600(S3L)-TDN7-H2IR-WH-N(R1)(방수 CABLE). Contains two steps: GIMBAL ASS'Y (40) and GIMBAL ASS'Y integration (40-1). Step 40 assembles gimbal front housing, IR PCB (03902715), IR rubber, and screws onto the gimbal unit. Step 40-1 is a JOIN step that merges the completed gimbal sub-assembly (40) with the sensor board sub-assembly (20-1), mounting gimbal module bracket and tilt bracket. Both steps share worker group WORKER_SET (16 persons). Total cycle time: 45 s. Revision 1.1 issued 2020-07-28: LED bracket changed (ECO467)."
             }
           ],
           "semanticId": {
@@ -25085,7 +25137,7 @@
               "description": [
                 {
                   "language": "en",
-                  "text": "Process 40 \u2014 GIMBAL ASS\u0027Y. Gimbal front housing (20501683), IR PCB (03902715, SMT VD7_H2IR-R1), IR rubber (21200734), and screws (30300165, qty 3) are assembled into a gimbal sub-assembly. IR rubber must be confirmed intact without tearing or damage. IR rubber orientation and seating onto gimbal front confirmed visually against reference photograph. Torque spec: 1.5~2 kgf\u00B7cm. Revision 1.1 issued 2020-07-28: LED bracket changed (ECO467)."
+                  "text": "Process 40 — GIMBAL ASS'Y. Gimbal front housing (20501683), IR PCB (03902715, SMT VD7_H2IR-R1), IR rubber (21200734), and screws (30300165, qty 3) are assembled into a gimbal sub-assembly. IR rubber must be confirmed intact without tearing or damage. IR rubber orientation and seating onto gimbal front confirmed visually against reference photograph. Torque spec: 1.5~2 kgf·cm. Revision 1.1 issued 2020-07-28: LED bracket changed (ECO467)."
                 }
               ],
               "semanticId": {
@@ -25289,7 +25341,7 @@
                   "description": [
                     {
                       "language": "en",
-                      "text": "Gimbal assembly. Electric drivers \u002B compressor allocated by CT ratio 6.87% within SEMI group."
+                      "text": "Gimbal assembly. Electric drivers + compressor allocated by CT ratio 6.87% within SEMI group."
                     }
                   ],
                   "semanticId": {
@@ -25510,7 +25562,7 @@
               "description": [
                 {
                   "language": "en",
-                  "text": "Process 40-1 \u2014 GIMBAL ASS\u0027Y integration. JOIN step merging gimbal sub-assembly (VD7_40_GIMBAL) and sensor board sub-assembly (VD7_20-1_SENSOR). Gimbal module bracket (20901361) and tilt bracket (20900508) are mounted and fastened using tapping screws (30300433, qty 3). IR harness direction confirmed against reference photograph. IR rubber and lens centre alignment confirmed visually. Connector integrity confirmed visually. Torque spec: 1.5~2 kgf\u00B7cm. Sub-assemblies transferred to next line via CART (transfer qty: 80 units per batch)."
+                  "text": "Process 40-1 — GIMBAL ASS'Y integration. JOIN step merging gimbal sub-assembly (VD7_40_GIMBAL) and sensor board sub-assembly (VD7_20-1_SENSOR). Gimbal module bracket (20901361) and tilt bracket (20900508) are mounted and fastened using tapping screws (30300433, qty 3). IR harness direction confirmed against reference photograph. IR rubber and lens centre alignment confirmed visually. Connector integrity confirmed visually. Torque spec: 1.5~2 kgf·cm. Sub-assemblies transferred to next line via CART (transfer qty: 80 units per batch)."
                 }
               ],
               "semanticId": {
@@ -25591,7 +25643,7 @@
                   "description": [
                     {
                       "language": "en",
-                      "text": "Predecessor processes of VD7_40-1_GIMBAL. Both VD7_40_GIMBAL (GIMBAL ASS\u0027Y, Process 40) and VD7_20-1_SENSOR (SENSOR BOARD integration, Process 20-1) must complete before this JOIN process step becomes executable."
+                      "text": "Predecessor processes of VD7_40-1_GIMBAL. Both VD7_40_GIMBAL (GIMBAL ASS'Y, Process 40) and VD7_20-1_SENSOR (SENSOR BOARD integration, Process 20-1) must complete before this JOIN process step becomes executable."
                     }
                   ],
                   "semanticId": {
@@ -25743,7 +25795,7 @@
                   "description": [
                     {
                       "language": "en",
-                      "text": "Gimbal sub-assembly JOIN. Electric drivers \u002B compressor allocated by CT ratio 6.57% within SEMI group."
+                      "text": "Gimbal sub-assembly JOIN. Electric drivers + compressor allocated by CT ratio 6.57% within SEMI group."
                     }
                   ],
                   "semanticId": {
@@ -25930,7 +25982,7 @@
           "description": [
             {
               "language": "en",
-              "text": "Bottom case assembly process group for MODEL_A VD7(IP-SB)-MBR5600(S3L)-TDN7-H2IR-WH-N(R1)(\uBC29\uC218 CABLE). Contains three steps: BOTTOM ASSY (50), BOTTOM ASSY integration with focus sub-assembly (50-1), and BOTTOM ASSY completion with gimbal support bracket (50-2). Step 50 is an independent SEMI process assembling bottom case, cable rubber, waterproof cable, and cable tie. Step 50-1 is a JOIN step merging VD7_50_BOTTOM and VD7_30_FOCUS, integrating thermal pad and micro coax harness. Step 50-2 continues SET assembly adding gimbal support bracket and rotation limits bracket. Total cycle time: 190 s. Sub-assemblies transferred via CART (transfer qty: 80 units per batch)."
+              "text": "Bottom case assembly process group for MODEL_A VD7(IP-SB)-MBR5600(S3L)-TDN7-H2IR-WH-N(R1)(방수 CABLE). Contains three steps: BOTTOM ASSY (50), BOTTOM ASSY integration with focus sub-assembly (50-1), and BOTTOM ASSY completion with gimbal support bracket (50-2). Step 50 is an independent SEMI process assembling bottom case, cable rubber, waterproof cable, and cable tie. Step 50-1 is a JOIN step merging VD7_50_BOTTOM and VD7_30_FOCUS, integrating thermal pad and micro coax harness. Step 50-2 continues SET assembly adding gimbal support bracket and rotation limits bracket. Total cycle time: 190 s. Sub-assemblies transferred via CART (transfer qty: 80 units per batch)."
             }
           ],
           "semanticId": {
@@ -25978,7 +26030,7 @@
               "description": [
                 {
                   "language": "en",
-                  "text": "Process 50 \u2014 BOTTOM ASSY. Bottom case (20502127), cable rubber grommet (21201260), waterproof cable assembly RJ45\u002BDCJ (20200832), and cable tie (30400735) are assembled into the bottom case sub-assembly. Cable rubber and cable tie routing must be confirmed. Independent process starting upon SMT_COMPLETE."
+                  "text": "Process 50 — BOTTOM ASSY. Bottom case (20502127), cable rubber grommet (21201260), waterproof cable assembly RJ45+DCJ (20200832), and cable tie (30400735) are assembled into the bottom case sub-assembly. Cable rubber and cable tie routing must be confirmed. Independent process starting upon SMT_COMPLETE."
                 }
               ],
               "semanticId": {
@@ -26182,7 +26234,7 @@
                   "description": [
                     {
                       "language": "en",
-                      "text": "Bottom case assembly. Electric drivers \u002B compressor allocated by CT ratio 19.10% within SEMI group."
+                      "text": "Bottom case assembly. Electric drivers + compressor allocated by CT ratio 19.10% within SEMI group."
                     }
                   ],
                   "semanticId": {
@@ -26286,7 +26338,7 @@
                       "description": [
                         {
                           "language": "en",
-                          "text": "Reference to P21201260 entity in HierarchicalStructures. Cable rubber grommet \u00D86~6.8 VD7. Quantity: 1."
+                          "text": "Reference to P21201260 entity in HierarchicalStructures. Cable rubber grommet Ø6~6.8 VD7. Quantity: 1."
                         }
                       ],
                       "semanticId": {
@@ -26403,7 +26455,7 @@
               "description": [
                 {
                   "language": "en",
-                  "text": "Process 50-1 \u2014 BOTTOM ASSY integration. JOIN step merging VD7_50_BOTTOM (bottom case sub-assembly) and VD7_30_FOCUS (focus-adjusted sub-assembly). Thermal pad (21200538) is placed on main board PCB surface. Main board PCB is fastened onto bottom case using cross-head screws (30300124, qty 3). Micro coaxial wire harness (21600655) is connected between sensor PCB and main board PCB. Connector seating, cable routing, and thermal pad positioning confirmed visually before step completion."
+                  "text": "Process 50-1 — BOTTOM ASSY integration. JOIN step merging VD7_50_BOTTOM (bottom case sub-assembly) and VD7_30_FOCUS (focus-adjusted sub-assembly). Thermal pad (21200538) is placed on main board PCB surface. Main board PCB is fastened onto bottom case using cross-head screws (30300124, qty 3). Micro coaxial wire harness (21600655) is connected between sensor PCB and main board PCB. Connector seating, cable routing, and thermal pad positioning confirmed visually before step completion."
                 }
               ],
               "semanticId": {
@@ -26624,7 +26676,7 @@
                   "description": [
                     {
                       "language": "en",
-                      "text": "Bottom case sub-assembly JOIN. Electric drivers \u002B compressor allocated by CT ratio 18.81% within SEMI group."
+                      "text": "Bottom case sub-assembly JOIN. Electric drivers + compressor allocated by CT ratio 18.81% within SEMI group."
                     }
                   ],
                   "semanticId": {
@@ -26808,7 +26860,7 @@
               "description": [
                 {
                   "language": "en",
-                  "text": "Process 50-2 \u2014 BOTTOM ASSY completion. Gimbal support bracket (20501665) with sponge pad (21201264) and gimbal rotation limits bracket (20901652) are mounted onto the integrated bottom case sub-assembly from process 50-1 using cross-head screws (30300124, qty 4). Bracket seating position and rotation limits bracket orientation confirmed visually against reference photograph. Sub-assemblies transferred to the next line via CART (transfer qty: 80 units per batch)."
+                  "text": "Process 50-2 — BOTTOM ASSY completion. Gimbal support bracket (20501665) with sponge pad (21201264) and gimbal rotation limits bracket (20901652) are mounted onto the integrated bottom case sub-assembly from process 50-1 using cross-head screws (30300124, qty 4). Bracket seating position and rotation limits bracket orientation confirmed visually against reference photograph. Sub-assemblies transferred to the next line via CART (transfer qty: 80 units per batch)."
                 }
               ],
               "semanticId": {
@@ -27012,7 +27064,7 @@
                   "description": [
                     {
                       "language": "en",
-                      "text": "Bottom case final assembly. Electric drivers \u002B compressor allocated by CT ratio 18.81% within SEMI group."
+                      "text": "Bottom case final assembly. Electric drivers + compressor allocated by CT ratio 18.81% within SEMI group."
                     }
                   ],
                   "semanticId": {
@@ -27236,7 +27288,7 @@
           "description": [
             {
               "language": "en",
-              "text": "Combined assembly process group for MODEL_A VD7(IP-SB)-MBR5600(S3L)-TDN7-H2IR-WH-N(R1)(\uBC29\uC218 CABLE). Contains one step: GIMBAL \u002B BOTTOM ASS\u0027Y (60). JOIN step merging gimbal sub-assembly (VD7_40-1_GIMBAL) and bottom case sub-assembly (VD7_50-2_BOTTOM). Cross-head screws (30300124, qty 2) are used to fasten the combined assembly. MCX cable connection, gimbal assembly orientation, and connector integrity confirmed visually. Worker group: WORKER_SET (16 persons). Cycle time: 144 s. Sub-assemblies transferred via CART (transfer qty: 80 units per batch)."
+              "text": "Combined assembly process group for MODEL_A VD7(IP-SB)-MBR5600(S3L)-TDN7-H2IR-WH-N(R1)(방수 CABLE). Contains one step: GIMBAL + BOTTOM ASS'Y (60). JOIN step merging gimbal sub-assembly (VD7_40-1_GIMBAL) and bottom case sub-assembly (VD7_50-2_BOTTOM). Cross-head screws (30300124, qty 2) are used to fasten the combined assembly. MCX cable connection, gimbal assembly orientation, and connector integrity confirmed visually. Worker group: WORKER_SET (16 persons). Cycle time: 144 s. Sub-assemblies transferred via CART (transfer qty: 80 units per batch)."
             }
           ],
           "semanticId": {
@@ -27284,7 +27336,7 @@
               "description": [
                 {
                   "language": "en",
-                  "text": "Process 60 \u2014 GIMBAL \u002B BOTTOM ASS\u0027Y. JOIN step merging VD7_40-1_GIMBAL (gimbal integration sub-assembly) and VD7_50-2_BOTTOM (bottom case completed sub-assembly). Cross-head screws (30300124, qty 2) fasten the gimbal and bottom case assemblies together. MCX cable must be connected without damage or incomplete insertion. Gimbal assembly orientation confirmed against reference photograph. Connector integrity confirmed visually. Torque spec: 1.5~2 kgf\u00B7cm. Caution: MCX cable connector and cable damage must be avoided during fastening; screw thread wear and idle fastening must be prevented. Sub-assemblies transferred via CART (transfer qty: 80 units per batch)."
+                  "text": "Process 60 — GIMBAL + BOTTOM ASS'Y. JOIN step merging VD7_40-1_GIMBAL (gimbal integration sub-assembly) and VD7_50-2_BOTTOM (bottom case completed sub-assembly). Cross-head screws (30300124, qty 2) fasten the gimbal and bottom case assemblies together. MCX cable must be connected without damage or incomplete insertion. Gimbal assembly orientation confirmed against reference photograph. Connector integrity confirmed visually. Torque spec: 1.5~2 kgf·cm. Caution: MCX cable connector and cable damage must be avoided during fastening; screw thread wear and idle fastening must be prevented. Sub-assemblies transferred via CART (transfer qty: 80 units per batch)."
                 }
               ],
               "semanticId": {
@@ -27365,7 +27417,7 @@
                   "description": [
                     {
                       "language": "en",
-                      "text": "Predecessor processes of VD7_60_COMB. Both VD7_40-1_GIMBAL (GIMBAL ASS\u0027Y Integration, Process 40-1) and VD7_50-2_BOTTOM (BOTTOM ASSY Completion, Process 50-2) must complete before this JOIN process step becomes executable."
+                      "text": "Predecessor processes of VD7_60_COMB. Both VD7_40-1_GIMBAL (GIMBAL ASS'Y Integration, Process 40-1) and VD7_50-2_BOTTOM (BOTTOM ASSY Completion, Process 50-2) must complete before this JOIN process step becomes executable."
                     }
                   ],
                   "semanticId": {
@@ -27488,7 +27540,7 @@
                   "description": [
                     {
                       "language": "en",
-                      "text": "Combined assembly JOIN. Electric drivers \u002B compressor allocated by CT ratio 36.55% within SET group."
+                      "text": "Combined assembly JOIN. Electric drivers + compressor allocated by CT ratio 36.55% within SET group."
                     }
                   ],
                   "semanticId": {
@@ -27601,7 +27653,7 @@
           "description": [
             {
               "language": "en",
-              "text": "Camera inspection process group for MODEL_A VD7(IP-SB)-MBR5600(S3L)-TDN7-H2IR-WH-N(R1)(\uBC29\uC218 CABLE). Contains three sequential steps: Camera Test inspection (70), Camera Test inspection (70-1), and Camera Test inspection (70-2). All three steps are performed by the inspection-dedicated sub-group within WORKER_SET. No input materials consumed across any step. Total cycle time: 240 s. Defect rate: 0.003 per step."
+              "text": "Camera inspection process group for MODEL_A VD7(IP-SB)-MBR5600(S3L)-TDN7-H2IR-WH-N(R1)(방수 CABLE). Contains three sequential steps: Camera Test inspection (70), Camera Test inspection (70-1), and Camera Test inspection (70-2). All three steps are performed by the inspection-dedicated sub-group within WORKER_SET. No input materials consumed across any step. Total cycle time: 240 s. Defect rate: 0.003 per step."
             }
           ],
           "semanticId": {
@@ -27649,7 +27701,7 @@
               "description": [
                 {
                   "language": "en",
-                  "text": "Process 70 \u2014 Camera Test inspection stage 1. First of three sequential inspection steps performed on the combined assembly (VD7_60_COMB output). Functional and visual inspection of the assembled camera module conducted by inspection-dedicated sub-group within WORKER_SET. No input materials consumed at this step. Defect rate: 0.003. Non-conforming units diverted to RMA repair process."
+                  "text": "Process 70 — Camera Test inspection stage 1. First of three sequential inspection steps performed on the combined assembly (VD7_60_COMB output). Functional and visual inspection of the assembled camera module conducted by inspection-dedicated sub-group within WORKER_SET. No input materials consumed at this step. Defect rate: 0.003. Non-conforming units diverted to RMA repair process."
                 }
               ],
               "semanticId": {
@@ -27730,7 +27782,7 @@
                   "description": [
                     {
                       "language": "en",
-                      "text": "Predecessor process of VD7_70_INSP. This process step becomes executable upon completion of VD7_60_COMB (GIMBAL \u002B BOTTOM ASS\u0027Y, Process 60)."
+                      "text": "Predecessor process of VD7_70_INSP. This process step becomes executable upon completion of VD7_60_COMB (GIMBAL + BOTTOM ASS'Y, Process 60)."
                     }
                   ],
                   "semanticId": {
@@ -27853,7 +27905,7 @@
                   "description": [
                     {
                       "language": "en",
-                      "text": "Inspection process. Computer (0.15kW) \u002B Monitor \u002B PoE allocated by CT ratio 20.30% within SET group."
+                      "text": "Inspection process. Computer (0.15kW) + Monitor + PoE allocated by CT ratio 20.30% within SET group."
                     }
                   ],
                   "semanticId": {
@@ -27886,7 +27938,7 @@
               "description": [
                 {
                   "language": "en",
-                  "text": "Process 70-1 \u2014 Camera Test inspection stage 2. Second of three sequential inspection steps performed on the output of process 70. Functional and visual inspection continues by inspection-dedicated sub-group within WORKER_SET. No input materials consumed at this step. Defect rate: 0.003. Non-conforming units diverted to RMA repair process."
+                  "text": "Process 70-1 — Camera Test inspection stage 2. Second of three sequential inspection steps performed on the output of process 70. Functional and visual inspection continues by inspection-dedicated sub-group within WORKER_SET. No input materials consumed at this step. Defect rate: 0.003. Non-conforming units diverted to RMA repair process."
                 }
               ],
               "semanticId": {
@@ -28090,7 +28142,7 @@
                   "description": [
                     {
                       "language": "en",
-                      "text": "Inspection sub-process. Computer \u002B Monitor \u002B PoE allocated by CT ratio 20.30% within SET group."
+                      "text": "Inspection sub-process. Computer + Monitor + PoE allocated by CT ratio 20.30% within SET group."
                     }
                   ],
                   "semanticId": {
@@ -28123,7 +28175,7 @@
               "description": [
                 {
                   "language": "en",
-                  "text": "Process 70-2 \u2014 Camera Test inspection stage 3. Third and final inspection step performed on the output of process 70-1. Functional and visual inspection completed by inspection-dedicated sub-group within WORKER_SET. No input materials consumed at this step. Defect rate: 0.003. Non-conforming units diverted to RMA repair process. Output of this step proceeds to VD7_90_SET (SET assembly JOIN with upper housing sub-assembly)."
+                  "text": "Process 70-2 — Camera Test inspection stage 3. Third and final inspection step performed on the output of process 70-1. Functional and visual inspection completed by inspection-dedicated sub-group within WORKER_SET. No input materials consumed at this step. Defect rate: 0.003. Non-conforming units diverted to RMA repair process. Output of this step proceeds to VD7_90_SET (SET assembly JOIN with upper housing sub-assembly)."
                 }
               ],
               "semanticId": {
@@ -28327,7 +28379,7 @@
                   "description": [
                     {
                       "language": "en",
-                      "text": "Inspection final check. Computer \u002B Monitor \u002B PoE allocated by CT ratio 20.30% within SET group."
+                      "text": "Inspection final check. Computer + Monitor + PoE allocated by CT ratio 20.30% within SET group."
                     }
                   ],
                   "semanticId": {
@@ -28363,7 +28415,7 @@
           "description": [
             {
               "language": "en",
-              "text": "Upper housing assembly process group for MODEL_A VD7(IP-SB)-MBR5600(S3L)-TDN7-H2IR-WH-N(R1)(\uBC29\uC218 CABLE). Contains two sequential steps: UPPER ASS\u0027Y (80) and UPPER ASS\u0027Y completion (80-1). Step 80 assembles adhesive vent (21200533), upper case (20501148), dome cover (\uC678\uC8FC20901858), bubble gasket (21200496), dome stopper (21100701), and screws (30300540, qty 4) into the upper housing sub-assembly. Step 80-1 integrates main gasket (21200511) and Torx screws (30301017, qty 3). Both steps share worker group WORKER_SEMI (11 persons). Total cycle time: 100 s. Sub-assemblies transferred via CART (transfer qty: 80 units per batch). Revision history: ECO438 (Rev1.1, 2020-02-03) upper case press changed; ECO656 (Rev1.8, 2023-05-24) bubble changed; ECO754 (Rev1.9, 2024-10-25) bubble gasket and upper case changed."
+              "text": "Upper housing assembly process group for MODEL_A VD7(IP-SB)-MBR5600(S3L)-TDN7-H2IR-WH-N(R1)(방수 CABLE). Contains two sequential steps: UPPER ASS'Y (80) and UPPER ASS'Y completion (80-1). Step 80 assembles adhesive vent (21200533), upper case (20501148), dome cover (외주20901858), bubble gasket (21200496), dome stopper (21100701), and screws (30300540, qty 4) into the upper housing sub-assembly. Step 80-1 integrates main gasket (21200511) and Torx screws (30301017, qty 3). Both steps share worker group WORKER_SEMI (11 persons). Total cycle time: 100 s. Sub-assemblies transferred via CART (transfer qty: 80 units per batch). Revision history: ECO438 (Rev1.1, 2020-02-03) upper case press changed; ECO656 (Rev1.8, 2023-05-24) bubble changed; ECO754 (Rev1.9, 2024-10-25) bubble gasket and upper case changed."
             }
           ],
           "semanticId": {
@@ -28411,7 +28463,7 @@
               "description": [
                 {
                   "language": "en",
-                  "text": "Process 80 \u2014 UPPER ASS\u0027Y. Independent process starting upon SMT_COMPLETE. Adhesive vent (21200533) attached to upper case (20501148). Dome cover (20901858), bubble gasket (21200496), and dome stopper (21100701) assembled into upper case. Upper case fastened using machine screws (30300540, qty 4). Vent attachment confirmed free of tearing and incomplete bonding. Bubble gasket orientation confirmed against reference photograph. Absence of foreign matter confirmed visually. Torque spec: 2~3 kgf\u00B7cm. Sub-assemblies transferred via CART (transfer qty: 80 units per batch). Revision history: ECO438 (Rev1.1, 2020-02-03) upper case press changed; ECO656 (Rev1.8, 2023-05-24) bubble changed; ECO754 (Rev1.9, 2024-10-25) bubble gasket and upper case updated."
+                  "text": "Process 80 — UPPER ASS'Y. Independent process starting upon SMT_COMPLETE. Adhesive vent (21200533) attached to upper case (20501148). Dome cover (20901858), bubble gasket (21200496), and dome stopper (21100701) assembled into upper case. Upper case fastened using machine screws (30300540, qty 4). Vent attachment confirmed free of tearing and incomplete bonding. Bubble gasket orientation confirmed against reference photograph. Absence of foreign matter confirmed visually. Torque spec: 2~3 kgf·cm. Sub-assemblies transferred via CART (transfer qty: 80 units per batch). Revision history: ECO438 (Rev1.1, 2020-02-03) upper case press changed; ECO656 (Rev1.8, 2023-05-24) bubble changed; ECO754 (Rev1.9, 2024-10-25) bubble gasket and upper case updated."
                 }
               ],
               "semanticId": {
@@ -28615,7 +28667,7 @@
                   "description": [
                     {
                       "language": "en",
-                      "text": "Upper housing assembly. Electric drivers \u002B compressor allocated by CT ratio 14.93% within SEMI group."
+                      "text": "Upper housing assembly. Electric drivers + compressor allocated by CT ratio 14.93% within SEMI group."
                     }
                   ],
                   "semanticId": {
@@ -28909,7 +28961,7 @@
               "description": [
                 {
                   "language": "en",
-                  "text": "Process 80-1 \u2014 UPPER ASS\u0027Y completion. Main gasket (21200511) is seated into the upper case groove and confirmed free of displacement. Upper case and bottom case housing assemblies are fastened together using Torx screws (30301017, qty 3). Gasket seating confirmed without displacement from case groove before fastening. Absence of foreign matter confirmed visually. Upper case surface scratching must be prevented during screw fastening. Torque spec: 2~3 kgf\u00B7cm. Sub-assemblies transferred via CART (transfer qty: 80 units per batch)."
+                  "text": "Process 80-1 — UPPER ASS'Y completion. Main gasket (21200511) is seated into the upper case groove and confirmed free of displacement. Upper case and bottom case housing assemblies are fastened together using Torx screws (30301017, qty 3). Gasket seating confirmed without displacement from case groove before fastening. Absence of foreign matter confirmed visually. Upper case surface scratching must be prevented during screw fastening. Torque spec: 2~3 kgf·cm. Sub-assemblies transferred via CART (transfer qty: 80 units per batch)."
                 }
               ],
               "semanticId": {
@@ -28990,7 +29042,7 @@
                   "description": [
                     {
                       "language": "en",
-                      "text": "Predecessor process of VD7_80-1_UPPER. This process step becomes executable upon completion of VD7_80_UPPER (UPPER ASS\u0027Y, Process 80)."
+                      "text": "Predecessor process of VD7_80-1_UPPER. This process step becomes executable upon completion of VD7_80_UPPER (UPPER ASS'Y, Process 80)."
                     }
                   ],
                   "semanticId": {
@@ -29113,7 +29165,7 @@
                   "description": [
                     {
                       "language": "en",
-                      "text": "Upper housing sub-assembly. Electric drivers \u002B compressor allocated by CT ratio 14.93% within SEMI group."
+                      "text": "Upper housing sub-assembly. Electric drivers + compressor allocated by CT ratio 14.93% within SEMI group."
                     }
                   ],
                   "semanticId": {
@@ -29263,7 +29315,7 @@
           "description": [
             {
               "language": "en",
-              "text": "SET assembly process group for MODEL_A VD7(IP-SB)-MBR5600(S3L)-TDN7-H2IR-WH-N(R1)(\uBC29\uC218 CABLE). Contains one step: SET ASS\u0027Y (90). JOIN step merging VD7_70-2_INSP (inspection completed camera sub-assembly) and VD7_80-1_UPPER (upper housing completed sub-assembly). IR sponge (21200901) cleaned with methyl alcohol and assembled. Dome cover protective film (21201365) attached per ECO630 (Rev1.7, 2023-01-02). Absence of foreign matter and housing surface scratches confirmed visually. Torque spec: 4~5 kgf\u00B7cm. Sub-assemblies transferred via CART (transfer qty: 80 units per batch). Worker group: WORKER_SET (16 persons). Cycle time: 10 s."
+              "text": "SET assembly process group for MODEL_A VD7(IP-SB)-MBR5600(S3L)-TDN7-H2IR-WH-N(R1)(방수 CABLE). Contains one step: SET ASS'Y (90). JOIN step merging VD7_70-2_INSP (inspection completed camera sub-assembly) and VD7_80-1_UPPER (upper housing completed sub-assembly). IR sponge (21200901) cleaned with methyl alcohol and assembled. Dome cover protective film (21201365) attached per ECO630 (Rev1.7, 2023-01-02). Absence of foreign matter and housing surface scratches confirmed visually. Torque spec: 4~5 kgf·cm. Sub-assemblies transferred via CART (transfer qty: 80 units per batch). Worker group: WORKER_SET (16 persons). Cycle time: 10 s."
             }
           ],
           "semanticId": {
@@ -29311,7 +29363,7 @@
               "description": [
                 {
                   "language": "en",
-                  "text": "Process 90 \u2014 SET ASS\u0027Y. JOIN step merging VD7_70-2_INSP (inspection completed camera sub-assembly) and VD7_80-1_UPPER (upper housing completed sub-assembly). IR sponge (21200901) cleaned with methyl alcohol and assembled onto IR PCB surface. Dome cover protective film (21201365) attached to outer dome cover surface per ECO630 (Rev1.7, 2023-01-02). Absence of foreign matter and housing surface scratches confirmed visually. IR sponge cleaning effectiveness confirmed before assembly. Torque spec: 4~5 kgf\u00B7cm. Sub-assemblies transferred via CART (transfer qty: 80 units per batch)."
+                  "text": "Process 90 — SET ASS'Y. JOIN step merging VD7_70-2_INSP (inspection completed camera sub-assembly) and VD7_80-1_UPPER (upper housing completed sub-assembly). IR sponge (21200901) cleaned with methyl alcohol and assembled onto IR PCB surface. Dome cover protective film (21201365) attached to outer dome cover surface per ECO630 (Rev1.7, 2023-01-02). Absence of foreign matter and housing surface scratches confirmed visually. IR sponge cleaning effectiveness confirmed before assembly. Torque spec: 4~5 kgf·cm. Sub-assemblies transferred via CART (transfer qty: 80 units per batch)."
                 }
               ],
               "semanticId": {
@@ -29392,7 +29444,7 @@
                   "description": [
                     {
                       "language": "en",
-                      "text": "Predecessor processes of VD7_90_SET. Both VD7_70-2_INSP (Camera Test Inspection Stage 3, Process 70-2) and VD7_80-1_UPPER (UPPER ASS\u0027Y Completion, Process 80-1) must complete before this JOIN process step becomes executable."
+                      "text": "Predecessor processes of VD7_90_SET. Both VD7_70-2_INSP (Camera Test Inspection Stage 3, Process 70-2) and VD7_80-1_UPPER (UPPER ASS'Y Completion, Process 80-1) must complete before this JOIN process step becomes executable."
                     }
                   ],
                   "semanticId": {
@@ -29515,7 +29567,7 @@
                   "description": [
                     {
                       "language": "en",
-                      "text": "SET assembly JOIN. Electric drivers \u002B compressor allocated by CT ratio 2.54% within SET group."
+                      "text": "SET assembly JOIN. Electric drivers + compressor allocated by CT ratio 2.54% within SET group."
                     }
                   ],
                   "semanticId": {
@@ -29665,7 +29717,7 @@
           "description": [
             {
               "language": "en",
-              "text": "Aging test process group for MODEL_A VD7(IP-SB)-MBR5600(S3L)-TDN7-H2IR-WH-N(R1)(\uBC29\uC218 CABLE). Contains one step: AGING (100). Assembled camera units are subjected to an aging test to identify early-stage failures under operating conditions. Worker group: WORKER_AGING (6 persons). Cycle time: 240 s. No input materials consumed. Sub-assemblies transferred via CART (transfer qty: 80 units per batch)."
+              "text": "Aging test process group for MODEL_A VD7(IP-SB)-MBR5600(S3L)-TDN7-H2IR-WH-N(R1)(방수 CABLE). Contains one step: AGING (100). Assembled camera units are subjected to an aging test to identify early-stage failures under operating conditions. Worker group: WORKER_AGING (6 persons). Cycle time: 240 s. No input materials consumed. Sub-assemblies transferred via CART (transfer qty: 80 units per batch)."
             }
           ],
           "semanticId": {
@@ -29713,7 +29765,7 @@
               "description": [
                 {
                   "language": "en",
-                  "text": "Process 100 \u2014 AGING. Fully assembled camera units received from VD7_90_SET are subjected to an aging test to identify early-stage failures under operating conditions. No input materials consumed at this step. Units exhibiting anomalous behaviour during aging are diverted for inspection or repair before proceeding to packaging."
+                  "text": "Process 100 — AGING. Fully assembled camera units received from VD7_90_SET are subjected to an aging test to identify early-stage failures under operating conditions. No input materials consumed at this step. Units exhibiting anomalous behaviour during aging are diverted for inspection or repair before proceeding to packaging."
                 }
               ],
               "semanticId": {
@@ -29794,7 +29846,7 @@
                   "description": [
                     {
                       "language": "en",
-                      "text": "Predecessor process of VD7_100_AGING. This process step becomes executable upon completion of VD7_90_SET (SET ASS\u0027Y, Process 90)."
+                      "text": "Predecessor process of VD7_100_AGING. This process step becomes executable upon completion of VD7_90_SET (SET ASS'Y, Process 90)."
                     }
                   ],
                   "semanticId": {
@@ -29917,7 +29969,7 @@
                   "description": [
                     {
                       "language": "en",
-                      "text": "Aging test process. Equipment: Computer (0.15kW \u00D7 9) \u002B Monitor \u002B PoE \u002B Aging Test chamber (estimated 10kW for 9 units). Sole process in AGING group."
+                      "text": "Aging test process. Equipment: Computer (0.15kW × 9) + Monitor + PoE + Aging Test chamber (estimated 10kW for 9 units). Sole process in AGING group."
                     }
                   ],
                   "semanticId": {
@@ -29953,7 +30005,7 @@
           "description": [
             {
               "language": "en",
-              "text": "Packaging process group for MODEL_A VD7(IP-SB)-MBR5600(S3L)-TDN7-H2IR-WH-N(R1)(\uBC29\uC218 CABLE). Contains four sequential steps: accessory packaging (110), unit box packaging (110-1), label attachment (110-2), and carton box packaging (110-3). Step 110 packages mounting nuts, bolts, L-wrench, tapping screw, antistatic bags, and waterproof cap. Step 110-1 places unit in individual box with PE foam bottom and silica gel. Step 110-2 attaches product label performed by WORKER_PACK_LABEL (2 persons). Step 110-3 inserts mount template, CD manual, and carton box closure. Total cycle time: 150 s. Revision history: ECO550 (Rev1.5, 2021-08-27): IP cable waterproof cap rubber added."
+              "text": "Packaging process group for MODEL_A VD7(IP-SB)-MBR5600(S3L)-TDN7-H2IR-WH-N(R1)(방수 CABLE). Contains four sequential steps: accessory packaging (110), unit box packaging (110-1), label attachment (110-2), and carton box packaging (110-3). Step 110 packages mounting nuts, bolts, L-wrench, tapping screw, antistatic bags, and waterproof cap. Step 110-1 places unit in individual box with PE foam bottom and silica gel. Step 110-2 attaches product label performed by WORKER_PACK_LABEL (2 persons). Step 110-3 inserts mount template, CD manual, and carton box closure. Total cycle time: 150 s. Revision history: ECO550 (Rev1.5, 2021-08-27): IP cable waterproof cap rubber added."
             }
           ],
           "semanticId": {
@@ -30001,7 +30053,7 @@
               "description": [
                 {
                   "language": "en",
-                  "text": "Process 110 \u2014 \uD3EC\uC7A5 (accessory packaging). Mounting nuts (20900925, qty 2), mounting bolts (21000790, qty 2), L-wrench Torx T20 (21000072, qty 1), tapping screw (30300614, qty 1), antistatic bags (30500003, 30500004, qty 1 each), and RJ45 waterproof cap (21201287, qty 1) are prepared and packaged as accessories. Accessory completeness confirmed by visual inspection before proceeding to unit boxing. Revision history: ECO550 (Rev1.5, 2021-08-27): RJ45 cable waterproof cap added."
+                  "text": "Process 110 — 포장 (accessory packaging). Mounting nuts (20900925, qty 2), mounting bolts (21000790, qty 2), L-wrench Torx T20 (21000072, qty 1), tapping screw (30300614, qty 1), antistatic bags (30500003, 30500004, qty 1 each), and RJ45 waterproof cap (21201287, qty 1) are prepared and packaged as accessories. Accessory completeness confirmed by visual inspection before proceeding to unit boxing. Revision history: ECO550 (Rev1.5, 2021-08-27): RJ45 cable waterproof cap added."
                 }
               ],
               "semanticId": {
@@ -30205,7 +30257,7 @@
                   "description": [
                     {
                       "language": "en",
-                      "text": "Packaging. Compressor CKV300 (22kW) \u002B HS100E (75kW) \u002B vacuum packer (1.5kW) allocated by CT ratio 25.33% within PACK group."
+                      "text": "Packaging. Compressor CKV300 (22kW) + HS100E (75kW) + vacuum packer (1.5kW) allocated by CT ratio 25.33% within PACK group."
                     }
                   ],
                   "semanticId": {
@@ -30537,7 +30589,7 @@
               "description": [
                 {
                   "language": "en",
-                  "text": "Process 110-1 \u2014 \uD3EC\uC7A5(\uBC15\uC2A4) (unit box packaging). Camera unit and accessories placed into unit box (30200916) with PE foam bottom insert (21400282) and silica gel desiccant (30400105). Box and PE foam moulding defects confirmed absent by visual inspection. Accessory completeness confirmed before box closure. Quantity per unit: 1 box."
+                  "text": "Process 110-1 — 포장(박스) (unit box packaging). Camera unit and accessories placed into unit box (30200916) with PE foam bottom insert (21400282) and silica gel desiccant (30400105). Box and PE foam moulding defects confirmed absent by visual inspection. Accessory completeness confirmed before box closure. Quantity per unit: 1 box."
                 }
               ],
               "semanticId": {
@@ -30925,7 +30977,7 @@
               "description": [
                 {
                   "language": "en",
-                  "text": "Process 110-2 \u2014 \uD3EC\uC7A5(\uB77C\uBCA8\uBD80\uCC29) (label attachment). PE foam top insert (21400283) placed over camera unit inside unit box. Product label attached to unit box surface. Label print specification and serial number confirmed free of duplication by visual inspection. PE foam top moulding defects confirmed absent. Performed by WORKER_PACK_LABEL (2 persons)."
+                  "text": "Process 110-2 — 포장(라벨부착) (label attachment). PE foam top insert (21400283) placed over camera unit inside unit box. Product label attached to unit box surface. Label print specification and serial number confirmed free of duplication by visual inspection. PE foam top moulding defects confirmed absent. Performed by WORKER_PACK_LABEL (2 persons)."
                 }
               ],
               "semanticId": {
@@ -31129,7 +31181,7 @@
                   "description": [
                     {
                       "language": "en",
-                      "text": "Label attachment. PACK group equipment \u002B Label Printer ZT411/ZT410 (0.2177kW) allocated by CT ratio 24.67%."
+                      "text": "Label attachment. PACK group equipment + Label Printer ZT411/ZT410 (0.2177kW) allocated by CT ratio 24.67%."
                     }
                   ],
                   "semanticId": {
@@ -31239,7 +31291,7 @@
               "description": [
                 {
                   "language": "en",
-                  "text": "Process 110-3 \u2014 \uD3EC\uC7A5(\uCE74\uD1A4\uBC15\uC2A4) (carton box packaging). Mount template (30600066), CD manual (30401009), and carton box (30201152, qty 0.125, 1 carton per 8 units) complete the final packaging stage. Packaging material completeness confirmed by visual inspection. Label specification and attachment position confirmed before carton closure. This is the final process step of the MODEL_A VD7 assembly and packaging sequence."
+                  "text": "Process 110-3 — 포장(카톤박스) (carton box packaging). Mount template (30600066), CD manual (30401009), and carton box (30201152, qty 0.125, 1 carton per 8 units) complete the final packaging stage. Packaging material completeness confirmed by visual inspection. Label specification and attachment position confirmed before carton closure. This is the final process step of the MODEL_A VD7 assembly and packaging sequence."
                 }
               ],
               "semanticId": {
@@ -31762,7 +31814,7 @@
             "preferredName": [
               {
                 "language": "en",
-                "text": "VD7 \uBC29\uC218 \uCF00\uC774\uBE14 \uCE74\uBA54\uB77C (\uBC29\uC218 CABLE)"
+                "text": "VD7 방수 케이블 카메라 (방수 CABLE)"
               }
             ],
             "modelType": "DataSpecificationIec61360"
@@ -31858,7 +31910,7 @@
             "preferredName": [
               {
                 "language": "en",
-                "text": "\uD3EC\uD568 \uAD00\uACC4 : PCB 03203204 -\u003E \uCEE4\uD328\uC2DC\uD130 10200037"
+                "text": "포함 관계 : PCB 03203204 -> 커패시터 10200037"
               }
             ],
             "unit": "Farad",
@@ -32293,7 +32345,7 @@
       "displayName": [
         {
           "language": "en",
-          "text": "Chip Resistor 13.3k\u03A9 1%"
+          "text": "Chip Resistor 13.3kΩ 1%"
         }
       ],
       "id": "https://www.smart-factory.kr/ids/cd/HasPart_11200757/1/0",
@@ -32317,7 +32369,7 @@
             ],
             "unit": "Ohm",
             "sourceOfDefinition": "VD7IPSBMBR5600S3LTDN7H2IRWHNR1_Rev2.0_BOM_STRUCTURE",
-            "symbol": "\u03A9",
+            "symbol": "Ω",
             "definition": [
               {
                 "language": "en",
@@ -32485,7 +32537,7 @@
             "definition": [
               {
                 "language": "en",
-                "text": "A 4.7\u00B5H shielded drum core wirewound inductor (TDK VLCF series) with low DC resistance, designed for high current power line filtering in DC-DC converters."
+                "text": "A 4.7µH shielded drum core wirewound inductor (TDK VLCF series) with low DC resistance, designed for high current power line filtering in DC-DC converters."
               }
             ],
             "modelType": "DataSpecificationIec61360"
@@ -32763,7 +32815,7 @@
             ],
             "unit": "Ohm",
             "sourceOfDefinition": "VD7IPSBMBR5600S3LTDN7H2IRWHNR1_Rev2.0_BOM_STRUCTURE",
-            "symbol": "\u03A9",
+            "symbol": "Ω",
             "definition": [
               {
                 "language": "en",
@@ -32781,7 +32833,7 @@
       "displayName": [
         {
           "language": "en",
-          "text": "Chip Resistor 10\u03A9"
+          "text": "Chip Resistor 10Ω"
         }
       ],
       "id": "https://www.smart-factory.kr/ids/cd/HasPart_11200009/1/0",
@@ -32805,7 +32857,7 @@
             ],
             "unit": "Ohm",
             "sourceOfDefinition": "VD7IPSBMBR5600S3LTDN7H2IRWHNR1_Rev2.0_BOM_STRUCTURE",
-            "symbol": "\u03A9",
+            "symbol": "Ω",
             "definition": [
               {
                 "language": "en",
@@ -32823,7 +32875,7 @@
       "displayName": [
         {
           "language": "en",
-          "text": "Chip Resistor 100k\u03A9 1%"
+          "text": "Chip Resistor 100kΩ 1%"
         }
       ],
       "id": "https://www.smart-factory.kr/ids/cd/HasPart_11200013/1/0",
@@ -32847,7 +32899,7 @@
             ],
             "unit": "Ohm",
             "sourceOfDefinition": "VD7IPSBMBR5600S3LTDN7H2IRWHNR1_Rev2.0_BOM_STRUCTURE",
-            "symbol": "\u03A9",
+            "symbol": "Ω",
             "definition": [
               {
                 "language": "en",
@@ -32865,7 +32917,7 @@
       "displayName": [
         {
           "language": "en",
-          "text": "Chip Resistor 1.5k\u03A9"
+          "text": "Chip Resistor 1.5kΩ"
         }
       ],
       "id": "https://www.smart-factory.kr/ids/cd/HasPart_11200020/1/0",
@@ -32889,7 +32941,7 @@
             ],
             "unit": "Ohm",
             "sourceOfDefinition": "VD7IPSBMBR5600S3LTDN7H2IRWHNR1_Rev2.0_BOM_STRUCTURE",
-            "symbol": "\u03A9",
+            "symbol": "Ω",
             "definition": [
               {
                 "language": "en",
@@ -32907,7 +32959,7 @@
       "displayName": [
         {
           "language": "en",
-          "text": "Chip Resistor 15k\u03A9 1%"
+          "text": "Chip Resistor 15kΩ 1%"
         }
       ],
       "id": "https://www.smart-factory.kr/ids/cd/HasPart_11200021/1/0",
@@ -32931,7 +32983,7 @@
             ],
             "unit": "Ohm",
             "sourceOfDefinition": "VD7IPSBMBR5600S3LTDN7H2IRWHNR1_Rev2.0_BOM_STRUCTURE",
-            "symbol": "\u03A9",
+            "symbol": "Ω",
             "definition": [
               {
                 "language": "en",
@@ -32949,7 +33001,7 @@
       "displayName": [
         {
           "language": "en",
-          "text": "Chip Resistor 47k\u03A9"
+          "text": "Chip Resistor 47kΩ"
         }
       ],
       "id": "https://www.smart-factory.kr/ids/cd/HasPart_11200062/1/0",
@@ -32973,7 +33025,7 @@
             ],
             "unit": "Ohm",
             "sourceOfDefinition": "VD7IPSBMBR5600S3LTDN7H2IRWHNR1_Rev2.0_BOM_STRUCTURE",
-            "symbol": "\u03A9",
+            "symbol": "Ω",
             "definition": [
               {
                 "language": "en",
@@ -33015,7 +33067,7 @@
             ],
             "unit": "Ohm",
             "sourceOfDefinition": "VD7IPSBMBR5600S3LTDN7H2IRWHNR1_Rev2.0_BOM_STRUCTURE",
-            "symbol": "\u03A9",
+            "symbol": "Ω",
             "definition": [
               {
                 "language": "en",
@@ -33033,7 +33085,7 @@
       "displayName": [
         {
           "language": "en",
-          "text": "Chip Resistor 10k\u03A9 1%"
+          "text": "Chip Resistor 10kΩ 1%"
         }
       ],
       "id": "https://www.smart-factory.kr/ids/cd/HasPart_11200585/1/0",
@@ -33057,7 +33109,7 @@
             ],
             "unit": "Ohm",
             "sourceOfDefinition": "VD7IPSBMBR5600S3LTDN7H2IRWHNR1_Rev2.0_BOM_STRUCTURE",
-            "symbol": "\u03A9",
+            "symbol": "Ω",
             "definition": [
               {
                 "language": "en",
@@ -33093,7 +33145,7 @@
             ],
             "unit": "Ohm",
             "sourceOfDefinition": "VD7IPSBMBR5600S3LTDN7H2IRWHNR1_Rev2.0_BOM_STRUCTURE",
-            "symbol": "\u03A9",
+            "symbol": "Ω",
             "definition": [
               {
                 "language": "en",
@@ -33111,7 +33163,7 @@
       "displayName": [
         {
           "language": "en",
-          "text": "Chip Resistor 49.9k\u03A9 1%"
+          "text": "Chip Resistor 49.9kΩ 1%"
         }
       ],
       "id": "https://www.smart-factory.kr/ids/cd/HasPart_11200737/1/0",
@@ -33135,7 +33187,7 @@
             ],
             "unit": "Ohm",
             "sourceOfDefinition": "VD7IPSBMBR5600S3LTDN7H2IRWHNR1_Rev2.0_BOM_STRUCTURE",
-            "symbol": "\u03A9",
+            "symbol": "Ω",
             "definition": [
               {
                 "language": "en",
@@ -33153,7 +33205,7 @@
       "displayName": [
         {
           "language": "en",
-          "text": "Chip Resistor 510\u03A9"
+          "text": "Chip Resistor 510Ω"
         }
       ],
       "id": "https://www.smart-factory.kr/ids/cd/HasPart_11200808/1/0",
@@ -33177,7 +33229,7 @@
             ],
             "unit": "Ohm",
             "sourceOfDefinition": "VD7IPSBMBR5600S3LTDN7H2IRWHNR1_Rev2.0_BOM_STRUCTURE",
-            "symbol": "\u03A9",
+            "symbol": "Ω",
             "definition": [
               {
                 "language": "en",
@@ -33410,7 +33462,7 @@
       "displayName": [
         {
           "language": "en",
-          "text": "Chip Resistor 1.5\u03A9"
+          "text": "Chip Resistor 1.5Ω"
         }
       ],
       "id": "https://www.smart-factory.kr/ids/cd/HasPart_11200338/1/0",
@@ -33434,7 +33486,7 @@
             ],
             "unit": "Ohm",
             "sourceOfDefinition": "VD7IPSBMBR5600S3LTDN7H2IRWHNR1_Rev2.0_BOM_STRUCTURE",
-            "symbol": "\u03A9",
+            "symbol": "Ω",
             "definition": [
               {
                 "language": "en",
@@ -33494,7 +33546,7 @@
       "displayName": [
         {
           "language": "en",
-          "text": "Chip Resistor 100\u03A9"
+          "text": "Chip Resistor 100Ω"
         }
       ],
       "id": "https://www.smart-factory.kr/ids/cd/HasPart_11200010/1/0",
@@ -33518,7 +33570,7 @@
             ],
             "unit": "Ohm",
             "sourceOfDefinition": "VD7IPSBMBR5600S3LTDN7H2IRWHNR1_Rev2.0_BOM_STRUCTURE",
-            "symbol": "\u03A9",
+            "symbol": "Ω",
             "definition": [
               {
                 "language": "en",
@@ -33536,7 +33588,7 @@
       "displayName": [
         {
           "language": "en",
-          "text": "Chip Resistor 68k\u03A9"
+          "text": "Chip Resistor 68kΩ"
         }
       ],
       "id": "https://www.smart-factory.kr/ids/cd/HasPart_11200076/1/0",
@@ -33560,7 +33612,7 @@
             ],
             "unit": "Ohm",
             "sourceOfDefinition": "VD7IPSBMBR5600S3LTDN7H2IRWHNR1_Rev2.0_BOM_STRUCTURE",
-            "symbol": "\u03A9",
+            "symbol": "Ω",
             "definition": [
               {
                 "language": "en",
@@ -33578,7 +33630,7 @@
       "displayName": [
         {
           "language": "en",
-          "text": "Chip Resistor 180k\u03A9"
+          "text": "Chip Resistor 180kΩ"
         }
       ],
       "id": "https://www.smart-factory.kr/ids/cd/HasPart_11200139/1/0",
@@ -33602,7 +33654,7 @@
             ],
             "unit": "Ohm",
             "sourceOfDefinition": "VD7IPSBMBR5600S3LTDN7H2IRWHNR1_Rev2.0_BOM_STRUCTURE",
-            "symbol": "\u03A9",
+            "symbol": "Ω",
             "definition": [
               {
                 "language": "en",
@@ -33620,7 +33672,7 @@
       "displayName": [
         {
           "language": "en",
-          "text": "Chip Resistor 2.2k\u03A9"
+          "text": "Chip Resistor 2.2kΩ"
         }
       ],
       "id": "https://www.smart-factory.kr/ids/cd/HasPart_11200148/1/0",
@@ -33644,7 +33696,7 @@
             ],
             "unit": "Ohm",
             "sourceOfDefinition": "VD7IPSBMBR5600S3LTDN7H2IRWHNR1_Rev2.0_BOM_STRUCTURE",
-            "symbol": "\u03A9",
+            "symbol": "Ω",
             "definition": [
               {
                 "language": "en",
@@ -33662,7 +33714,7 @@
       "displayName": [
         {
           "language": "en",
-          "text": "Chip Resistor 33k\u03A9 1%"
+          "text": "Chip Resistor 33kΩ 1%"
         }
       ],
       "id": "https://www.smart-factory.kr/ids/cd/HasPart_11200169/1/0",
@@ -33686,7 +33738,7 @@
             ],
             "unit": "Ohm",
             "sourceOfDefinition": "VD7IPSBMBR5600S3LTDN7H2IRWHNR1_Rev2.0_BOM_STRUCTURE",
-            "symbol": "\u03A9",
+            "symbol": "Ω",
             "definition": [
               {
                 "language": "en",
@@ -33704,7 +33756,7 @@
       "displayName": [
         {
           "language": "en",
-          "text": "Ferrite Bead 600\u03A9"
+          "text": "Ferrite Bead 600Ω"
         }
       ],
       "id": "https://www.smart-factory.kr/ids/cd/HasPart_11200606/1/0",
@@ -33728,7 +33780,7 @@
             ],
             "unit": "Ohm",
             "sourceOfDefinition": "VD7IPSBMBR5600S3LTDN7H2IRWHNR1_Rev2.0_BOM_STRUCTURE",
-            "symbol": "\u03A9",
+            "symbol": "Ω",
             "definition": [
               {
                 "language": "en",
@@ -33814,7 +33866,7 @@
             "definition": [
               {
                 "language": "en",
-                "text": "A 22\u00B5H power inductor designed for high current applications and power supply filtering."
+                "text": "A 22µH power inductor designed for high current applications and power supply filtering."
               }
             ],
             "modelType": "DataSpecificationIec61360"
@@ -33867,7 +33919,7 @@
             "definition": [
               {
                 "language": "en",
-                "text": "A 1\u00B5F 50V X7R multilayer ceramic capacitor in 0805 package, suitable for power supply decoupling and filtering applications."
+                "text": "A 1µF 50V X7R multilayer ceramic capacitor in 0805 package, suitable for power supply decoupling and filtering applications."
               }
             ],
             "modelType": "DataSpecificationIec61360"
@@ -33909,7 +33961,7 @@
             "definition": [
               {
                 "language": "en",
-                "text": "A 10\u00B5F 25V X7R multilayer ceramic capacitor in 1206 package, commonly used for input/output filtering in DC-DC converters and power management ICs."
+                "text": "A 10µF 25V X7R multilayer ceramic capacitor in 1206 package, commonly used for input/output filtering in DC-DC converters and power management ICs."
               }
             ],
             "modelType": "DataSpecificationIec61360"
@@ -33973,7 +34025,7 @@
       "displayName": [
         {
           "language": "en",
-          "text": "NTC Thermistor 100k\u03A9"
+          "text": "NTC Thermistor 100kΩ"
         }
       ],
       "id": "https://www.smart-factory.kr/ids/cd/HasPart_11201528/1/0",
@@ -33997,7 +34049,7 @@
             ],
             "unit": "Ohm",
             "sourceOfDefinition": "VD7IPSBMBR5600S3LTDN7H2IRWHNR1_Rev2.0_BOM_STRUCTURE",
-            "symbol": "\u03A9",
+            "symbol": "Ω",
             "definition": [
               {
                 "language": "en",
@@ -34379,7 +34431,7 @@
             "definition": [
               {
                 "language": "en",
-                "text": "A 22\u00B5F 16V X5R multilayer ceramic capacitor in 1206 package, suitable for power supply decoupling and voltage stabilization."
+                "text": "A 22µF 16V X5R multilayer ceramic capacitor in 1206 package, suitable for power supply decoupling and voltage stabilization."
               }
             ],
             "modelType": "DataSpecificationIec61360"
@@ -34421,7 +34473,7 @@
             "definition": [
               {
                 "language": "en",
-                "text": "A 2.2\u00B5F 100V X7S multilayer ceramic capacitor in 1206 package designed for higher voltage applications."
+                "text": "A 2.2µF 100V X7S multilayer ceramic capacitor in 1206 package designed for higher voltage applications."
               }
             ],
             "modelType": "DataSpecificationIec61360"
@@ -34463,7 +34515,7 @@
             "definition": [
               {
                 "language": "en",
-                "text": "A 47\u00B5F 16V X5R multilayer ceramic capacitor in 1206 package, ideal for output filtering of DC-DC converters and power management."
+                "text": "A 47µF 16V X5R multilayer ceramic capacitor in 1206 package, ideal for output filtering of DC-DC converters and power management."
               }
             ],
             "modelType": "DataSpecificationIec61360"
@@ -34510,7 +34562,7 @@
             "definition": [
               {
                 "language": "en",
-                "text": "A high-capacitance 100\u00B5F 6.3V X5R multilayer ceramic capacitor in 1206 package, suitable for significant power smoothing and decoupling."
+                "text": "A high-capacitance 100µF 6.3V X5R multilayer ceramic capacitor in 1206 package, suitable for significant power smoothing and decoupling."
               }
             ],
             "modelType": "DataSpecificationIec61360"
@@ -34604,7 +34656,7 @@
             "definition": [
               {
                 "language": "en",
-                "text": "A 47\u00B5F 6.3V X5R multilayer ceramic capacitor in 0805 package, suitable for power supply decoupling and voltage stabilization."
+                "text": "A 47µF 6.3V X5R multilayer ceramic capacitor in 0805 package, suitable for power supply decoupling and voltage stabilization."
               }
             ],
             "modelType": "DataSpecificationIec61360"
@@ -35246,7 +35298,7 @@
       "displayName": [
         {
           "language": "en",
-          "text": "Ferrite Bead 80\u03A9"
+          "text": "Ferrite Bead 80Ω"
         }
       ],
       "id": "https://www.smart-factory.kr/ids/cd/HasPart_10600180/1/0",
@@ -35270,7 +35322,7 @@
             ],
             "unit": "Ohm",
             "sourceOfDefinition": "VD7IPSBMBR5600S3LTDN7H2IRWHNR1_Rev2.0_BOM_STRUCTURE",
-            "symbol": "\u03A9",
+            "symbol": "Ω",
             "definition": [
               {
                 "language": "en",
@@ -35288,7 +35340,7 @@
       "displayName": [
         {
           "language": "en",
-          "text": "Ferrite Bead 220\u03A9"
+          "text": "Ferrite Bead 220Ω"
         }
       ],
       "id": "https://www.smart-factory.kr/ids/cd/HasPart_10600181/1/0",
@@ -35307,12 +35359,12 @@
             "preferredName": [
               {
                 "language": "en",
-                "text": "Ferrite Bead 220\u03A9"
+                "text": "Ferrite Bead 220Ω"
               }
             ],
             "unit": "Ohm",
             "sourceOfDefinition": "VD7IPSBMBR5600S3LTDN7H2IRWHNR1_Rev2.0_BOM_STRUCTURE",
-            "symbol": "\u03A9",
+            "symbol": "Ω",
             "definition": [
               {
                 "language": "en",
@@ -35398,7 +35450,7 @@
             "definition": [
               {
                 "language": "en",
-                "text": "A 2.2\u00B5H wirewound chip inductor used for power supply filtering and energy storage in DC-DC converter circuits."
+                "text": "A 2.2µH wirewound chip inductor used for power supply filtering and energy storage in DC-DC converter circuits."
               }
             ],
             "modelType": "DataSpecificationIec61360"
@@ -35440,7 +35492,7 @@
             "definition": [
               {
                 "language": "en",
-                "text": "A 10\u00B5H chip inductor designed for power supply applications and EMI filtering."
+                "text": "A 10µH chip inductor designed for power supply applications and EMI filtering."
               }
             ],
             "modelType": "DataSpecificationIec61360"
@@ -35482,7 +35534,7 @@
             "definition": [
               {
                 "language": "en",
-                "text": "A 2.2\u00B5H wirewound chip inductor in 5020 package, suitable for power management and noise suppression applications."
+                "text": "A 2.2µH wirewound chip inductor in 5020 package, suitable for power management and noise suppression applications."
               }
             ],
             "modelType": "DataSpecificationIec61360"
@@ -36127,7 +36179,7 @@
       "displayName": [
         {
           "language": "en",
-          "text": "Chip Resistor 1k\u03A9 1%"
+          "text": "Chip Resistor 1kΩ 1%"
         }
       ],
       "id": "https://www.smart-factory.kr/ids/cd/HasPart_11200011/1/0",
@@ -36151,7 +36203,7 @@
             ],
             "unit": "Ohm",
             "sourceOfDefinition": "VD7IPSBMBR5600S3LTDN7H2IRWHNR1_Rev2.0_BOM_STRUCTURE",
-            "symbol": "\u03A9",
+            "symbol": "Ω",
             "definition": [
               {
                 "language": "en",
@@ -36169,7 +36221,7 @@
       "displayName": [
         {
           "language": "en",
-          "text": "Chip Resistor 10k\u03A9"
+          "text": "Chip Resistor 10kΩ"
         }
       ],
       "id": "https://www.smart-factory.kr/ids/cd/HasPart_11200012/1/0",
@@ -36193,7 +36245,7 @@
             ],
             "unit": "Ohm",
             "sourceOfDefinition": "VD7IPSBMBR5600S3LTDN7H2IRWHNR1_Rev2.0_BOM_STRUCTURE",
-            "symbol": "\u03A9",
+            "symbol": "Ω",
             "definition": [
               {
                 "language": "en",
@@ -36222,7 +36274,7 @@
       "displayName": [
         {
           "language": "en",
-          "text": "Chip Resistor 1M\u03A9"
+          "text": "Chip Resistor 1MΩ"
         }
       ],
       "id": "https://www.smart-factory.kr/ids/cd/HasPart_11200014/1/0",
@@ -36246,7 +36298,7 @@
             ],
             "unit": "Ohm",
             "sourceOfDefinition": "VD7IPSBMBR5600S3LTDN7H2IRWHNR1_Rev2.0_BOM_STRUCTURE",
-            "symbol": "\u03A9",
+            "symbol": "Ω",
             "definition": [
               {
                 "language": "en",
@@ -36275,7 +36327,7 @@
       "displayName": [
         {
           "language": "en",
-          "text": "Chip Resistor 200\u03A9 1%"
+          "text": "Chip Resistor 200Ω 1%"
         }
       ],
       "id": "https://www.smart-factory.kr/ids/cd/HasPart_11200030/1/0",
@@ -36299,7 +36351,7 @@
             ],
             "unit": "Ohm",
             "sourceOfDefinition": "VD7IPSBMBR5600S3LTDN7H2IRWHNR1_Rev2.0_BOM_STRUCTURE",
-            "symbol": "\u03A9",
+            "symbol": "Ω",
             "definition": [
               {
                 "language": "en",
@@ -36317,7 +36369,7 @@
       "displayName": [
         {
           "language": "en",
-          "text": "Chip Resistor 20k\u03A9"
+          "text": "Chip Resistor 20kΩ"
         }
       ],
       "id": "https://www.smart-factory.kr/ids/cd/HasPart_11200032/1/0",
@@ -36341,7 +36393,7 @@
             ],
             "unit": "Ohm",
             "sourceOfDefinition": "VD7IPSBMBR5600S3LTDN7H2IRWHNR1_Rev2.0_BOM_STRUCTURE",
-            "symbol": "\u03A9",
+            "symbol": "Ω",
             "definition": [
               {
                 "language": "en",
@@ -36359,7 +36411,7 @@
       "displayName": [
         {
           "language": "en",
-          "text": "Chip Resistor 22k\u03A9"
+          "text": "Chip Resistor 22kΩ"
         }
       ],
       "id": "https://www.smart-factory.kr/ids/cd/HasPart_11200034/1/0",
@@ -36383,7 +36435,7 @@
             ],
             "unit": "Ohm",
             "sourceOfDefinition": "VD7IPSBMBR5600S3LTDN7H2IRWHNR1_Rev2.0_BOM_STRUCTURE",
-            "symbol": "\u03A9",
+            "symbol": "Ω",
             "definition": [
               {
                 "language": "en",
@@ -36401,7 +36453,7 @@
       "displayName": [
         {
           "language": "en",
-          "text": "Chip Resistor 2.2k\u03A9"
+          "text": "Chip Resistor 2.2kΩ"
         }
       ],
       "id": "https://www.smart-factory.kr/ids/cd/HasPart_11200036/1/0",
@@ -36425,7 +36477,7 @@
             ],
             "unit": "Ohm",
             "sourceOfDefinition": "VD7IPSBMBR5600S3LTDN7H2IRWHNR1_Rev2.0_BOM_STRUCTURE",
-            "symbol": "\u03A9",
+            "symbol": "Ω",
             "definition": [
               {
                 "language": "en",
@@ -36454,7 +36506,7 @@
       "displayName": [
         {
           "language": "en",
-          "text": "Chip Resistor 2.7k\u03A9"
+          "text": "Chip Resistor 2.7kΩ"
         }
       ],
       "id": "https://www.smart-factory.kr/ids/cd/HasPart_11200041/1/0",
@@ -36478,7 +36530,7 @@
             ],
             "unit": "Ohm",
             "sourceOfDefinition": "VD7IPSBMBR5600S3LTDN7H2IRWHNR1_Rev2.0_BOM_STRUCTURE",
-            "symbol": "\u03A9",
+            "symbol": "Ω",
             "definition": [
               {
                 "language": "en",
@@ -36496,7 +36548,7 @@
       "displayName": [
         {
           "language": "en",
-          "text": "Chip Resistor 27k\u03A9"
+          "text": "Chip Resistor 27kΩ"
         }
       ],
       "id": "https://www.smart-factory.kr/ids/cd/HasPart_11200042/1/0",
@@ -36520,7 +36572,7 @@
             ],
             "unit": "Ohm",
             "sourceOfDefinition": "VD7IPSBMBR5600S3LTDN7H2IRWHNR1_Rev2.0_BOM_STRUCTURE",
-            "symbol": "\u03A9",
+            "symbol": "Ω",
             "definition": [
               {
                 "language": "en",
@@ -36538,7 +36590,7 @@
       "displayName": [
         {
           "language": "en",
-          "text": "Chip Resistor 30k\u03A9 1%"
+          "text": "Chip Resistor 30kΩ 1%"
         }
       ],
       "id": "https://www.smart-factory.kr/ids/cd/HasPart_11200045/1/0",
@@ -36562,7 +36614,7 @@
             ],
             "unit": "Ohm",
             "sourceOfDefinition": "VD7IPSBMBR5600S3LTDN7H2IRWHNR1_Rev2.0_BOM_STRUCTURE",
-            "symbol": "\u03A9",
+            "symbol": "Ω",
             "definition": [
               {
                 "language": "en",
@@ -36580,7 +36632,7 @@
       "displayName": [
         {
           "language": "en",
-          "text": "Chip Resistor 33k\u03A9"
+          "text": "Chip Resistor 33kΩ"
         }
       ],
       "id": "https://www.smart-factory.kr/ids/cd/HasPart_11200047/1/0",
@@ -36604,7 +36656,7 @@
             ],
             "unit": "Ohm",
             "sourceOfDefinition": "VD7IPSBMBR5600S3LTDN7H2IRWHNR1_Rev2.0_BOM_STRUCTURE",
-            "symbol": "\u03A9",
+            "symbol": "Ω",
             "definition": [
               {
                 "language": "en",
@@ -36622,7 +36674,7 @@
       "displayName": [
         {
           "language": "en",
-          "text": "Chip Resistor 4.7k\u03A9"
+          "text": "Chip Resistor 4.7kΩ"
         }
       ],
       "id": "https://www.smart-factory.kr/ids/cd/HasPart_11200061/1/0",
@@ -36646,7 +36698,7 @@
             ],
             "unit": "Ohm",
             "sourceOfDefinition": "VD7IPSBMBR5600S3LTDN7H2IRWHNR1_Rev2.0_BOM_STRUCTURE",
-            "symbol": "\u03A9",
+            "symbol": "Ω",
             "definition": [
               {
                 "language": "en",
@@ -36664,7 +36716,7 @@
       "displayName": [
         {
           "language": "en",
-          "text": "Chip Resistor 75k\u03A9"
+          "text": "Chip Resistor 75kΩ"
         }
       ],
       "id": "https://www.smart-factory.kr/ids/cd/HasPart_11200078/1/0",
@@ -36688,7 +36740,7 @@
             ],
             "unit": "Ohm",
             "sourceOfDefinition": "VD7IPSBMBR5600S3LTDN7H2IRWHNR1_Rev2.0_BOM_STRUCTURE",
-            "symbol": "\u03A9",
+            "symbol": "Ω",
             "definition": [
               {
                 "language": "en",
@@ -36711,7 +36763,7 @@
       "displayName": [
         {
           "language": "en",
-          "text": "Chip Resistor 1k\u03A9 1%"
+          "text": "Chip Resistor 1kΩ 1%"
         }
       ],
       "id": "https://www.smart-factory.kr/ids/cd/HasPart_11200097/1/0",
@@ -36735,7 +36787,7 @@
             ],
             "unit": "Ohm",
             "sourceOfDefinition": "VD7IPSBMBR5600S3LTDN7H2IRWHNR1_Rev2.0_BOM_STRUCTURE",
-            "symbol": "\u03A9",
+            "symbol": "Ω",
             "definition": [
               {
                 "language": "en",
@@ -36753,7 +36805,7 @@
       "displayName": [
         {
           "language": "en",
-          "text": "Chip Resistor 100k\u03A9 1%"
+          "text": "Chip Resistor 100kΩ 1%"
         }
       ],
       "id": "https://www.smart-factory.kr/ids/cd/HasPart_11200101/1/0",
@@ -36777,7 +36829,7 @@
             ],
             "unit": "Ohm",
             "sourceOfDefinition": "VD7IPSBMBR5600S3LTDN7H2IRWHNR1_Rev2.0_BOM_STRUCTURE",
-            "symbol": "\u03A9",
+            "symbol": "Ω",
             "definition": [
               {
                 "language": "en",
@@ -36795,7 +36847,7 @@
       "displayName": [
         {
           "language": "en",
-          "text": "Chip Resistor 15k\u03A9 1%"
+          "text": "Chip Resistor 15kΩ 1%"
         }
       ],
       "id": "https://www.smart-factory.kr/ids/cd/HasPart_11200125/1/0",
@@ -36819,7 +36871,7 @@
             ],
             "unit": "Ohm",
             "sourceOfDefinition": "VD7IPSBMBR5600S3LTDN7H2IRWHNR1_Rev2.0_BOM_STRUCTURE",
-            "symbol": "\u03A9",
+            "symbol": "Ω",
             "definition": [
               {
                 "language": "en",
@@ -36838,7 +36890,7 @@
       "displayName": [
         {
           "language": "en",
-          "text": "Chip Resistor 2k\u03A9"
+          "text": "Chip Resistor 2kΩ"
         }
       ],
       "id": "https://www.smart-factory.kr/ids/cd/HasPart_11200143/1/0",
@@ -36862,7 +36914,7 @@
             ],
             "unit": "Ohm",
             "sourceOfDefinition": "VD7IPSBMBR5600S3LTDN7H2IRWHNR1_Rev2.0_BOM_STRUCTURE",
-            "symbol": "\u03A9",
+            "symbol": "Ω",
             "definition": [
               {
                 "language": "en",
@@ -36880,7 +36932,7 @@
       "displayName": [
         {
           "language": "en",
-          "text": "Chip Resistor 22k\u03A9"
+          "text": "Chip Resistor 22kΩ"
         }
       ],
       "id": "https://www.smart-factory.kr/ids/cd/HasPart_11200146/1/0",
@@ -36904,7 +36956,7 @@
             ],
             "unit": "Ohm",
             "sourceOfDefinition": "VD7IPSBMBR5600S3LTDN7H2IRWHNR1_Rev2.0_BOM_STRUCTURE",
-            "symbol": "\u03A9",
+            "symbol": "Ω",
             "definition": [
               {
                 "language": "en",
@@ -36933,7 +36985,7 @@
       "displayName": [
         {
           "language": "en",
-          "text": "Chip Resistor 24k\u03A9"
+          "text": "Chip Resistor 24kΩ"
         }
       ],
       "id": "https://www.smart-factory.kr/ids/cd/HasPart_11200154/1/0",
@@ -36957,7 +37009,7 @@
             ],
             "unit": "Ohm",
             "sourceOfDefinition": "VD7IPSBMBR5600S3LTDN7H2IRWHNR1_Rev2.0_BOM_STRUCTURE",
-            "symbol": "\u03A9",
+            "symbol": "Ω",
             "definition": [
               {
                 "language": "en",
@@ -36975,7 +37027,7 @@
       "displayName": [
         {
           "language": "en",
-          "text": "Chip Resistor 2.7k\u03A9 1%"
+          "text": "Chip Resistor 2.7kΩ 1%"
         }
       ],
       "id": "https://www.smart-factory.kr/ids/cd/HasPart_11200158/1/0",
@@ -36999,7 +37051,7 @@
             ],
             "unit": "Ohm",
             "sourceOfDefinition": "VD7IPSBMBR5600S3LTDN7H2IRWHNR1_Rev2.0_BOM_STRUCTURE",
-            "symbol": "\u03A9",
+            "symbol": "Ω",
             "definition": [
               {
                 "language": "en",
@@ -37017,7 +37069,7 @@
       "displayName": [
         {
           "language": "en",
-          "text": "Chip Resistor 3.9k\u03A9"
+          "text": "Chip Resistor 3.9kΩ"
         }
       ],
       "id": "https://www.smart-factory.kr/ids/cd/HasPart_11200177/1/0",
@@ -37041,7 +37093,7 @@
             ],
             "unit": "Ohm",
             "sourceOfDefinition": "VD7IPSBMBR5600S3LTDN7H2IRWHNR1_Rev2.0_BOM_STRUCTURE",
-            "symbol": "\u03A9",
+            "symbol": "Ω",
             "definition": [
               {
                 "language": "en",
@@ -37059,7 +37111,7 @@
       "displayName": [
         {
           "language": "en",
-          "text": "Chip Resistor 75k\u03A9"
+          "text": "Chip Resistor 75kΩ"
         }
       ],
       "id": "https://www.smart-factory.kr/ids/cd/HasPart_11200206/1/0",
@@ -37083,7 +37135,7 @@
             ],
             "unit": "Ohm",
             "sourceOfDefinition": "VD7IPSBMBR5600S3LTDN7H2IRWHNR1_Rev2.0_BOM_STRUCTURE",
-            "symbol": "\u03A9",
+            "symbol": "Ω",
             "definition": [
               {
                 "language": "en",
@@ -37101,7 +37153,7 @@
       "displayName": [
         {
           "language": "en",
-          "text": "Chip Resistor 10\u03A9 2012"
+          "text": "Chip Resistor 10Ω 2012"
         }
       ],
       "id": "https://www.smart-factory.kr/ids/cd/HasPart_11200218/1/0",
@@ -37125,7 +37177,7 @@
             ],
             "unit": "Ohm",
             "sourceOfDefinition": "VD7IPSBMBR5600S3LTDN7H2IRWHNR1_Rev2.0_BOM_STRUCTURE",
-            "symbol": "\u03A9",
+            "symbol": "Ω",
             "definition": [
               {
                 "language": "en",
@@ -37161,7 +37213,7 @@
             ],
             "unit": "Ohm",
             "sourceOfDefinition": "VD7IPSBMBR5600S3LTDN7H2IRWHNR1_Rev2.0_BOM_STRUCTURE",
-            "symbol": "\u03A9",
+            "symbol": "Ω",
             "definition": [
               {
                 "language": "en",
@@ -37179,7 +37231,7 @@
       "displayName": [
         {
           "language": "en",
-          "text": "Chip Resistor 27k\u03A9"
+          "text": "Chip Resistor 27kΩ"
         }
       ],
       "id": "https://www.smart-factory.kr/ids/cd/HasPart_11200259/1/0",
@@ -37203,7 +37255,7 @@
             ],
             "unit": "Ohm",
             "sourceOfDefinition": "VD7IPSBMBR5600S3LTDN7H2IRWHNR1_Rev2.0_BOM_STRUCTURE",
-            "symbol": "\u03A9",
+            "symbol": "Ω",
             "definition": [
               {
                 "language": "en",
@@ -37221,7 +37273,7 @@
       "displayName": [
         {
           "language": "en",
-          "text": "Chip Resistor 510\u03A9"
+          "text": "Chip Resistor 510Ω"
         }
       ],
       "id": "https://www.smart-factory.kr/ids/cd/HasPart_11200334/1/0",
@@ -37245,7 +37297,7 @@
             ],
             "unit": "Ohm",
             "sourceOfDefinition": "VD7IPSBMBR5600S3LTDN7H2IRWHNR1_Rev2.0_BOM_STRUCTURE",
-            "symbol": "\u03A9",
+            "symbol": "Ω",
             "definition": [
               {
                 "language": "en",
@@ -37263,7 +37315,7 @@
       "displayName": [
         {
           "language": "en",
-          "text": "Chip Resistor 6.49k\u03A9 1%"
+          "text": "Chip Resistor 6.49kΩ 1%"
         }
       ],
       "id": "https://www.smart-factory.kr/ids/cd/HasPart_11200344/1/0",
@@ -37287,7 +37339,7 @@
             ],
             "unit": "Ohm",
             "sourceOfDefinition": "VD7IPSBMBR5600S3LTDN7H2IRWHNR1_Rev2.0_BOM_STRUCTURE",
-            "symbol": "\u03A9",
+            "symbol": "Ω",
             "definition": [
               {
                 "language": "en",
@@ -37305,7 +37357,7 @@
       "displayName": [
         {
           "language": "en",
-          "text": "Ferrite Bead 120\u03A9"
+          "text": "Ferrite Bead 120Ω"
         }
       ],
       "id": "https://www.smart-factory.kr/ids/cd/HasPart_11200610/1/0",
@@ -37329,7 +37381,7 @@
             ],
             "unit": "Ohm",
             "sourceOfDefinition": "VD7IPSBMBR5600S3LTDN7H2IRWHNR1_Rev2.0_BOM_STRUCTURE",
-            "symbol": "\u03A9",
+            "symbol": "Ω",
             "definition": [
               {
                 "language": "en",
@@ -37347,7 +37399,7 @@
       "displayName": [
         {
           "language": "en",
-          "text": "Chip Resistor 0.2\u03A9"
+          "text": "Chip Resistor 0.2Ω"
         }
       ],
       "id": "https://www.smart-factory.kr/ids/cd/HasPart_11200712/1/0",
@@ -37371,7 +37423,7 @@
             ],
             "unit": "Ohm",
             "sourceOfDefinition": "VD7IPSBMBR5600S3LTDN7H2IRWHNR1_Rev2.0_BOM_STRUCTURE",
-            "symbol": "\u03A9",
+            "symbol": "Ω",
             "definition": [
               {
                 "language": "en",
@@ -37389,7 +37441,7 @@
       "displayName": [
         {
           "language": "en",
-          "text": "Chip Resistor 10M\u03A9"
+          "text": "Chip Resistor 10MΩ"
         }
       ],
       "id": "https://www.smart-factory.kr/ids/cd/HasPart_11200735/1/0",
@@ -37413,7 +37465,7 @@
             ],
             "unit": "Ohm",
             "sourceOfDefinition": "VD7IPSBMBR5600S3LTDN7H2IRWHNR1_Rev2.0_BOM_STRUCTURE",
-            "symbol": "\u03A9",
+            "symbol": "Ω",
             "definition": [
               {
                 "language": "en",
@@ -38604,7 +38656,7 @@
       "displayName": [
         {
           "language": "en",
-          "text": "GIMBAL ASS\u0027Y (Process 40)"
+          "text": "GIMBAL ASS'Y (Process 40)"
         }
       ],
       "id": "https://www.smart-factory.kr/ids/cd/VD7_40/1/0",
@@ -38850,7 +38902,7 @@
       "displayName": [
         {
           "language": "en",
-          "text": "GIMBAL ASS\u0027Y Integration (Process 40-1)"
+          "text": "GIMBAL ASS'Y Integration (Process 40-1)"
         }
       ],
       "id": "https://www.smart-factory.kr/ids/cd/VD7_40_1/1/0",
@@ -39500,7 +39552,7 @@
       "description": [
         {
           "language": "en",
-          "text": "GIMBAL \u002B BOTTOM ASS\u0027Y (Process 60)"
+          "text": "GIMBAL + BOTTOM ASS'Y (Process 60)"
         }
       ],
       "id": "https://www.smart-factory.kr/ids/cd/VD7_60/1/0",
@@ -40068,7 +40120,7 @@
       "displayName": [
         {
           "language": "en",
-          "text": "UPPER ASS\u0027Y (Process 80)"
+          "text": "UPPER ASS'Y (Process 80)"
         }
       ],
       "id": "https://www.smart-factory.kr/ids/cd/VD7_80/1/0",
@@ -40109,7 +40161,7 @@
       "displayName": [
         {
           "language": "en",
-          "text": "UPPER ASS\u0027Y Completion (Process 80-1)"
+          "text": "UPPER ASS'Y Completion (Process 80-1)"
         }
       ],
       "id": "https://www.smart-factory.kr/ids/cd/VD7_80_1/1/0",
@@ -40273,7 +40325,7 @@
       "displayName": [
         {
           "language": "en",
-          "text": "SET ASS\u0027Y (Process 90)"
+          "text": "SET ASS'Y (Process 90)"
         }
       ],
       "id": "https://www.smart-factory.kr/ids/cd/VD7_90/1/0",
@@ -41674,7 +41726,7 @@
       "displayName": [
         {
           "language": "en",
-          "text": "Rubber O-Ring \u0026 Gasket"
+          "text": "Rubber O-Ring & Gasket"
         }
       ],
       "id": "https://www.smart-factory.kr/ids/cd/RUBBER_ORING/1/0",
@@ -41714,7 +41766,7 @@
       "displayName": [
         {
           "language": "en",
-          "text": "Cable \u0026 FPCB"
+          "text": "Cable & FPCB"
         }
       ],
       "id": "https://www.smart-factory.kr/ids/cd/CABLE_FILM_PCB/1/0",
@@ -41980,7 +42032,7 @@
             "definition": [
               {
                 "language": "en",
-                "text": "Image sensor component (CCD or CMOS) that converts optical images into electronic signals. It is one of the most critical components determining the camera\u0027s image quality and performance."
+                "text": "Image sensor component (CCD or CMOS) that converts optical images into electronic signals. It is one of the most critical components determining the camera's image quality and performance."
               }
             ],
             "modelType": "DataSpecificationIec61360"
@@ -42034,7 +42086,7 @@
       "displayName": [
         {
           "language": "en",
-          "text": "Switch \u0026 Fuse"
+          "text": "Switch & Fuse"
         }
       ],
       "id": "https://www.smart-factory.kr/ids/cd/SWITCH_FUSE/1/0",
