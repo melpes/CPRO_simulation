@@ -17,9 +17,6 @@ from typing import Dict
 import gym
 import simpy
 
-from aas_architecture import BOMCategoryEntry
-from kg import KnowledgeGraph
-
 
 @dataclass
 class StockItem:

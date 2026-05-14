@@ -13,8 +13,6 @@ IndependentSequence / DependentSequence / DependentJoin 분기로 후보 도출.
 from dataclasses import dataclass
 from typing import Dict, TYPE_CHECKING
 
-from aas_architecture import ManufacturingProcess, ProcessNode
-
 if TYPE_CHECKING:
     from sim_env import Warehouse
 

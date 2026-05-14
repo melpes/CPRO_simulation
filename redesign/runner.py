@@ -1,137 +1,113 @@
 # -*- coding: utf-8 -*-
-"""실험/학습 루프 — 모든 모듈의 결합 지점.
+"""실험 진입점 — PSM 단일 진입으로 모든 변수 로드 → KG / Warehouse / CproSimEnv 구성.
 
-호출 경로::
+AAS 접근 규칙
+    `from aas_architecture import ProvisionofSimulationModelsAAS` 만 사용.
+    JSON 등록은 모듈 함수 `aas_architecture.load(json_path)` 로 일괄 처리.
+    이후 모든 변수는 PSM 의 submodel 트리 / @property 에서 꺼낸다.
 
-    1. path_extractor.load_aas_models(json_dir, model_files) → Dict[str, AASModel]
-    2. Factory(models, order, line_to_worker, rated_kw_table, worker_capacity)
-    3. KnowledgeGraph(factory)
-    4. ManufacturingEnv(factory, kg, agent=None)
-    5. ProcessGNN + PPOAgent(gnn, factory, kg, state_dim)
-    6. env.agent = agent
-    7. for ep in episodes:
-           env.reset()
-           env.run(until_sec=factory.T_REF)
-           r_ep = env.reward(done=True)
-           agent.store_reward(r_ep, done=True)
-           agent.update()
+경로 패턴(참고)::
 
-state_dim 은 ``_compute_state_dim(factory)`` 로 결정 — 패딩 없이 그 공장의
-실제 cardinality 에 맞춤. 다른 공장 적용 시 재학습.
+    PSM                     = ProvisionofSimulationModelsAAS
+    PSM.SimulationModels.SimulationModel.Action.{IndependentSequence|DependentSequence|DependentJoin}
+    PSM.SimulationModels.SimulationModel.Warehouse.{InputBOM|MinStock|MaxStock|OrderRatio}
+    PSM.SimulationModels.SimulationModel.DefaultParameters.{WorkStartTime|WorkEndTime|BreakDurationMin}
+    PSM.workers                                         # WWM registry walk
+    PSM.WarehouseManagedBOM                             # ProductAAS HS walk
 """
-from __future__ import annotations
+import os
+import sys
 
-from typing import Dict
+_PKG_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+if _PKG_DIR not in sys.path:
+    sys.path.append(_PKG_DIR)
+
+import path_extractor
+from path_extractor import ProvisionofSimulationModelsAAS
 
 import cpro_config as C
-from aas import load_aas_models
-from factory import Factory
 from kg import KnowledgeGraph
-from sim_env import ManufacturingEnv
-from networks import ProcessGNN, PPOAgent
+from sim_env import Warehouse, CproSimEnv
 
 
-def _compute_state_dim(factory: Factory) -> int:
-    """state_vec 의 정확한 차원 = 1 + K + line_emb + 5 + W.
+#========AAS JSON 로딩========
+JSON_FILES = [
+    'ProvisionOfSimulationModel.json',
+    'WorkstationWorkerMatchingDataAAS.json',
+    'MODEL_A.json',
+    'MODEL_B.json',
+    'MODEL_C.json',
+]
 
-    networks._build_state_vec 의 concat 순서와 1대1 대응:
-      - 진행도            1
-      - 모델별 완성률     K = len(factory.order)
-      - 호출자 line_emb   C.EMB_DIM_LINE (= 4)
-      - 글로벌 5          5
-      - 워커 util         W = len(factory.worker_capacity)
-    """
-    K = len(factory.order)
-    W = len(factory.worker_capacity)
-    return 1 + K + C.EMB_DIM_LINE + 5 + W
+def load_all_aas(json_dir: str = _PKG_DIR) -> None:
+    for filename in JSON_FILES:
+        path_extractor.load(os.path.join(json_dir, filename))
 
 
-class ExperimentRunner:
+#========PSM 단일 진입점으로 변수 추출========
+def build_env() -> CproSimEnv:
+    PSM                       = ProvisionofSimulationModelsAAS
+    SimulationModel           = PSM.SimulationModels.SimulationModel
+    Action                    = SimulationModel.Action
+    PSM_Warehouse             = SimulationModel.Warehouse
+    DefaultParameters         = SimulationModel.DefaultParameters
 
-    def __init__(self,
-                 json_dir: str,
-                 model_files: Dict[str, str],
-                 wwm_filename: str,
-                 sim_filename: str,
-                 order:       Dict[str, int],
-                 line_to_worker: Dict[str, str],
-                 rated_kw_table: Dict[str, float],
-                 worker_capacity: Dict[str, int],
-                 bom_min_stock:  Dict[str, int] = None,
-                 bom_max_stock:  Dict[str, int] = None,
-                 sim_node_group_override: Dict[str, str] = None):
-        # ── 1. AAS 로딩 (path_extractor 4 진입점 통합) ────────────────
-        self.aas_models = load_aas_models(json_dir, model_files, wwm_filename,
-                                          sim_filename, sim_node_group_override)
+    # ── KG 입력
+    ManufacturingProcesses    = {mp.model_id: mp for mp in PSM_Warehouse.InputBOM.target}
+    workers                   = PSM.workers
+    kg                        = KnowledgeGraph.build(ManufacturingProcesses, workers)
 
-        # ── 2. Factory ─────────────────────────────────────────────────
-        self.factory = Factory(
-            models          = self.aas_models,
-            order           = order,
-            line_to_worker  = line_to_worker,
-            rated_kw_table  = rated_kw_table,
-            worker_capacity = worker_capacity,
-            bom_min_stock   = bom_min_stock or {},
-            bom_max_stock   = bom_max_stock or {},
-        )
-        # bom_min/max_stock 미지정 시 cpro_config.MIN_STOCK 으로 임시 채움
-        # (AAS HS Category[...].MinStock/MaxStock 미구현 placeholder).
-        if not bom_min_stock:
-            for item in self.factory.all_bom_items():
-                self.factory.bom_min_stock[item] = C.MIN_STOCK
-                self.factory.bom_max_stock[item] = C.MIN_STOCK * 4
+    # ── Warehouse 입력
+    WarehouseManagedBOM       = PSM.WarehouseManagedBOM
+    BOMCategory               = PSM_Warehouse.MinStock.target
+    warehouse                 = Warehouse.build(WarehouseManagedBOM, BOMCategory)
 
-        # ── 3. KG ──────────────────────────────────────────────────────
-        self.kg = KnowledgeGraph(self.factory)
+    # ── PSM Action (각 ref.target = List[ProcessNode] → idShort 평탄화)
+    IndependentSequence       = [node.idShort for ref in Action.IndependentSequence.values() for node in ref.target]
+    DependentSequence         = [node.idShort for ref in Action.DependentSequence.values()   for node in ref.target]
+    DependentJoin             = [node.idShort for ref in Action.DependentJoin.values()       for node in ref.target]
 
-        # ── 4. GNN + PPO ──────────────────────────────────────────────
-        self.gnn = ProcessGNN(
-            num_pg   = len(self.factory.pg_to_idx),
-            num_line = len(self.factory.line_to_idx),
-        )
-        self.agent = PPOAgent(
-            gnn=self.gnn,
-            factory=self.factory,
-            kg=self.kg,
-            state_dim=_compute_state_dim(self.factory),
-        )
+    # ── PSM DefaultParameters (xs:time → 자정 기준 초)
+    WorkStartTime             = DefaultParameters.WorkStartTime.target.value
+    WorkEndTime               = DefaultParameters.WorkEndTime.target.value
+    BreakDurationMin          = DefaultParameters.BreakDurationMin.target.value
 
-        # ── 5. SimEnv (agent 주입) ─────────────────────────────────────
-        self.env = ManufacturingEnv(self.factory, self.kg, agent=self.agent)
+    # ── 비 AAS 정책 상수 (cpro_config)
+    RewardWeights             = {
+        'STOCK_SHORT' : C.REWARD_W_STOCK_SHORT,
+        'STOCK_OVER'  : C.REWARD_W_STOCK_OVER,
+        'DONE'        : C.REWARD_W_DONE,
+        'IDLE'        : C.REWARD_W_IDLE,
+        'MAKESPAN'    : C.REWARD_W_MAKESPAN,
+        'KWH'         : C.REWARD_W_KWH,
+        'SUCCESS'     : C.REWARD_W_SUCCESS,
+    }
+    ReplenishLeadDay          = C.REPLENISH_LEAD_TIME_SEC
+    target_qty                = sum(C.TARGET_QTY.values()) if hasattr(C, 'TARGET_QTY') else 0
+    MaxEpisodes               = C.MAX_DAYS
 
-    # ── 학습 entry ────────────────────────────────────────────────────
-
-    def train(self, episodes: int = 100) -> list:
-        rewards_log: list = []
-        for ep in range(episodes):
-            self.env.reset()
-            self.env.run(until_sec=self.factory.T_REF)
-
-            # ep 종료 시 마지막 transition 에 terminal reward 부착
-            r_terminal = self.env.reward(done=True)
-            self.agent.store_reward(r_terminal, done=True)
-
-            ep_r = self.agent.update()
-            rewards_log.append(ep_r)
-            print(f'[ep {ep:4d}] reward = {ep_r:.4f}')
-        return rewards_log
+    return CproSimEnv(
+        KnowledgeGraph        = kg,
+        warehouse             = warehouse,
+        workers               = workers,
+        IndependentSequence   = IndependentSequence,
+        DependentSequence     = DependentSequence,
+        DependentJoin         = DependentJoin,
+        RewardWeights         = RewardWeights,
+        ReplenishLeadDay      = ReplenishLeadDay,
+        target_qty            = target_qty,
+        MaxEpisodes           = MaxEpisodes,
+        WarehouseManagedBOM   = WarehouseManagedBOM,
+        BOMCategory           = BOMCategory,
+        WorkStartTime         = WorkStartTime,
+        WorkEndTIme           = WorkEndTime,
+        break_start_sec       = WorkStartTime + (WorkEndTime - WorkStartTime) // 2,
+        break_end_sec         = WorkStartTime + (WorkEndTime - WorkStartTime) // 2 + BreakDurationMin * 60,
+    )
 
 
 if __name__ == '__main__':
-    # 실행 예시 (실제 값은 cpro_config.py 와 호출자가 채움)
-    runner = ExperimentRunner(
-        json_dir   = '..',
-        model_files = {
-            'MODEL_A': 'MODEL_A.json',
-            'MODEL_B': 'MODEL_B.json',
-            'MODEL_C': 'MODEL_C.json',
-        },
-        wwm_filename = 'WorkstationWorkerMatchingDataAAS.json',
-        sim_filename = 'ProvisionOfSimulationModel.json',
-        order = {'MODEL_A': 10, 'MODEL_B': 10, 'MODEL_C': 10},
-        # 아래 3 dict 는 cpro_config 의 정적 매핑에서 가져오거나 호출 시 명시.
-        line_to_worker  = C.WWM_LINE_TO_WORKER,
-        rated_kw_table  = C.RATED_POWER_KW,
-        worker_capacity = {},   # 실제 사용 시 채워서 전달
-    )
-    runner.train(episodes=5)
+    load_all_aas()
+    env  = build_env()
+    ready = env.reset()
+    print(f'[ready_queue] {len(ready)} processes ready at t=0')
