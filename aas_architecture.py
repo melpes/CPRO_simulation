@@ -53,10 +53,27 @@ class semanticId(str):
     """
 
 
-@dataclass(kw_only=True)
-class SMEPath:
-    """SME 경로 — TBD (만들면서 구조 확정)."""
-    ...
+class SMEPath(list):
+    """SME 경로 — 식별자(URL/IRDI)와 idShort 들의 sequence (list 의 일종).
+
+    `List[semanticId]` 와의 차이:
+        - SMEPath: 키들이 chain 으로 연결돼 단일 대상 SME 를 가리킴 (target = 경로 끝)
+        - List[semanticId]: 각 키가 독립된 대상을 가리킴 (target = 대상들의 list)
+    """
+    @classmethod
+    def _parse(cls, raw_reference: dict | None) -> 'SMEPath':
+        """raw reference dict → SMEPath 인스턴스 (체인 경로용). 내부 전용."""
+        if not raw_reference:
+            return cls()
+        return cls(semanticId(key.get('value', '')) for key in raw_reference.get('keys', []))
+
+    @staticmethod
+    def _parse_as_list(raw_reference: dict | None) -> List[semanticId]:
+        """raw reference dict → List[semanticId] (각 키가 독립 대상인 ref 용).
+        SMEPath 가 아닌 일반 reference 들의 공통 파서 — SMEPath 안에 모아둠. 내부 전용."""
+        if not raw_reference:
+            return []
+        return [semanticId(key.get('value', '')) for key in raw_reference.get('keys', [])]
 
 
 class Qualifier(dict):
@@ -165,6 +182,8 @@ class ReferenceElement(SubmodelElement):
         if not keys:
             return None
         first = _resolve_identifier(keys[0])
+        if first is None:                                          # 대상 AAS 미로드 등 → 조기 None
+            return None
         if len(keys) == 1:
             return first
         # keys[1:] 가 모두 식별자 — path 안에서 찾을 수 있으면 path, 아니면 list
