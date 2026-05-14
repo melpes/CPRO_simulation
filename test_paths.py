@@ -6,7 +6,7 @@
 규약: 외부 진입점은 `ProvisionofSimulationModelsAAS` (alias `psm`) + `load` 만.
 WWM / ProductAAS 는 직접 import 하지 않고 ref.target / psm.workers / psm.WarehouseManagedBOM 으로 우회.
 """
-from aas_architecture import ProvisionofSimulationModelsAAS, load
+from path_extractor import ProvisionofSimulationModelsAAS, load
 
 
 # region 데이터 로드 — 필요한 AAS JSON 모두 호출
