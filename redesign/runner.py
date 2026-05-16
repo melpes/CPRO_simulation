@@ -1,22 +1,36 @@
 # -*- coding: utf-8 -*-
-"""실험 진입점 — PSM 단일 진입으로 모든 변수 로드 → KG / Warehouse / CproSimEnv 구성.
+"""실험 진입점 — PSM 단일 진입으로 모든 변수 로드 → KG / Warehouse / Factory / CproSimEnv 결합.
 
-AAS 접근 규칙
-    `from aas_architecture import ProvisionofSimulationModelsAAS` 만 사용.
-    JSON 등록은 모듈 함수 `aas_architecture.load(json_path)` 로 일괄 처리.
-    이후 모든 변수는 PSM 의 submodel 트리 / @property 에서 꺼낸다.
+새 PSM 스키마 (2026-05-15):
+    SimulationModel.SimulationConfig.{TypeOfModel, MaxEpisodes}
+    SimulationModel.KnowledgeGraph.Node.{SIM_MODEL_A|B|C, ProcessOQC, ProcessRMA}
+    SimulationModel.KnowledgeGraph.Action.{IndependentSequence|DependentSequence|DependentJoin|AssignedProcessGroups}
+    SimulationModel.RewardWeights.{W1_TimeElapsed..W6_IdleWorker}
+    SimulationModel.DefaultParameters.{WorkStartTime|WorkEndTime|BreakDurationMin|ReplenishLeadDay|IdleWorkerThreshold|MinOutsourcing|...}
+    SimulationModel.RuntimeVariables.{CycleCompleted|Throughput|EpisodeEnergyKwh|...}
+    SimulationModel.Warehouse.{InputBOM|MinStock|MaxStock|OrderRatio}
+    SimulationModel.ModelArchitecture.{GNN, PPO}
 
-경로 패턴(참고)::
+흐름::
 
-    PSM                     = ProvisionofSimulationModelsAAS
-    PSM.SimulationModels.SimulationModel.Action.{IndependentSequence|DependentSequence|DependentJoin}
-    PSM.SimulationModels.SimulationModel.Warehouse.{InputBOM|MinStock|MaxStock|OrderRatio}
-    PSM.SimulationModels.SimulationModel.DefaultParameters.{WorkStartTime|WorkEndTime|BreakDurationMin}
-    PSM.workers                                         # WWM registry walk
-    PSM.WarehouseManagedBOM                             # ProductAAS HS walk
+    load_all_aas()                    AAS 4 JSON → PSM 트리
+        ↓
+    build_env()                       PSM → KG / Warehouse / Factory / CproSimEnv
+        ↓
+    build_agent(env)                  ProcessGNN + PPOAgent
+        ↓
+    for episode in range(MaxEpisodes):
+        env.reset()
+        while not done:
+            action_idx = agent.act(env, ready_mask)
+            ready, reward, done, info = env.step((PC, WS))
+            agent.store_reward(reward, done)
+        agent.update()
 """
 import os
 import sys
+
+import numpy as np
 
 _PKG_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 if _PKG_DIR not in sys.path:
@@ -26,8 +40,10 @@ import path_extractor
 from path_extractor import ProvisionofSimulationModelsAAS
 
 import cpro_config as C
-from kg import KnowledgeGraph
-from sim_env import Warehouse, CproSimEnv
+from kg       import KnowledgeGraph
+from sim_env  import Warehouse, CproSimEnv
+from factory  import Factory
+from networks import ProcessGNN, PPOAgent
 
 
 #========AAS JSON 로딩========
@@ -44,13 +60,16 @@ def load_all_aas(json_dir: str = _PKG_DIR) -> None:
         path_extractor.load(os.path.join(json_dir, filename))
 
 
-#========PSM 단일 진입점으로 변수 추출========
+#========PSM 단일 진입점으로 변수 추출 → 환경 빌드========
 def build_env() -> CproSimEnv:
     PSM                       = ProvisionofSimulationModelsAAS
     SimulationModel           = PSM.SimulationModels.SimulationModel
-    Action                    = SimulationModel.Action
+    KG_submodel               = SimulationModel.KnowledgeGraph
+    Action                    = KG_submodel.Action
     PSM_Warehouse             = SimulationModel.Warehouse
     DefaultParameters         = SimulationModel.DefaultParameters
+    RewardWeightsSME          = SimulationModel.RewardWeights
+    SimulationConfig          = SimulationModel.SimulationConfig
 
     # ── KG 입력
     ManufacturingProcesses    = {mp.model_id: mp for mp in PSM_Warehouse.InputBOM.target}
@@ -62,52 +81,92 @@ def build_env() -> CproSimEnv:
     BOMCategory               = PSM_Warehouse.MinStock.target
     warehouse                 = Warehouse.build(WarehouseManagedBOM, BOMCategory)
 
-    # ── PSM Action (각 ref.target = List[ProcessNode] → idShort 평탄화)
-    IndependentSequence       = [node.idShort for ref in Action.IndependentSequence.values() for node in ref.target]
-    DependentSequence         = [node.idShort for ref in Action.DependentSequence.values()   for node in ref.target]
-    DependentJoin             = [node.idShort for ref in Action.DependentJoin.values()       for node in ref.target]
+    # ── PSM Action
+    IndependentSequence       = [node.idShort for ref in Action.IndependentSequence for node in ref.target]
+    DependentSequence         = [node.idShort for ref in Action.DependentSequence   for node in ref.target]
+    DependentJoin             = [node.idShort for ref in Action.DependentJoin       for node in ref.target]
 
-    # ── PSM DefaultParameters (xs:time → 자정 기준 초)
+    # ── PSM DefaultParameters
     WorkStartTime             = DefaultParameters.WorkStartTime.target.value
     WorkEndTime               = DefaultParameters.WorkEndTime.target.value
-    BreakDurationMin          = DefaultParameters.BreakDurationMin.target.value
+    BreakStartSec             = DefaultParameters.BreakDurationMin.target.min
+    BreakEndSec               = DefaultParameters.BreakDurationMin.target.max
+    ReplenishLeadDay          = int(DefaultParameters.ReplenishLeadDay.value)   * 3600
+    IdleWorkerThreshold       = int(DefaultParameters.IdleWorkerThreshold.value)
 
-    # ── 비 AAS 정책 상수 (cpro_config)
     RewardWeights             = {
-        'STOCK_SHORT' : C.REWARD_W_STOCK_SHORT,
-        'STOCK_OVER'  : C.REWARD_W_STOCK_OVER,
-        'DONE'        : C.REWARD_W_DONE,
-        'IDLE'        : C.REWARD_W_IDLE,
-        'MAKESPAN'    : C.REWARD_W_MAKESPAN,
-        'KWH'         : C.REWARD_W_KWH,
-        'SUCCESS'     : C.REWARD_W_SUCCESS,
+        'W1_TimeElapsed'      : float(RewardWeightsSME.W1_TimeElapsed.value),
+        'W2_Energy'           : float(RewardWeightsSME.W2_Energy.value),
+        'W3_StockOverflow'    : float(RewardWeightsSME.W3_StockOverflow.value),
+        'W4_StockShortage'    : float(RewardWeightsSME.W4_StockShortage.value),
+        'W5_Throughput'       : float(RewardWeightsSME.W5_Throughput.value),
+        'W6_IdleWorker'       : float(RewardWeightsSME.W6_IdleWorker.value),
     }
-    ReplenishLeadDay          = C.REPLENISH_LEAD_TIME_SEC
-    target_qty                = sum(C.TARGET_QTY.values()) if hasattr(C, 'TARGET_QTY') else 0
-    MaxEpisodes               = C.MAX_DAYS
+    MaxEpisodes               = int(SimulationConfig.MaxEpisodes.value)
+    TARGET_QTY                = C.TARGET_QTY
+
+    factory                   = Factory.build(
+        kg, workers,
+        WorkStartTime, WorkEndTime, BreakStartSec, BreakEndSec,
+        TARGET_QTY, C.MAX_DAYS,
+    )
 
     return CproSimEnv(
         KnowledgeGraph        = kg,
         warehouse             = warehouse,
         workers               = workers,
+        factory               = factory,
         IndependentSequence   = IndependentSequence,
         DependentSequence     = DependentSequence,
         DependentJoin         = DependentJoin,
         RewardWeights         = RewardWeights,
         ReplenishLeadDay      = ReplenishLeadDay,
-        target_qty            = target_qty,
+        target_qty            = sum(TARGET_QTY.values()),
         MaxEpisodes           = MaxEpisodes,
         WarehouseManagedBOM   = WarehouseManagedBOM,
         BOMCategory           = BOMCategory,
         WorkStartTime         = WorkStartTime,
-        WorkEndTIme           = WorkEndTime,
-        break_start_sec       = WorkStartTime + (WorkEndTime - WorkStartTime) // 2,
-        break_end_sec         = WorkStartTime + (WorkEndTime - WorkStartTime) // 2 + BreakDurationMin * 60,
+        WorkEndTime           = WorkEndTime,
+        break_start_sec       = BreakStartSec,
+        break_end_sec         = BreakEndSec,
+        IdleWorkerThreshold   = IdleWorkerThreshold,
+        TARGET_QTY            = TARGET_QTY,
     )
 
 
+#========Agent 빌드========
+def build_agent(env: CproSimEnv) -> PPOAgent:
+    kg      = env.KnowledgeGraph
+    factory = env.factory
+    gnn = ProcessGNN(
+        num_GroupIdShort  = len(factory.GroupIdShort_to_embedding_index),
+        num_WorkstationId = len(factory.WorkstationId_to_embedding_index),
+    )
+    n_models  = len({n.model_id for n in kg.nodes.values()})
+    n_workers = len(env.workers)
+    state_dim = 1 + n_models + n_workers + 1
+    return PPOAgent(gnn=gnn, factory=factory, kg=kg, state_dim=state_dim)
+
+
 if __name__ == '__main__':
+    import time
     load_all_aas()
-    env  = build_env()
-    ready = env.reset()
-    print(f'[ready_queue] {len(ready)} processes ready at t=0')
+    env      = build_env()
+    agent    = build_agent(env)
+    kg       = env.KnowledgeGraph
+    print(f'[build]  N nodes={len(kg.ProcessCodes)}  '
+          f'state_dim={agent.state_dim}  target_qty={env.target_qty}')
+
+    # ver3 패턴 학습 루프: env.run(agent) 한 번에 전체 시뮬 진행 + agent.update()
+    for episode in range(3):
+        t0 = time.time()
+        agent.reset_episode()
+        result = env.run(agent=agent, max_sec=60 * 86400)
+        agent.finalize_episode(env)
+        ep_reward = agent.update()
+        dt = time.time() - t0
+        print(f'[ep{episode}] wall={dt:>5.1f}s  '
+              f'Throughput={result["Throughput"]}/{env.target_qty}  '
+              f'makespan={result["makespan_sec"]/86400:.2f}d  '
+              f'kwh={result["EpisodeEnergyKwh"]:.2f}  '
+              f'reward_sum={ep_reward:+.4f}')

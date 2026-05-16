@@ -22,7 +22,7 @@ from __future__ import annotations
 # ── 1. 시뮬 진입점 ─────────────────────────────────────────────────────────
 
 RANDOM_SEED = 42
-MAX_DAYS    = 7
+MAX_DAYS    = 60       # 무한루프 방지 상한선. 완주 가능한 모든 정책의 makespan 이상으로 크게.
 DAY_SEC     = 86400
 
 
@@ -91,6 +91,15 @@ RATED_POWER_KW: dict = {
 }
 
 
+# ── 3.5 모델별 주문량 (AAS 에 미반영, Factory.total_order 분모) ────────────
+
+TARGET_QTY: dict = {
+    'MODEL_A': 100,
+    'MODEL_B': 100,
+    'MODEL_C': 100,
+}
+
+
 # ── 4. 재고 정책 ───────────────────────────────────────────────────────────
 
 MIN_STOCK = 50          # 발주 트리거 임계
@@ -115,12 +124,12 @@ WORK_SCHEDULE = {
 # ── 6. 학습 하이퍼파라미터 ─────────────────────────────────────────────────
 
 # GNN
-GNN_IN_DIM   = 17        # 노드 feat (정적 5 + pg_emb 4 + line_emb 4 + 동적 4)
-GNN_HIDDEN   = 32
-GNN_OUT_DIM  = 16
-EMB_DIM_PG   = 4
-EMB_DIM_LINE = 4
-NUM_RELATIONS = 5        # fwd_join / fwd_seq / bwd_join / bwd_seq / self
+GNN_IN_DIM                    = 17    # 정적 5 + GroupIdShort_embedding 4 + WorkstationId_embedding 4 + 동적 4
+GNN_HIDDEN                    = 32
+GNN_OUT_DIM                   = 16
+GROUPIDSHORT_EMBEDDING_DIM    = 4
+WORKSTATIONID_EMBEDDING_DIM   = 4
+NUM_RELATIONS                 = 5     # fwd_seq / fwd_join / bwd_seq / bwd_join / self
 
 # PPO
 PPO_LR       = 3e-4
@@ -138,19 +147,14 @@ CRITIC_HIDDEN_2 = 64
 
 # ── 7. 보상 정규화 분모 (시뮬 init 시 계산) ─────────────────────────────────
 
-# Factory init 직후 실측/이론 계산해서 채우는 placeholder.
-# 각 항이 어떻게 계산되는지 한 곳에서 보이도록 식을 명시:
+# Factory.build() 가 실측/이론 계산해서 채우는 4 개 분모. 식은 다음과 같다:
 #
-#   T_REF         = MAX_DAYS * (WORK_SCHEDULE['work_end_sec']
-#                              - WORK_SCHEDULE['work_start_sec']
-#                              - WORK_SCHEDULE['break_duration_sec'])
-#   E_REF         = Σ_pc  RATED_POWER_KW[pc 또는 grp]
-#                       *  MP.groups[g].processes[pc].CycleTimeSec.value
-#                       *  order[m for pc in m]                        / 3600
-#   TOTAL_ORDER   = sum(order.values())
-#   TOTAL_WORKER_CAPACITY = sum(worker_capacities.values())
-#
-# 실제 값은 ``Factory.__init__`` 에서 채움.
+#   total_work_seconds    = MAX_DAYS * (WORK_SCHEDULE['work_end_sec']
+#                                     - WORK_SCHEDULE['work_start_sec']
+#                                     - WORK_SCHEDULE['break_duration_sec'])
+#   total_expected_kwh    = Σ_pc CycleTimeSec * RatedPowerKw * target_qty / 3600
+#   total_target_qty      = sum(TARGET_QTY.values())
+#   total_worker_capacity = sum(info['worker_count'] for info in workers.values())
 
 
 # ── 보상 가중치 (튜닝 placeholder) ─────────────────────────────────────────

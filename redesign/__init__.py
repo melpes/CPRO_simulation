@@ -1,26 +1,30 @@
 # -*- coding: utf-8 -*-
-"""CPRO RL 재설계 패키지.
+"""CPRO 시뮬레이션 + RL 재설계 패키지.
 
-흐름::
+흐름 (위에서 아래로 읽는 순서)::
 
-    path_extractor.load_aas_models  →  AASModel dict
-                                       │
-                                       Factory  (정적 매핑 + 정규화 분모)
-                                       │
-                                       KnowledgeGraph  (통합 KG, 5 relation adj)
-                                       │
-                                       ManufacturingEnv  (SimPy + Dispatcher)
-                                       │
-                                       ProcessGNN + PPOAgent
-                                       │
-                                       ExperimentRunner.train()
+    path_extractor.load(*.json)
+        │  ← AAS 4종 (PSM / WWM / HS / MP) 모두 PSM 한 진입점으로 노출
+        ▼
+    ProvisionofSimulationModelsAAS (PSM)
+        │  ← PSM.SimulationModels.SimulationModel.{Action, Warehouse, DefaultParameters}
+        │    PSM.workers / PSM.WarehouseManagedBOM
+        ▼
+    runner.build_env()
+        │
+        ├─ KnowledgeGraph.build(ManufacturingProcesses, workers)   # kg.py
+        ├─ Warehouse.build(WarehouseManagedBOM, BOMCategory)       # sim_env.py
+        └─ CproSimEnv(KG, Warehouse, Sequences, DefaultParameters) # sim_env.py
+               │
+               ├─ env.reset()              → ready (List[ProcessCode])
+               └─ env.step((pc, ws_id))    → process_job(env, ...)
+                                                ├─ env.timeout(CycleTimeSec)
+                                                ├─ warehouse.consume(InputBOM)
+                                                └─ warehouse.replenish()  (부족 시)
 
-설계 원칙:
-  - AAS 진입은 path_extractor 만.
-  - 동적 feat 갱신 + event hook 은 ``sim_env.Dispatcher`` 한 곳.
-  - 노드 키 = (model_id, process_code) tuple.
-  - 한 (m, pc) 에 시뮬 중 여러 ready unit 가능 → ``ready_units`` FIFO queue.
-  - 정규화 분모 (T_REF, E_REF, total_order, total_worker_capacity) 는 cpro_config 에
-    식이 명시되고 실제 값은 Factory init 에서 계산.
-  - 패딩 / OOV 없음. 다른 공장 적용 시 재학습.
+설계 원칙 (CLAUDE.md '## redesign / ver0 코딩 스타일' 참조):
+  - AAS 진입은 path_extractor 만. PSM 트리에서 모든 변수 추출.
+  - 도메인 dataclass (KG, Warehouse) 는 simpy 의존 없음. 재사용 가능.
+  - 모든 외부 입력은 runner.build_env() 한 곳에서 결합.
+  - 가독성 + 코드 흐름 순서가 최우선.
 """
