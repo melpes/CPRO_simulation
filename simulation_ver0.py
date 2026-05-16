@@ -472,6 +472,23 @@ class CproSimEnv:
         }
         return observation, reward, done, {}
 
+    def skip(self):
+        # ready 빔(재고/선행공정 대기) 처리: 행동 없이 다음 simpy 이벤트
+        # (진행 공정 완료·재고 보충)까지 진행시켜 ready 가 다시 차길 기다린다.
+        # 대기할 이벤트가 전혀 없으면(real deadlock) deadlock=True.
+        while self.env.peek() != float('inf'):
+            self.env.step()
+            ready = self.KnowledgeGraph.ready_queue(
+                self.IndependentSequence,
+                self.DependentSequence,
+                self.DependentJoin,
+                self.completed,
+                self.warehouse,
+            )
+            if ready:
+                return {'ready': ready, 'KnowledgeGraph': self.KnowledgeGraph}, False
+        return {'ready': [], 'KnowledgeGraph': self.KnowledgeGraph}, True
+
 def train(env, agent, MaxEpisodes):
     for episode in range(MaxEpisodes):
         observation          = env.reset()
@@ -483,6 +500,13 @@ def train(env, agent, MaxEpisodes):
         done                 = False
 
         while not done:
+            if not observation['ready']:
+                # ready 빔 = 재고/선행공정 대기. 다음 이벤트(공정 완료·재고 보충)
+                # 까지 진행 후 이 스텝 스킵. 대기할 이벤트가 전혀 없을 때만 종료.
+                observation, deadlock = env.skip()
+                if deadlock:
+                    break
+                continue
             action, log_prob  = agent.select_action(observation, env.KnowledgeGraph)
             data, node_list   = env.KnowledgeGraph.to_pyg_data()
             embeddings        = agent.GNNEncoder(data)
@@ -501,7 +525,13 @@ def train(env, agent, MaxEpisodes):
             observation, reward, done, _ = env.step(action)
             rewards.append(reward)
 
-        agent.update(observations, actions, log_probs, rewards, values)
+        if rewards:
+            agent.update(observations, actions, log_probs, rewards, values)
+            # rl_logger_spec: [F] train/rollout_reward_mean + sanity/episode_length, [E] task/primary_metric
+            print(f'[ep {episode:>4}] return={sum(rewards):+.3f} len={len(rewards):>4} '
+                  f'thru={env.Throughput}/{env.target_qty} done={done}')
+        else:
+            print(f'[ep {episode:>4}] rollout 0 — 행동 가능 시점 없이 종료 (deadlock)')
 
 if __name__ == '__main__':
     import os
