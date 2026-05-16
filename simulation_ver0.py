@@ -378,7 +378,7 @@ class CproSimEnv:
         # AAS 에 value=None 으로 정의만 있는 동적 상태. 연산은 self.RuntimeVariables
         # (path_extractor) 가 단일 구현. 여기선 에피소드 초기값만 둔다.
         self.CycleCompleted       = False   #← .CycleCompleted
-        self.Throughput           = 0       #← .Throughput
+        self.Throughput           = {model_id: 0 for model_id in self.target_qty}  #← .Throughput (모델별)
         self.EpisodeEnergyKwh     = 0.0     #← .EpisodeEnergyKwh
         self.StockShortageCount   = 0       #← .StockShortageCount
         self.StockOverflowCount   = 0       #← .StockOverflowCount
@@ -439,18 +439,20 @@ class CproSimEnv:
             )
 
         work_day_sec = self.WorkEndTime - self.WorkStartTime - (self.break_end_sec - self.break_start_sec)
-        step_count = max(self.env.now / (work_day_sec / self.target_qty), 1)
+        total_target_qty = sum(self.target_qty.values())
+        step_count = max(self.env.now / (work_day_sec / total_target_qty), 1)
+        self.work_day_sec, self.step_count = work_day_sec, step_count  # 로그용 노출 (보상식 분모)
 
         reward = (
             - (self.env.now / work_day_sec)                         * self.RewardWeights['W1_TimeElapsed']
             - self.EpisodeEnergyKwh / self.MaxEpisodeEnergyKwh      * self.RewardWeights['W2_Energy']
             - self.StockOverflowCount  / step_count                 * self.RewardWeights['W3_StockOverflow']
             - self.StockShortageCount  / step_count                 * self.RewardWeights['W4_StockShortage']
-            + (self.Throughput / self.target_qty)                   * self.RewardWeights['W5_Throughput']
+            + (sum(self.Throughput.values()) / total_target_qty)    * self.RewardWeights['W5_Throughput']
             - self.IdleViolationCount  / step_count                 * self.RewardWeights['W6_IdleWorker']
         )
 
-        done = self.Throughput >= self.target_qty
+        done = all(self.Throughput[m] >= self.target_qty[m] for m in self.target_qty)
         observation = {
             'ready'          : self.KnowledgeGraph.ready_queue(
                                   self.IndependentSequence,
@@ -527,9 +529,16 @@ def train(env, agent, MaxEpisodes):
 
         if rewards:
             agent.update(observations, actions, log_probs, rewards, values)
-            # rl_logger_spec: [F] train/rollout_reward_mean + sanity/episode_length, [E] task/primary_metric
+            # rl_logger_spec: [F] train/rollout_reward_mean·episode_length, [E] task/primary_metric=makespan
+            # + 각 보상항(W1~W6) 입력 변수
+            thru = ' '.join(f'{m}:{env.Throughput[m]}/{env.target_qty[m]}' for m in env.target_qty)
             print(f'[ep {episode:>4}] return={sum(rewards):+.3f} len={len(rewards):>4} '
-                  f'thru={env.Throughput}/{env.target_qty} done={done}')
+                  f'makespan={env.env.now:.0f} thru=[{thru}] done={done}\n'
+                  f'           W1(now={env.env.now:.0f} wday={env.work_day_sec}) '
+                  f'W2(E={env.EpisodeEnergyKwh:.3f} maxE={env.MaxEpisodeEnergyKwh:.3f}) '
+                  f'W3(ovf={env.StockOverflowCount}) W4(sht={env.StockShortageCount}) '
+                  f'W5(thru={sum(env.Throughput.values())} tgt={sum(env.target_qty.values())}) '
+                  f'W6(idle={env.IdleViolationCount}) sc={env.step_count:.2f}')
         else:
             print(f'[ep {episode:>4}] rollout 0 — 행동 가능 시점 없이 종료 (deadlock)')
 
@@ -593,7 +602,10 @@ if __name__ == '__main__':
     UpdateEpochs         = TrainingConfig.UpdateEpochs.value
     BatchSize            = int(TrainingConfig.BatchSize.value)
 
-    target_qty = int(input('목표 생산 수량을 입력하세요: '))
+    target_qty = {
+        model_id: int(input(f'{model_id} 목표 생산 수량을 입력하세요: '))
+        for model_id in ManufacturingProcesses
+    }
 
     KnowledgeGraph  = KnowledgeGraph.build(ManufacturingProcesses, workers)
     warehouse       = Warehouse.build(WarehouseManagedBOM, BOMCategory)

@@ -277,10 +277,13 @@ class RuntimeVariables(SubmodelElementCollection):
         return (ProcessCode in KnowledgeGraph.nodes
                 and ProcessCode not in KnowledgeGraph.edges)
 
-    def Throughput(self, ProcessCode, KnowledgeGraph, Throughput) -> int:
+    def Throughput(self, ProcessCode, KnowledgeGraph, Throughput) -> dict:
         #← .RuntimeVariables.Throughput
-        # terminal 노드(CycleCompleted) 완료마다 +1. target_qty 도달 시 종료.
-        return Throughput + (1 if self.CycleCompleted(ProcessCode, KnowledgeGraph) else 0)
+        # terminal 노드(CycleCompleted) 완료 시 그 노드의 model_id 카운트 +1.
+        # Throughput: {model_id: int} (모델별). 모델별 target 도달 시 종료.
+        if self.CycleCompleted(ProcessCode, KnowledgeGraph):
+            Throughput[KnowledgeGraph.nodes[ProcessCode].model_id] += 1
+        return Throughput
 
     def StockShortageCount(self, warehouse, StockShortageCount) -> int:
         #← .RuntimeVariables.StockShortageCount
