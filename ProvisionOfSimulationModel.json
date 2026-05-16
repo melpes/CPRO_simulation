@@ -11868,6 +11868,10 @@
                               },
                               {
                                 "type": "GlobalReference",
+                                "value": "https://www.smart-factory.kr/ids/cd/VD7_70_1/1/0"
+                              },
+                              {
+                                "type": "GlobalReference",
                                 "value": "https://www.smart-factory.kr/ids/cd/VD7_70_2/1/0"
                               },
                               {
@@ -12158,6 +12162,10 @@
                             "keys": [
                               {
                                 "type": "GlobalReference",
+                                "value": "https://www.smart-factory.kr/ids/cd/BT5_31/1/0"
+                              },
+                              {
+                                "type": "GlobalReference",
                                 "value": "https://www.smart-factory.kr/ids/cd/BT5_50/1/0"
                               },
                               {
@@ -12182,6 +12190,10 @@
                           "value": {
                             "type": "ExternalReference",
                             "keys": [
+                              {
+                                "type": "GlobalReference",
+                                "value": "https://www.smart-factory.kr/ids/cd/NVD_52/1/0"
+                              },
                               {
                                 "type": "GlobalReference",
                                 "value": "https://www.smart-factory.kr/ids/cd/NVD_53/1/0"
@@ -14029,7 +14041,8 @@
                               }
                             ]
                           },
-                          "valueType": "xs:string",
+                          "valueType": "xs:int",
+                          "value": "4",
                           "modelType": "Property"
                         },
                         {
@@ -14086,21 +14099,6 @@
                             ]
                           },
                           "modelType": "ReferenceElement"
-                        },
-                        {
-                          "category": "PARAMETER",
-                          "idShort": "ActionSpaceDim",
-                          "semanticId": {
-                            "type": "ModelReference",
-                            "keys": [
-                              {
-                                "type": "ConceptDescription",
-                                "value": "https://www.smart-factory.kr/ids/cd/ActionSpaceDim/1/0"
-                              }
-                            ]
-                          },
-                          "valueType": "xs:int",
-                          "modelType": "Property"
                         }
                       ],
                       "modelType": "SubmodelElementCollection"
@@ -20460,40 +20458,6 @@
               {
                 "language": "en",
                 "text": "Input demension of Actor network, equal to GNN node embedding output dimension."
-              }
-            ],
-            "modelType": "DataSpecificationIec61360"
-          }
-        }
-      ],
-      "modelType": "ConceptDescription"
-    },
-    {
-      "idShort": "ActionSpaceDim",
-      "id": "https://www.smart-factory.kr/ids/cd/ActionSpaceDim/1/0",
-      "embeddedDataSpecifications": [
-        {
-          "dataSpecification": {
-            "type": "ExternalReference",
-            "keys": [
-              {
-                "type": "GlobalReference",
-                "value": "https://admin-shell.io/DataSpecificationTemplates/DataSpecificationIec61360/3/0"
-              }
-            ]
-          },
-          "dataSpecificationContent": {
-            "preferredName": [
-              {
-                "language": "en",
-                "text": "ActionSpaceDim"
-              }
-            ],
-            "dataType": "REAL_MEASURE",
-            "definition": [
-              {
-                "language": "en",
-                "text": "Output dimension of Actor network. Number of valid(ProcessCode, WorkstationId) action paris, determined at runtime from ready_queue and workers"
               }
             ],
             "modelType": "DataSpecificationIec61360"

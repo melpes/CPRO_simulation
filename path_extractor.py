@@ -25,7 +25,7 @@ from __future__ import annotations
 import json
 from dataclasses import dataclass, field
 from enum import Enum
-from typing import Any, Dict, List
+from typing import Any, ClassVar, Dict, List, Tuple
 
 
 __all__ = ['ProvisionofSimulationModelsAAS', 'load']
@@ -132,7 +132,7 @@ class SubmodelElement:
 
 # region
 # ====================================================================
-# 구체 SME 타입 — 자체 필드만
+# Submodel 계열
 # ====================================================================
 @dataclass(kw_only=True)
 class Submodel(SubmodelElement):
@@ -142,11 +142,209 @@ class Submodel(SubmodelElement):
 
 
 @dataclass(kw_only=True)
+class ManufacturingProcess(Submodel):
+    """제품 AAS 의 ManufacturingProcess Submodel."""
+    _positions: ClassVar[List[Tuple[str, ...]]] = [('ManufacturingProcess',)]
+
+    @property
+    def groups(self) -> Dict[str, 'ProcessGroup']:
+        """ProcessType 같은 비-그룹 자식 제외."""
+        return {k: v for k, v in self.value.items() if isinstance(v, ProcessGroup)}
+
+    @property
+    def model_id(self) -> str:
+        """이 MP 가 속한 ProductAAS 의 idShort (registry walk)."""
+        for entry in _aas_registry.values():
+            aas_list = entry if isinstance(entry, list) else [entry]
+            for aas in aas_list:
+                if self in aas.submodels.values():
+                    return aas.idShort
+        return ''
+# endregion
+
+
+# region
+# ====================================================================
+# SubmodelElementCollection 계열
+# ====================================================================
+@dataclass(kw_only=True)
 class SubmodelElementCollection(SubmodelElement):
     """자식 idShort 로 키된 dict."""
     value: Dict[str, SubmodelElement] = field(default_factory=dict)
 
 
+@dataclass(kw_only=True)
+class ProcessGroup(SubmodelElementCollection):
+    """공정 그룹 — `value: Dict[str, ProcessNode]`. ProcessType 은 제외 (generic SMC)."""
+    _positions:          ClassVar[List[Tuple[str, ...]]] = [('ManufacturingProcess', '*')]
+    _positions_excluded: ClassVar[List[Tuple[str, ...]]] = [('ManufacturingProcess', 'ProcessType')]
+
+
+@dataclass(kw_only=True)
+class ProcessNode(SubmodelElementCollection):
+    """공정 노드. 자식 SME 들은 idShort 로 접근. 자식 중 ReferenceElement 면 자동 deref.
+    자식 타입:
+        CycleTimeSec  → Property (int)
+        DefectRate    → Property (float)
+        RatedPowerKw  → Property (float)
+        DepPrev       → Property (str, ';' 구분으로 join)
+        DepType       → Property (str: 'SEQUENCE'|'JOIN'|'FORK')
+        InputBOM      → InputBOM (dict-like {item_code: Quantity})
+    """
+    _positions: ClassVar[List[Tuple[str, ...]]] = [('ManufacturingProcess', '*', '*')]
+
+    def _resolve(self, name: str):
+        child = self.value[name]
+        return child.target if isinstance(child, ReferenceElement) else child
+
+    @property
+    def CycleTimeSec(self) -> 'Property':  return self._resolve('CycleTimeSec')
+    @property
+    def DefectRate(self)   -> 'Property':  return self._resolve('DefectRate')
+    @property
+    def RatedPowerKw(self) -> 'Property':  return self._resolve('RatedPowerKw')
+    @property
+    def DepPrev(self)      -> 'Property':  return self._resolve('DepPrev')
+    @property
+    def DepType(self)      -> 'Property':  return self._resolve('DepType')
+    @property
+    def InputBOM(self)     -> 'InputBOM':
+        """InputBOM 없는 노드도 있으므로 None 허용 (시뮬은 `if not node.InputBOM` 검사)."""
+        return self._resolve('InputBOM') if 'InputBOM' in self.value else None
+
+
+@dataclass(kw_only=True)
+class BOMCategory(SubmodelElementCollection):
+    """BOMCategory 컨테이너 — `value: Dict[Category_idShort, BOMCategoryEntry]`."""
+    _positions: ClassVar[List[Tuple[str, ...]]] = [('HierarchicalStructures', 'BOMCategory')]
+
+
+@dataclass(kw_only=True)
+class BOMCategoryEntry(SubmodelElementCollection):
+    """단일 BOM 카테고리. 자식 Property 값을 직접 노출 (Property wrapper 제거).
+        MinStock   → int
+        MaxStock   → int
+        OrderRatio → float
+    """
+    _positions: ClassVar[List[Tuple[str, ...]]] = [('HierarchicalStructures', 'BOMCategory', '*')]
+
+    @property
+    def MinStock(self)   -> int:   return self.value['MinStock'].value
+    @property
+    def MaxStock(self)   -> int:   return self.value['MaxStock'].value
+    @property
+    def OrderRatio(self) -> float: return self.value['OrderRatio'].value
+
+
+@dataclass(kw_only=True)
+class RuntimeVariables(SubmodelElementCollection):
+    """PSM SimulationModel.RuntimeVariables — 에피소드 중 동적으로 변하는 상태.
+
+    AAS 는 각 변수의 정의(description)만 보유하고 value=None (실행 중 결정).
+    이 클래스가 그 정의에 대응하는 **AAS 명시 연산의 단일 구현처**다. 시뮬
+    코드(ver0)는 메서드를 호출만 하고 같은 로직을 다시 작성하지 않는다.
+    description 은 참고용이며 진실의 원천은 아래 메서드.
+
+    동명 메서드가 자식 Property(value=None) 를 shadow 한다. raw Property 가
+    필요하면 `rv['CycleCompleted']` 처럼 __getitem__ 으로 접근.
+
+    메서드 규약:
+      - 순수 산출형: 런타임 입력만 받아 값 반환.
+      - 누적형: 마지막 인자로 현재값을 받아 다음값을 반환 (상태 미보유).
+    """
+    _positions: ClassVar[List[Tuple[str, ...]]] = [
+        ('SimulationModels', 'SimulationModel', 'RuntimeVariables'),
+    ]
+
+    def MaxEpisodeEnergyKwh(self, KnowledgeGraph) -> float:
+        #← .RuntimeVariables.MaxEpisodeEnergyKwh
+        # Σ (CycleTimeSec·RatedPowerKw)/3600 over all GraphNode. EpisodeEnergyKwh
+        # 의 W2_Energy 정규화 분모.
+        return sum(
+            node.CycleTimeSec * node.RatedPowerKw / 3600
+            for node in KnowledgeGraph.nodes.values()
+        )
+
+    def EpisodeEnergyKwh(self, GraphNode, EpisodeEnergyKwh) -> float:
+        #← .RuntimeVariables.EpisodeEnergyKwh
+        # process_job 완료 시 (CycleTimeSec·RatedPowerKw)/3600 누적.
+        return EpisodeEnergyKwh + GraphNode.CycleTimeSec * GraphNode.RatedPowerKw / 3600
+
+    def CycleCompleted(self, ProcessCode, KnowledgeGraph) -> bool:
+        #← .RuntimeVariables.CycleCompleted
+        # 후행 엣지 없는(terminal) ProcessCode 가 완료되면 True →
+        # Throughput 증가 + completed 리셋 트리거.
+        return (ProcessCode in KnowledgeGraph.nodes
+                and ProcessCode not in KnowledgeGraph.edges)
+
+    def Throughput(self, ProcessCode, KnowledgeGraph, Throughput) -> int:
+        #← .RuntimeVariables.Throughput
+        # terminal 노드(CycleCompleted) 완료마다 +1. target_qty 도달 시 종료.
+        return Throughput + (1 if self.CycleCompleted(ProcessCode, KnowledgeGraph) else 0)
+
+    def StockShortageCount(self, warehouse, StockShortageCount) -> int:
+        #← .RuntimeVariables.StockShortageCount
+        # present_stock < MinStock 인 재고 항목 수 (consume 시점 검사).
+        return StockShortageCount + sum(
+            1
+            for Category in warehouse.inventory
+            for item in warehouse.inventory[Category].values()
+            if item.present_stock < item.MinStock
+        )
+
+    def StockOverflowCount(self, warehouse, StockOverflowCount) -> int:
+        #← .RuntimeVariables.StockOverflowCount
+        # present_stock > MaxStock 인 재고 항목 수 (replenish 시점 검사).
+        return StockOverflowCount + sum(
+            1
+            for Category in warehouse.inventory
+            for item in warehouse.inventory[Category].values()
+            if item.present_stock > item.MaxStock
+        )
+
+    def IdleViolationCount(self, workers, in_progress, idle_time, now,
+                           IdleWorkerThreshold, IdleViolationCount) -> int:
+        #← .RuntimeVariables.IdleViolationCount
+        # 근무시간 중(호출부가 _is_work_time 으로 게이트) 워커가
+        # IdleWorkerThreshold 초과 유휴인 슬롯 수 누적. idle_time dict 는
+        # 워크스테이션별 유휴 시작 시각 추적 — 호출부 소유, 여기서 mutate.
+        for WorkstationId in workers:
+            idle_slots = (workers[WorkstationId]['worker_count']
+                          - in_progress.get(WorkstationId, 0))
+            if idle_slots > 0:
+                if WorkstationId not in idle_time:
+                    idle_time[WorkstationId] = now
+                elif now - idle_time[WorkstationId] > IdleWorkerThreshold:
+                    IdleViolationCount += idle_slots
+            else:
+                idle_time.pop(WorkstationId, None)
+        return IdleViolationCount
+
+    def EpisodeReturns(self, rewards, Gamma) -> list:
+        #← .RuntimeVariables.EpisodeReturns
+        # 에피소드 reward 들의 Gamma 할인 누적. Critic target / advantage
+        # baseline. G = reward + Gamma·G (역방향).
+        EpisodeReturns, G = [], 0.0
+        for reward in reversed(rewards):
+            G = reward + Gamma * G
+            EpisodeReturns.insert(0, G)
+        return EpisodeReturns
+
+    def Advantages(self, EpisodeReturns, values) -> list:
+        #← .RuntimeVariables.Advantages
+        # (EpisodeReturns − Critic value) 를 평균0/표준편차1 로 정규화.
+        # path_extractor 는 torch 비의존 — 순수 파이썬. (모집단 표준편차)
+        Advantages = [r - v for r, v in zip(EpisodeReturns, values)]
+        mean = sum(Advantages) / len(Advantages)
+        std = (sum((a - mean) ** 2 for a in Advantages) / len(Advantages)) ** 0.5
+        return [(a - mean) / (std + 1e-8) for a in Advantages]
+# endregion
+
+
+# region
+# ====================================================================
+# SubmodelElementList 계열
+# ====================================================================
 @dataclass(kw_only=True)
 class SubmodelElementList(SubmodelElement):
     """순서 의미 — index 로 접근하는 list."""
@@ -158,6 +356,38 @@ class SubmodelElementList(SubmodelElement):
 
 
 @dataclass(kw_only=True)
+class InputBOM(SubmodelElementList):
+    """공정 input BOM. SML of ReferenceElement 를 dict-like `{item_code: Quantity}` 로 노출.
+    item_code = ref 의 첫 키 (CD URL) 의 idShort 부분. Quantity = ref 의 Qualifier['Quantity']."""
+    _positions: ClassVar[List[Tuple[str, ...]]] = [('ManufacturingProcess', '*', '*', 'InputBOM')]
+
+    def items(self):
+        for ref in self.value:
+            yield _idShort_from_cd(ref.value[0]), ref.Qualifier['Quantity']
+    def keys(self):
+        for ref in self.value:
+            yield _idShort_from_cd(ref.value[0])
+    def __getitem__(self, item_code: str):
+        for ref in self.value:
+            if _idShort_from_cd(ref.value[0]) == item_code:
+                return ref.Qualifier['Quantity']
+        raise KeyError(item_code)
+    def __contains__(self, item_code: str):
+        return any(_idShort_from_cd(ref.value[0]) == item_code for ref in self.value)
+    def __iter__(self):
+        return self.keys()
+    def __len__(self):
+        return len(self.value)
+    def __bool__(self):
+        return bool(self.value)
+# endregion
+
+
+# region
+# ====================================================================
+# Property / Range
+# ====================================================================
+@dataclass(kw_only=True)
 class Property(SubmodelElement):
     value: Any = None
 
@@ -166,8 +396,13 @@ class Property(SubmodelElement):
 class Range(SubmodelElement):
     min: Any = None
     max: Any = None
+# endregion
 
 
+# region
+# ====================================================================
+# Entity / RelationshipElement
+# ====================================================================
 @dataclass(kw_only=True)
 class Entity(SubmodelElement):
     # region [구조]
@@ -189,59 +424,6 @@ class Entity(SubmodelElement):
 class RelationshipElement(SubmodelElement):
     first: List[semanticId] | SMEPath                            # 필수
     second: List[semanticId] | SMEPath                           # 필수
-
-
-@dataclass(kw_only=True)
-class ReferenceElement(SubmodelElement):
-    # region [구조]
-    value: List[semanticId] | SMEPath                            # 필수 — 가리키는 경로
-    # endregion
-
-    # region [로직: 파서]
-    @classmethod
-    def _parse_value(cls, raw_reference: dict | None):
-        """raw reference → value 필드 값. 기본은 List[semanticId].
-        SMEPath 가 필요한 자식 클래스는 override 해서 SMEPath._parse 사용. 내부 전용."""
-        return SMEPath._parse_as_list(raw_reference)
-    # endregion
-
-    # region [로직: target 위임]
-    def __getitem__(self, key):
-        """ref[i] / ref[idShort] → target[i] / target[idShort] (자기 자신을 target 처럼)."""
-        return self.target[key]
-    # endregion
-
-    # region [로직]
-    @property
-    def target(self):
-        """value 의 키들로 대상 SME 를 찾는다. 각 키는 외부 식별자(URL/IRDI) 또는 idShort.
-            - 식별자: 모든 AAS walk 해서 Submodel.id 또는 SME.semanticId 와 직접 일치 비교
-            - idShort: 현재 노드의 자식 dict lookup
-            - 첫 키 resolve 후 나머지를 path 로 시도 → path 깨지면 keys 전체를 list 로 간주
-        """
-        keys = self.value
-        if not keys:
-            return None
-        first = _resolve_identifier(keys[0])
-        if first is None:                                          # 대상 AAS 미로드 등 → 조기 None
-            return None
-        if len(keys) == 1:
-            return first
-        # keys[1:] 가 모두 식별자 — path 안에서 찾을 수 있으면 path, 아니면 list
-        if all(_is_identifier(key) for key in keys[1:]):
-            node = first
-            for key in keys[1:]:
-                found = _walk_for_match(node, key)
-                if found is None:
-                    return [_resolve_identifier(key) for key in keys]
-                node = found
-            return node
-        # 첫 식별자 + idShort 들 (단일 path)
-        node = first
-        for key in keys[1:]:
-            node = node.value[key]
-        return node
-    # endregion
 # endregion
 
 
@@ -297,118 +479,71 @@ def _walk_for_match(node, target_identifier: str):
 
 # region
 # ====================================================================
-# 도메인 SME 클래스 — 위치 기반 매칭 (`_DOMAIN_BY_POSITION`)
-# 각 클래스는 트리의 특정 위치에서 인스턴스화. 자기 속성의 타입을 @property 로 명시.
-# 자유롭게 추가/제거 가능 — 위치 매칭 안 되면 generic SME 로 fallback.
+# ReferenceElement 계열 — 베이스 + 도메인 ref 들 (target 타입 명확화로 disambiguation)
 # ====================================================================
-
 @dataclass(kw_only=True)
-class ManufacturingProcess(Submodel):
-    """제품 AAS 의 ManufacturingProcess Submodel."""
+class ReferenceElement(SubmodelElement):
+    # region [구조]
+    value: List[semanticId] | SMEPath                            # 필수 — 가리키는 경로
+    # endregion
+
+    # region [로직: 파서]
+    @classmethod
+    def _parse_value(cls, raw_reference: dict | None):
+        """raw reference → value 필드 값. 기본은 List[semanticId].
+        SMEPath 가 필요한 자식 클래스는 override 해서 SMEPath._parse 사용. 내부 전용."""
+        return SMEPath._parse_as_list(raw_reference)
+    # endregion
+
+    # region [로직: target 위임]
+    def __getitem__(self, key):
+        """ref[i] / ref[idShort] → target[i] / target[idShort] (자기 자신을 target 처럼)."""
+        return self.target[key]
+    # endregion
+
+    # region [로직]
     @property
-    def groups(self) -> Dict[str, 'ProcessGroup']:
-        """ProcessType 같은 비-그룹 자식 제외."""
-        return {k: v for k, v in self.value.items() if isinstance(v, ProcessGroup)}
+    def target(self):
+        """value 의 키들로 대상 SME 를 찾는다. 각 키는 외부 식별자(URL/IRDI) 또는 idShort.
+            - 식별자: 모든 AAS walk 해서 Submodel.id 또는 SME.semanticId 와 직접 일치 비교
+            - idShort: 현재 노드의 자식 dict lookup
+            - 첫 키 resolve 후 나머지를 path 로 시도 → path 깨지면 keys 전체를 list 로 간주
+        """
+        keys = self.value
+        if not keys:
+            return None
+        first = _resolve_identifier(keys[0])
+        if first is None:                                          # 대상 AAS 미로드 등 → 조기 None
+            return None
+        if len(keys) == 1:
+            return first
+        # keys[1:] 가 모두 식별자 — path 안에서 찾을 수 있으면 path, 아니면 list
+        if all(_is_identifier(key) for key in keys[1:]):
+            node = first
+            for key in keys[1:]:
+                found = _walk_for_match(node, key)
+                if found is None:
+                    return [_resolve_identifier(key) for key in keys]
+                node = found
+            return node
+        # 첫 식별자 + idShort 들 (단일 path)
+        node = first
+        for key in keys[1:]:
+            node = node.value[key]
+        return node
+    # endregion
 
-    @property
-    def model_id(self) -> str:
-        """이 MP 가 속한 ProductAAS 의 idShort (registry walk)."""
-        for entry in _aas_registry.values():
-            aas_list = entry if isinstance(entry, list) else [entry]
-            for aas in aas_list:
-                if self in aas.submodels.values():
-                    return aas.idShort
-        return ''
-
-
-@dataclass(kw_only=True)
-class ProcessGroup(SubmodelElementCollection):
-    """공정 그룹 — `value: Dict[str, ProcessNode]`."""
-
-
-@dataclass(kw_only=True)
-class ProcessNode(SubmodelElementCollection):
-    """공정 노드. 자식 SME 들은 idShort 로 접근. 자식 중 ReferenceElement 면 자동 deref.
-    자식 타입:
-        CycleTimeSec  → Property (int)
-        DefectRate    → Property (float)
-        RatedPowerKw  → Property (float)
-        DepPrev       → Property (str, ';' 구분으로 join)
-        DepType       → Property (str: 'SEQUENCE'|'JOIN'|'FORK')
-        InputBOM      → InputBOM (dict-like {item_code: Quantity})
-    """
-    def _resolve(self, name: str):
-        child = self.value[name]
-        return child.target if isinstance(child, ReferenceElement) else child
-
-    @property
-    def CycleTimeSec(self) -> Property:  return self._resolve('CycleTimeSec')
-    @property
-    def DefectRate(self)   -> Property:  return self._resolve('DefectRate')
-    @property
-    def RatedPowerKw(self) -> Property:  return self._resolve('RatedPowerKw')
-    @property
-    def DepPrev(self)      -> Property:  return self._resolve('DepPrev')
-    @property
-    def DepType(self)      -> Property:  return self._resolve('DepType')
-    @property
-    def InputBOM(self)     -> 'InputBOM':
-        """InputBOM 없는 노드도 있으므로 None 허용 (시뮬은 `if not node.InputBOM` 검사)."""
-        return self._resolve('InputBOM') if 'InputBOM' in self.value else None
-
-
-@dataclass(kw_only=True)
-class InputBOM(SubmodelElementList):
-    """공정 input BOM. SML of ReferenceElement 를 dict-like `{item_code: Quantity}` 로 노출.
-    item_code = ref 의 첫 키 (CD URL) 의 idShort 부분. Quantity = ref 의 Qualifier['Quantity']."""
-    def items(self):
-        for ref in self.value:
-            yield _idShort_from_cd(ref.value[0]), ref.Qualifier['Quantity']
-    def keys(self):
-        for ref in self.value:
-            yield _idShort_from_cd(ref.value[0])
-    def __getitem__(self, item_code: str):
-        for ref in self.value:
-            if _idShort_from_cd(ref.value[0]) == item_code:
-                return ref.Qualifier['Quantity']
-        raise KeyError(item_code)
-    def __contains__(self, item_code: str):
-        return any(_idShort_from_cd(ref.value[0]) == item_code for ref in self.value)
-    def __iter__(self):
-        return self.keys()
-    def __len__(self):
-        return len(self.value)
-    def __bool__(self):
-        return bool(self.value)
-
-
-@dataclass(kw_only=True)
-class BOMCategory(SubmodelElementCollection):
-    """BOMCategory 컨테이너 — `value: Dict[Category_idShort, BOMCategoryEntry]`."""
-
-
-@dataclass(kw_only=True)
-class BOMCategoryEntry(SubmodelElementCollection):
-    """단일 BOM 카테고리. 자식 Property 값을 직접 노출 (Property wrapper 제거).
-        MinStock   → int
-        MaxStock   → int
-        OrderRatio → float
-    """
-    @property
-    def MinStock(self)   -> int:   return self.value['MinStock'].value
-    @property
-    def MaxStock(self)   -> int:   return self.value['MaxStock'].value
-    @property
-    def OrderRatio(self) -> float: return self.value['OrderRatio'].value
-
-
-# ---- 도메인 ReferenceElement 들 (target 타입 명확화로 disambiguation) ----
 
 @dataclass(kw_only=True)
 class ProcessNodePropertyRef(ReferenceElement):
     """PSM Node.SIM_MODEL_*.<proc>.{CycleTimeSec/DefectRate/RatedPowerKw}.
     value: SMEPath ([SM URL, ProcessGroup_idShort, ProcessNode_idShort, Property_idShort]).
     target: MODEL_N.MP 안의 실제 Property."""
+    _positions: ClassVar[List[Tuple[str, ...]]] = [
+        ('SimulationModels', 'SimulationModel', 'Node', '*', '*', 'CycleTimeSec'),
+        ('SimulationModels', 'SimulationModel', 'Node', '*', '*', 'DefectRate'),
+        ('SimulationModels', 'SimulationModel', 'Node', '*', '*', 'RatedPowerKw'),
+    ]
     value: SMEPath
 
     @classmethod
@@ -428,6 +563,12 @@ class ProcessNodeListRef(ReferenceElement):
     """PSM Action.{IndependentSequence/DependentSequence/DependentJoin/AssignedProcessGroups}.*.
     value: List[semanticId] (ProcessNode CD URL 들).
     target: ProcessNode 들의 list (각 CD URL semanticId 매칭, ProcessNode 타입 필터)."""
+    _positions: ClassVar[List[Tuple[str, ...]]] = [
+        ('SimulationModels', 'SimulationModel', 'Action', 'IndependentSequence', '*'),
+        ('SimulationModels', 'SimulationModel', 'Action', 'DependentSequence', '*'),
+        ('SimulationModels', 'SimulationModel', 'Action', 'DependentJoin', '*'),
+        ('SimulationModels', 'SimulationModel', 'Action', 'AssignedProcessGroups', '*'),
+    ]
     value: List[semanticId]
     @property
     def target(self) -> List[ProcessNode]:
@@ -439,6 +580,9 @@ class AssignedProcessGroupsRef(ReferenceElement):
     """WWM 의 WorkstationInformation.*.AssignedProcessGroups.*.
     value: List[semanticId] — 각 URL 은 ProcessNode CD URL.
     target: 매칭되는 ProcessNode 의 list. 매칭 안 되는 URL (의도된 누락 케이스 OQC/RMA 등) 은 skip."""
+    _positions: ClassVar[List[Tuple[str, ...]]] = [
+        ('WorkstationWorkerMatchingData', 'GeneralWorkstationData', 'WorkstationInformation', '*', 'AssignedProcessGroups', '*'),
+    ]
     value: List[semanticId]
     @property
     def target(self) -> List[ProcessNode]:
@@ -451,6 +595,9 @@ class MPSubmodelListRef(ReferenceElement):
     """PSM Warehouse.InputBOM.
     value: List[semanticId] (MP Submodel URL 들).
     target: ManufacturingProcess Submodel 들의 list."""
+    _positions: ClassVar[List[Tuple[str, ...]]] = [
+        ('SimulationModels', 'SimulationModel', 'Warehouse', 'InputBOM'),
+    ]
     value: List[semanticId]
     @property
     def target(self) -> List[ManufacturingProcess]:
@@ -462,6 +609,11 @@ class BOMCategoryRef(ReferenceElement):
     """PSM Warehouse.{MinStock/MaxStock/OrderRatio}.
     value: List[semanticId] (BOMCategory CD URL, 단일).
     target: BOMCategory SMC."""
+    _positions: ClassVar[List[Tuple[str, ...]]] = [
+        ('SimulationModels', 'SimulationModel', 'Warehouse', 'MinStock'),
+        ('SimulationModels', 'SimulationModel', 'Warehouse', 'MaxStock'),
+        ('SimulationModels', 'SimulationModel', 'Warehouse', 'OrderRatio'),
+    ]
     value: List[semanticId]
     @property
     def target(self) -> BOMCategory:
@@ -473,6 +625,11 @@ class WWMPropertyRef(ReferenceElement):
     """PSM DefaultParameters.{WorkStartTime/WorkEndTime/BreakDurationMin}.
     value: SMEPath ([WWM submodel id URL, Property CD URL]).
     target: WWM 안의 Property (semanticId 가 두 번째 키와 매칭)."""
+    _positions: ClassVar[List[Tuple[str, ...]]] = [
+        ('SimulationModels', 'SimulationModel', 'DefaultParameters', 'WorkStartTime'),
+        ('SimulationModels', 'SimulationModel', 'DefaultParameters', 'WorkEndTime'),
+        ('SimulationModels', 'SimulationModel', 'DefaultParameters', 'BreakDurationMin'),
+    ]
     value: SMEPath
 
     @classmethod
@@ -482,40 +639,13 @@ class WWMPropertyRef(ReferenceElement):
     def target(self) -> Property:
         wwm_submodel = _find_submodel_by_id(self.value[0])
         return _walk_for_match(wwm_submodel, self.value[1])
+# endregion
 
 
-# 위치 패턴 → 도메인 클래스 매핑. 더 구체적 (wildcard 적은) 패턴이 먼저.
-_DOMAIN_BY_POSITION = [
-    # SME 구조 (data source AAS 들)
-    (('ManufacturingProcess',),                                       ManufacturingProcess),
-    (('ManufacturingProcess', 'ProcessType'),                         SubmodelElementCollection),   # 예외: 그룹 아님
-    (('ManufacturingProcess', '*'),                                   ProcessGroup),
-    (('ManufacturingProcess', '*', '*'),                              ProcessNode),
-    (('ManufacturingProcess', '*', '*', 'InputBOM'),                  InputBOM),
-    (('HierarchicalStructures', 'BOMCategory'),                       BOMCategory),
-    (('HierarchicalStructures', 'BOMCategory', '*'),                  BOMCategoryEntry),
-
-    # PSM 안의 도메인 ReferenceElement 들 (각자 target 타입 고정)
-    (('SimulationModels', 'SimulationModel', 'Node', '*', '*', 'CycleTimeSec'),      ProcessNodePropertyRef),
-    (('SimulationModels', 'SimulationModel', 'Node', '*', '*', 'DefectRate'),        ProcessNodePropertyRef),
-    (('SimulationModels', 'SimulationModel', 'Node', '*', '*', 'RatedPowerKw'),      ProcessNodePropertyRef),
-    (('SimulationModels', 'SimulationModel', 'Action', 'IndependentSequence', '*'),  ProcessNodeListRef),
-    (('SimulationModels', 'SimulationModel', 'Action', 'DependentSequence', '*'),    ProcessNodeListRef),
-    (('SimulationModels', 'SimulationModel', 'Action', 'DependentJoin', '*'),        ProcessNodeListRef),
-    (('SimulationModels', 'SimulationModel', 'Action', 'AssignedProcessGroups', '*'),ProcessNodeListRef),
-    (('WorkstationWorkerMatchingData', 'GeneralWorkstationData', 'WorkstationInformation', '*', 'AssignedProcessGroups', '*'), AssignedProcessGroupsRef),
-    (('SimulationModels', 'SimulationModel', 'Warehouse', 'InputBOM'),               MPSubmodelListRef),
-    (('SimulationModels', 'SimulationModel', 'Warehouse', 'MinStock'),               BOMCategoryRef),
-    (('SimulationModels', 'SimulationModel', 'Warehouse', 'MaxStock'),               BOMCategoryRef),
-    (('SimulationModels', 'SimulationModel', 'Warehouse', 'OrderRatio'),             BOMCategoryRef),
-    (('SimulationModels', 'SimulationModel', 'DefaultParameters', 'WorkStartTime'),  WWMPropertyRef),
-    (('SimulationModels', 'SimulationModel', 'DefaultParameters', 'WorkEndTime'),    WWMPropertyRef),
-    (('SimulationModels', 'SimulationModel', 'DefaultParameters', 'BreakDurationMin'),WWMPropertyRef),
-]
-
-
-# ---- 도메인 ref 용 타입 필터 lookup 헬퍼들 ----
-
+# region
+# ====================================================================
+# 도메인 ref 용 타입 필터 lookup 헬퍼들
+# ====================================================================
 def _find_submodel_by_id(url: str):
     """Submodel.id 가 url 과 일치하는 Submodel 인스턴스 반환. 없으면 None."""
     for entry in _aas_registry.values():
@@ -757,14 +887,36 @@ def _build_sme(raw_sme: dict, position: tuple) -> SubmodelElement:
 
 
 def _match_domain(position: tuple):
-    """_DOMAIN_BY_POSITION 에서 position 과 일치하는 첫 패턴의 도메인 클래스 반환.
-    `*` 는 wildcard. 더 구체적인 패턴이 먼저 와야 함."""
-    for pattern, cls in _DOMAIN_BY_POSITION:
-        if len(pattern) != len(position):
-            continue
-        if all(p == '*' or p == s for s, p in zip(position, pattern)):
-            return cls
-    return None
+    """SubmodelElement 의 모든 (간접) 서브클래스에서 `_positions` ClassVar 검사.
+    매칭되는 클래스 중 가장 구체적인(wildcard 적은) 패턴의 클래스 반환.
+    `_positions_excluded` 매칭이 있으면 해당 위치는 generic SME 로 fallback (None 반환).
+    `*` 는 wildcard."""
+    best_cls = None
+    best_specificity = -1
+    for cls in _walk_subclasses(SubmodelElement):
+        for pattern in getattr(cls, '_positions_excluded', ()):
+            if _position_matches(position, pattern):
+                return None
+        for pattern in getattr(cls, '_positions', ()):
+            if _position_matches(position, pattern):
+                specificity = sum(1 for slot in pattern if slot != '*')
+                if specificity > best_specificity:
+                    best_cls = cls
+                    best_specificity = specificity
+    return best_cls
+
+
+def _position_matches(position: tuple, pattern: tuple) -> bool:
+    if len(pattern) != len(position):
+        return False
+    return all(p == '*' or p == s for s, p in zip(position, pattern))
+
+
+def _walk_subclasses(root: type):
+    """root 의 모든 (간접) 서브클래스 yield."""
+    for sub in root.__subclasses__():
+        yield sub
+        yield from _walk_subclasses(sub)
 
 
 def _cast_value(raw_value, valueType: str | None):

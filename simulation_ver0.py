@@ -1,3 +1,15 @@
+# -*- coding: utf-8 -*-
+from __future__ import annotations
+
+from dataclasses import dataclass
+from typing import Dict
+
+import simpy
+import torch
+from torch_geometric.nn import GCNConv
+from torch_geometric.data import Data
+
+
 @dataclass
 class GraphNode:
     ProcessCode  : str      #← ManufacturingProcess.groups.{GroupIdShort}.processes.{ProcessCode}
@@ -7,15 +19,17 @@ class GraphNode:
     DefectRate   : float    #← ProcessNode.DefectRate.value
     RatedPowerKw : float    #← ProcessNode.RatedPowerKw.value
     InputBOM     : dict     #← ProcessNode.InputBOM
+# DepPrev/DepType 는 노드에 캐싱하지 않는다. 의존 관계의 단일 표현은 edges
+# (이전 공정 → 다음 공정 + type). 이전 공정이 필요하면 _predecessors 로 검색.
 
 @dataclass
 class GraphEdge:
-    DepPrev      : str
-    ProcessCode  : str
-    DepType      : str
-# DepPrev=VD7_40,   ProcessCode=VD7_40_1,  DepType=JOIN
-# DepPrev=VD7_20_1, ProcessCode=VD7_40_1,  DepType=JOIN
-# DepPrev=VD7_10,   ProcessCode=VD7_10_1,  DepType=SEQUENCE
+    ProcessCode  : str      #← ProcessNode.{ProcessCode}            (다음 공정)
+    DepType      : str      #← ProcessNode.DepType.value   ('SEQUENCE' | 'JOIN')
+# edges 의 dict 키가 이전 공정. 키(이전 공정) → [GraphEdge(다음 공정, type)]
+# VD7_40   → [GraphEdge(VD7_40_1, JOIN)]
+# VD7_20_1 → [GraphEdge(VD7_40_1, JOIN)]
+# VD7_10   → [GraphEdge(VD7_10_1, SEQUENCE)]
 
 @dataclass
 class KnowledgeGraph:
@@ -66,23 +80,38 @@ class KnowledgeGraph:
             if item_code in warehouse.inventory[Category]
         )
     
+    def _predecessors(self, ProcessCode: str) -> list:
+        # edges(이전 공정 → 다음 공정) 역방향 검색으로 이전 공정 목록 복원.
+        return [
+            DepPrev
+            for DepPrev, GraphEdges in self.edges.items()
+            for GraphEdge in GraphEdges
+            if GraphEdge.ProcessCode == ProcessCode
+        ]
+
     def ready_queue(self, IndependentSequence, DependentSequence, DependentJoin,
                     completed: set, warehouse: Warehouse) -> list:
         ready = []
 
         for ProcessCode in IndependentSequence:
+            if ProcessCode in completed:
+                continue
             if self._bom_satisfied(ProcessCode, warehouse):
                 ready.append(ProcessCode)
 
         for ProcessCode in DependentSequence:
-            node = self.nodes[ProcessCode]
-            if node.DepPrev.value in completed:
+            if ProcessCode in completed:
+                continue
+            DepPrev_list = self._predecessors(ProcessCode)
+            if any(d in completed for d in DepPrev_list):
                 if self._bom_satisfied(ProcessCode, warehouse):
                     ready.append(ProcessCode)
 
         for ProcessCode in DependentJoin:
-            node = self.nodes[ProcessCode]
-            if all(dep in completed for dep in node.DepPrev.value.split(';')):
+            if ProcessCode in completed:
+                continue
+            DepPrev_list = self._predecessors(ProcessCode)
+            if all(d in completed for d in DepPrev_list):
                 if self._bom_satisfied(ProcessCode, warehouse):
                     ready.append(ProcessCode)
 
@@ -157,20 +186,6 @@ class Warehouse:
                 if item.present_stock <= item.MinStock * item.OrderRatio:
                     item.present_stock += item.MaxStock * item.OrderRatio
 
-def process_job(env, ProcessCode, WorkstationId, KnowledgeGraph, warehouse,
-                completed, in_progress, ReplenishLeadDay, EpisodeEnergyKwh):
-    in_progress[WorkstationId] = in_progress.get(WorkstationId, 0) + 1
-    node = KnowledgeGraph.nodes[ProcessCode]
-    yield env.timeout(node.CycleTimeSec)
-    EpisodeEnergyKwh[0] += (node.CycleTimeSec * node.RatedPowerKw) / 3600
-    if node.InputBOM:
-        if warehouse.consume(node.InputBOM):
-            env.process(warehouse.replenish(env,ReplenishLeadDay))
-    completed.add(ProcessCode)
-    in_progress[WorkstationId] -= 1
-    if ProcessCode not in KnowledgeGraph.edges:
-        completed.clear()
-
 class GNNEncoder(torch.nn.Module):
     def __init__(self, NodeFeatureDim, HiddenDim, OutputDim, NumLayers):
         super().__init__()
@@ -192,29 +207,29 @@ class GNNEncoder(torch.nn.Module):
 class Actor(torch.nn.Module):
     def __init__(self, GNNEmbeddingDim, HiddenDim, NumLayers):
         super().__init__()
-        self.HiddenDim = HiddenDim
-        self.layers    = torch.nn.ModuleList()
+        self.layers     = torch.nn.ModuleList()
         self.layers.append(torch.nn.Linear(GNNEmbeddingDim, HiddenDim))
         for _ in range(NumLayers - 1):
             self.layers.append(torch.nn.Linear(HiddenDim, HiddenDim))
+        self.score_head = torch.nn.Linear(HiddenDim, 1)
 
-    def forward(self, x, ActionSpaceDim):
+    def forward(self, x):                       # x: (N_ready, GNNEmbeddingDim)
         for i, layer in enumerate(self.layers):
             x = layer(x)
             if i < len(self.layers) - 1:
                 x = torch.nn.functional.relu(x)
         x = torch.nn.functional.relu(x)
-        logits = torch.nn.Linear(self.HiddenDim, ActionSpaceDim)(x)
-        return torch.nn.functional.softmax(logits, dim=-1)
+        logits = self.score_head(x).squeeze(-1)             # (N_ready,)
+        return torch.nn.functional.softmax(logits, dim=-1)  # ready 위 분포
     
 class Critic(torch.nn.Module):
     def __init__(self, GNNEmbeddingDim, HiddenDim, NumLayers):
         super().__init__()
-        self.HiddenDim    = HiddenDim
         self.layers       = torch.nn.ModuleList()
         self.layers.append(torch.nn.Linear(GNNEmbeddingDim, HiddenDim))
         for _ in range(NumLayers - 1):
             self.layers.append(torch.nn.Linear(HiddenDim, HiddenDim))
+        self.value_head   = torch.nn.Linear(HiddenDim, 1)
 
     def forward(self, x):
         for i, layer in enumerate(self.layers):
@@ -222,13 +237,14 @@ class Critic(torch.nn.Module):
             if i < len(self.layers) - 1:
                 x = torch.nn.functional.relu(x)
         x         = torch.nn.functional.relu(x)
-        value      = torch.nn.Linear(self.HiddenDim, 1)(x)
+        value      = self.value_head(x)
         return value
     
 class PPOAgent(torch.nn.Module):
     def __init__(self, NodeFeatureDim, HiddenDim, OutputDim, NumLayers,
                  GNNEmbeddingDim, LearningRate, ClipEpsilon, Gamma,
-                 GaeLambda, EntropyCoef, ValueLossCoef, UpdateEpochs, BatchSize):
+                 GaeLambda, EntropyCoef, ValueLossCoef, UpdateEpochs, BatchSize,
+                 RuntimeVariables):
         super().__init__()
         self.GNNEncoder      = GNNEncoder(NodeFeatureDim, HiddenDim, OutputDim, NumLayers)
         self.Actor           = Actor(GNNEmbeddingDim, HiddenDim, NumLayers)
@@ -237,22 +253,23 @@ class PPOAgent(torch.nn.Module):
         self.Gamma           = Gamma
         self.GaeLambda       = GaeLambda
         self.EntropyCoef     = EntropyCoef
+        self.ValueLossCoef   = ValueLossCoef
         self.UpdateEpochs    = UpdateEpochs
         self.BatchSize       = BatchSize
+        self.RuntimeVariables = RuntimeVariables  #← path_extractor RuntimeVariables (AAS 명시 연산)
         self.optimizer       = torch.optim.Adam(self.parameters(), lr=LearningRate)
 
     def select_action(self, observation, KnowledgeGraph):
         data, node_list      = KnowledgeGraph.to_pyg_data()
         embeddings           = self.GNNEncoder(data)
         ready                = observation['ready']
-        ActionSpaceDim       = len(ready)
 
         ready_embeddings     = torch.stack([
             embeddings[node_list.index(ProcessCode)]
             for ProcessCode in ready
         ])
 
-        action_probs         = self.Actor(ready_embeddings.mean(dim=0, keepdim=True), ActionSpaceDim)
+        action_probs         = self.Actor(ready_embeddings)
         dist                 = torch.distributions.Categorical(action_probs)  #확률 분포에서 action을 샘플링하는 PyTorch 분포 클래스
         action_idx           = dist.sample()
         log_prob             = dist.log_prob(action_idx)   #PPO 학습 시 정책 비율 계산
@@ -264,17 +281,7 @@ class PPOAgent(torch.nn.Module):
         )
         return (ProcessCode, WorkstationId), log_prob
     
-    def compute_loss(self, observations, actions, log_probs_old, rewards, values): #AAS화 예정
-        EpisodeReturns       = [] #Simulation.RuntimeVariables (추가)
-        Advantages           = [] #Simulation.RuntimeVariables (추가)
-        G                    = 0 #누적 할인 보상 G = reward + Gamma * G
-        for reward in reversed(rewards):
-            G                = reward + self.Gamma * G
-            EpisodeReturns.insert(0, globals)
-        Episodereturns       = torch.tensor(Episodereturns, dtype=torch.float)
-        Advantages           = Episodereturns - torch.tensor(values, dtype=torch.float)
-        Advantages           = (Advantages - Advantages.mean()) / (Advantages.std() + 1e-8)
-
+    def compute_loss(self, observations, actions, log_probs_old, Advantages, EpisodeReturns): #AAS화 예정
         log_probs_new        = []
         entropy              = []
         value_preds          = []
@@ -283,14 +290,14 @@ class PPOAgent(torch.nn.Module):
             data, node_list   = observation['KnowledgeGraph'].to_pyg_data()
             embeddings        = self.GNNEncoder(data)
             ready             = observation['ready']
-            ActionSpaceDim    = len(ready)
             ready_embeddings  = torch.stack([
                 embeddings[node_list.index(ProcessCode)]
                 for ProcessCode in ready
             ])
-            action_probs      = self.Actor(ready_embeddings.mean(dim=0, keepdim=True), ActionSpaceDim)
+            action_probs      = self.Actor(ready_embeddings)
             dist              = torch.distributions.Categorical(action_probs)
-            log_probs_new.append(dist.log_prob(torch.tensor(action)))
+            action_idx        = ready.index(action[0])   # 저장 action=(ProcessCode,WS) → 샘플 당시 ready 내 위치 복원
+            log_probs_new.append(dist.log_prob(torch.tensor(action_idx)))
             entropy.append(dist.entropy())
             value_preds.append(self.Critic(ready_embeddings.mean(dim=0, keepdim=True)))
         
@@ -300,17 +307,22 @@ class PPOAgent(torch.nn.Module):
 
         ratio               = torch.exp(log_probs_new - log_probs_old)
         actor_loss          = -torch.min(
-                                  ratio * advantages,
+                                  ratio * Advantages,
                                   torch.clamp(ratio, 1 - self.ClipEpsilon, 1 + self.ClipEpsilon) * Advantages
                               ).mean()
-        critic_loss         = torch.nn.functional.mse_loss(value_preds, Episodereturns)
+        critic_loss         = torch.nn.functional.mse_loss(value_preds, EpisodeReturns)
         entropy_loss        = entropy.mean()
 
         loss                = actor_loss + self.ValueLossCoef * critic_loss - self.EntropyCoef * entropy_loss
         return loss
     
     def update(self, observations, actions, log_probs_old, rewards, values):
-        log_probs_old = torch.tensor(log_probs_old, dtype=torch.float)
+        log_probs_old        = torch.tensor(log_probs_old, dtype=torch.float)
+        returns_list         = self.RuntimeVariables.EpisodeReturns(rewards, self.Gamma)
+        Advantages           = torch.tensor(
+                                   self.RuntimeVariables.Advantages(returns_list, values),
+                                   dtype=torch.float)                  # rollout 1회 정규화
+        EpisodeReturns       = torch.tensor(returns_list, dtype=torch.float)
         for _ in range(self.UpdateEpochs):
             indices = torch.randperm(len(observations))  #매 epoch마다 데이터 순서 무작위로 섞음
             for start in range(0, len(observations), self.BatchSize):
@@ -318,28 +330,29 @@ class PPOAgent(torch.nn.Module):
                 batch_obs         = [observations[i] for i in batch_idx]
                 batch_actions     = [actions[i]      for i in batch_idx]
                 batch_log_probs   = log_probs_old[batch_idx]
-                batch_rewards     = [rewards[i]      for i in batch_idx]
-                batch_values      = [values[i]       for i in batch_idx]
+                batch_adv         = Advantages[batch_idx]
+                batch_ret         = EpisodeReturns[batch_idx]
 
                 loss  = self.compute_loss(
                     batch_obs,
                     batch_actions,
                     batch_log_probs,
-                    batch_rewards,
-                    batch_values,
+                    batch_adv,
+                    batch_ret,
                 )
                 self.optimizer.zero_grad()
                 loss.backward()
+                torch.nn.utils.clip_grad_norm_(self.parameters(), 0.5)
                 self.optimizer.step()
 
 #========시뮬레이션 환경========-
-class CproSimEnv(gym.Env):
+class CproSimEnv:
     def __init__(self, KnowledgeGraph, warehouse, workers,
                  IndependentSequence, DependentSequence, DependentJoin,
                  RewardWeights, ReplenishLeadDay, target_qty, MaxEpisodes,
                  WarehouseManagedBOM, BOMCategory,
                  WorkStartTime, WorkEndTime, break_start_sec, break_end_sec,
-                 IdleWorkerThreshold):
+                 IdleWorkerThreshold, RuntimeVariables):
         self.KnowledgeGraph       = KnowledgeGraph
         self.warehouse            = warehouse
         self.workers              = workers
@@ -357,21 +370,29 @@ class CproSimEnv(gym.Env):
         self.break_start_sec      = break_start_sec  # int(min.split(':')[0]) * 3600 + int(min.split(':')[1]) * 60
         self.break_end_sec        = break_end_sec    # int(max.split(':')[0]) * 3600 + int(max.split(':')[1]) * 60
         self.IdleWorkerThreshold  = IdleWorkerThreshold
+        self.RuntimeVariables     = RuntimeVariables  #← path_extractor RuntimeVariables (AAS 명시 연산)
 
     def reset(self):
         self.env                  = simpy.Environment()
+        #========RuntimeVariables (← SimulationModel.RuntimeVariables)========
+        # AAS 에 value=None 으로 정의만 있는 동적 상태. 연산은 self.RuntimeVariables
+        # (path_extractor) 가 단일 구현. 여기선 에피소드 초기값만 둔다.
+        self.CycleCompleted       = False   #← .CycleCompleted
+        self.Throughput           = 0       #← .Throughput
+        self.EpisodeEnergyKwh     = 0.0     #← .EpisodeEnergyKwh
+        self.StockShortageCount   = 0       #← .StockShortageCount
+        self.StockOverflowCount   = 0       #← .StockOverflowCount
+        self.IdleViolationCount   = 0       #← .IdleViolationCount
+        #----generic 헬퍼 (AAS 외 — 순수 코드용)----
         self.completed            = set()
         self.in_progress          = {}
-        self.EpisodeEnergyKwh     = [0.0]
-        self.Throughput           = 0
-        self.StockShortageCount   = 0
-        self.StockOverflowCount   = 0
         self.idle_time            = {}
-        self.IdleViolationCount   = 0
         self.warehouse            = Warehouse.build(
                                       self.WarehouseManagedBOM,
                                       self.BOMCategory
                                     )
+        self.MaxEpisodeEnergyKwh  = self.RuntimeVariables.MaxEpisodeEnergyKwh(self.KnowledgeGraph)
+        #← .MaxEpisodeEnergyKwh = Σ(CycleTimeSec·RatedPowerKw)/3600 over all GraphNode (W2_Energy 분모)
         ready                     = self.KnowledgeGraph.ready_queue(
                                       self.IndependentSequence,
                                       self.DependentSequence,
@@ -379,58 +400,50 @@ class CproSimEnv(gym.Env):
                                       self.completed,
                                       self.warehouse
                                     )
-        return ready
+        return {'ready': ready, 'KnowledgeGraph': self.KnowledgeGraph}
     
     def _is_work_time(self) -> bool:
         seconds_in_day  = self.env.now % 86400
         return (self.WorkStartTime <= seconds_in_day < self.WorkEndTime and
                 not (self.break_start_sec <= seconds_in_day < self.break_end_sec))
-    
+
+    def process_job(self, ProcessCode, WorkstationId):
+        # step() 에서만 env.process 로 스케줄되는 simpy 코루틴. yield 가 있어
+        # 별도 제너레이터로 남고, CproSimEnv 가 simpy 보유 컨트롤러라 메서드.
+        self.in_progress[WorkstationId] = self.in_progress.get(WorkstationId, 0) + 1
+        node = self.KnowledgeGraph.nodes[ProcessCode]
+        yield self.env.timeout(node.CycleTimeSec)
+        self.EpisodeEnergyKwh = self.RuntimeVariables.EpisodeEnergyKwh(node, self.EpisodeEnergyKwh)
+        if node.InputBOM:
+            if self.warehouse.consume(node.InputBOM):
+                self.env.process(self.warehouse.replenish(self.env, self.ReplenishLeadDay))
+        self.completed.add(ProcessCode)
+        self.in_progress[WorkstationId] -= 1
+        self.CycleCompleted = self.RuntimeVariables.CycleCompleted(ProcessCode, self.KnowledgeGraph)
+        if self.CycleCompleted:                      # terminal 노드 완료 → completed 리셋
+            self.completed.clear()
+
     def step(self, action):
         ProcessCode, WorkstationId  = action
-        self.env.process(
-            process_job(
-                self.env,
-                ProcessCode,
-                WorkstationId,
-                self.KnowledgeGraph,
-                self.warehouse,
-                self.completed,
-                self.in_progress,
-                self.ReplenishLeadDay,
-                self.EpisodeEnergyKwh,
-            )
-        )
+        self.env.process(self.process_job(ProcessCode, WorkstationId))
         self.env.run(until=self.env.now + self.KnowledgeGraph.nodes[ProcessCode].CycleTimeSec)
-        if (ProcessCode in self.KnowledgeGraph.nodes and ProcessCode not in self.KnowledgeGraph.edges):
-            self.Throughput += 1
 
-        for Category in self.warehouse.inventory:
-            for item in self.warehouse.inventory[Category].values():
-                if item.present_stock < item.MinStock:
-                    self.StockShortageCount += 1
-                if item.present_stock > item.MaxStock:
-                    self.StockOverflowCount += 1
-
+        rv = self.RuntimeVariables
+        self.Throughput         = rv.Throughput(ProcessCode, self.KnowledgeGraph, self.Throughput)
+        self.StockShortageCount = rv.StockShortageCount(self.warehouse, self.StockShortageCount)
+        self.StockOverflowCount = rv.StockOverflowCount(self.warehouse, self.StockOverflowCount)
         if self._is_work_time():
-            for WorkstationId in self.workers:
-                idle_slots = (self.workers[WorkstationId]['worker_count'] - 
-                              self.in_progress.get(WorkstationId, 0))
-                if idle_slots > 0:
-                    if WorkstationId not in self.idle_time:
-                        self.idle_time[WorkstationId] = self.env.now
-                    elif (self.env.now - self.idle_time[WorkstationId]
-                          > self.IdleWorkerThreshold):
-                        self.IdleViolationCount += idle_slots
-                else:
-                    self.idle_time.pop(WorkstationId, None)
+            self.IdleViolationCount = rv.IdleViolationCount(
+                self.workers, self.in_progress, self.idle_time,
+                self.env.now, self.IdleWorkerThreshold, self.IdleViolationCount,
+            )
 
         work_day_sec = self.WorkEndTime - self.WorkStartTime - (self.break_end_sec - self.break_start_sec)
         step_count = max(self.env.now / (work_day_sec / self.target_qty), 1)
 
         reward = (
             - (self.env.now / work_day_sec)                         * self.RewardWeights['W1_TimeElapsed']
-            - self.EpisodeEnergyKwh[0] / self.MaxEpisodeEnergyKwh   * self.RewardWeights['W2_Energy']
+            - self.EpisodeEnergyKwh / self.MaxEpisodeEnergyKwh      * self.RewardWeights['W2_Energy']
             - self.StockOverflowCount  / step_count                 * self.RewardWeights['W3_StockOverflow']
             - self.StockShortageCount  / step_count                 * self.RewardWeights['W4_StockShortage']
             + (self.Throughput / self.target_qty)                   * self.RewardWeights['W5_Throughput']
@@ -455,6 +468,7 @@ class CproSimEnv(gym.Env):
                                  for Category, items in self.warehouse.inventory.items()
                               },
             'Throughput'    : self.Throughput,
+            'KnowledgeGraph' : self.KnowledgeGraph,
         }
         return observation, reward, done, {}
 
@@ -490,6 +504,65 @@ def train(env, agent, MaxEpisodes):
         agent.update(observations, actions, log_probs, rewards, values)
 
 if __name__ == '__main__':
+    import os
+    import path_extractor
+    from path_extractor import ProvisionofSimulationModelsAAS
+
+    _DIR = os.path.dirname(os.path.abspath(__file__))
+    for _f in ['ProvisionOfSimulationModel.json', 'WorkstationWorkerMatchingDataAAS.json',
+               'MODEL_A.json', 'MODEL_B.json', 'MODEL_C.json']:
+        path_extractor.load(os.path.join(_DIR, _f))
+
+    PSM                  = ProvisionofSimulationModelsAAS
+    SimulationModel      = PSM.SimulationModels.SimulationModel
+    Action               = SimulationModel.KnowledgeGraph.Action
+    PSM_Warehouse        = SimulationModel.Warehouse
+    DefaultParameters    = SimulationModel.DefaultParameters
+    RewardWeightsSME     = SimulationModel.RewardWeights
+    GNN_arch             = SimulationModel.ModelArchitecture.GNN
+    PPO_arch             = SimulationModel.ModelArchitecture.PPO
+    TrainingConfig       = PPO_arch.TrainingConfig
+
+    ManufacturingProcesses = {mp.model_id: mp for mp in PSM_Warehouse.InputBOM.target}  #← Warehouse.InputBOM
+    workers              = PSM.workers                                                   #← WWM
+    WarehouseManagedBOM  = PSM.WarehouseManagedBOM                                        #← ProductAAS HS
+    BOMCategory          = PSM_Warehouse.MinStock.target                                  #← Warehouse.MinStock
+
+    IndependentSequence  = [node.idShort for ref in Action.IndependentSequence for node in ref.target]
+    DependentSequence    = [node.idShort for ref in Action.DependentSequence   for node in ref.target]
+    DependentJoin        = [node.idShort for ref in Action.DependentJoin       for node in ref.target]
+
+    RewardWeights        = {
+        'W1_TimeElapsed'   : float(RewardWeightsSME.W1_TimeElapsed.value),
+        'W2_Energy'        : float(RewardWeightsSME.W2_Energy.value),
+        'W3_StockOverflow' : float(RewardWeightsSME.W3_StockOverflow.value),
+        'W4_StockShortage' : float(RewardWeightsSME.W4_StockShortage.value),
+        'W5_Throughput'    : float(RewardWeightsSME.W5_Throughput.value),
+        'W6_IdleWorker'    : float(RewardWeightsSME.W6_IdleWorker.value),
+    }
+    ReplenishLeadDay     = int(DefaultParameters.ReplenishLeadDay.value) * 3600           #← DefaultParameters
+    IdleWorkerThreshold  = int(DefaultParameters.IdleWorkerThreshold.value)
+    WorkStartTime        = DefaultParameters.WorkStartTime.target.value
+    WorkEndTime          = DefaultParameters.WorkEndTime.target.value
+    break_start_sec      = DefaultParameters.BreakDurationMin.target.min
+    break_end_sec        = DefaultParameters.BreakDurationMin.target.max
+    MaxEpisodes          = int(SimulationModel.SimulationConfig.MaxEpisodes.value)
+    RuntimeVariables     = SimulationModel.RuntimeVariables                               #← SimulationModel.RuntimeVariables (AAS 명시 연산 단일 구현처)
+
+    NodeFeatureDim       = int(GNN_arch.NodeFeatureDim.value)                             #← ModelArchitecture.GNN
+    HiddenDim            = int(GNN_arch.HiddenDim.value)
+    OutputDim            = int(GNN_arch.OutputDim.value)
+    NumLayers            = int(GNN_arch.NumLayers.value)
+    GNNEmbeddingDim      = OutputDim                                                      #← PPO.Actor.GNNEmbeddingDim → OutputDim
+    LearningRate         = float(TrainingConfig.LearningRate.value)                       #← ModelArchitecture.PPO.TrainingConfig
+    ClipEpsilon          = float(TrainingConfig.ClipEpsilon.value)
+    Gamma                = float(TrainingConfig.Gamma.value)
+    GaeLambda            = float(TrainingConfig.GaeLambda.value)
+    EntropyCoef          = float(TrainingConfig.EntropyCoef.value)
+    ValueLossCoef        = float(TrainingConfig.ValueLossCoef.value)
+    UpdateEpochs         = TrainingConfig.UpdateEpochs.value
+    BatchSize            = int(TrainingConfig.BatchSize.value)
+
     target_qty = int(input('목표 생산 수량을 입력하세요: '))
 
     KnowledgeGraph  = KnowledgeGraph.build(ManufacturingProcesses, workers)
@@ -513,7 +586,7 @@ if __name__ == '__main__':
         break_start_sec      = break_start_sec,
         break_end_sec        = break_end_sec,
         IdleWorkerThreshold  = IdleWorkerThreshold,
-        MaxEpisodeEnergyKwh  = MaxEpisodeEnergyKwh,
+        RuntimeVariables     = RuntimeVariables,
     )
 
     agent = PPOAgent(
@@ -530,6 +603,7 @@ if __name__ == '__main__':
         ValueLossCoef   = ValueLossCoef,
         UpdateEpochs    = UpdateEpochs,
         BatchSize       = BatchSize,
+        RuntimeVariables = RuntimeVariables,
     )
 
     train(env, agent, MaxEpisodes)

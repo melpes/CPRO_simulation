@@ -16,6 +16,15 @@ CPRO 조립공정 시뮬레이션 패키지.
 - 시뮬 코드: `from aas_architecture import ProvisionofSimulationModelsAAS` → `ProvisionofSimulationModelsAAS.submodels[...]....` 로 모든 AAS 데이터 접근.
 - 인스턴스명은 실제 AAS 의 idShort 와 동일. 다른 AAS 가 필요해지면 같은 클래스 `AssetAdministrationShell` 로 새 인스턴스 추가.
 
+### AAS 명시 연산의 단일 구현처 (path_extractor 가 연산도 보유)
+
+- **AAS 에 정의된 변수·연산은 모두 path_extractor 에 함수(메서드)로 구현한다.** 시뮬 코드(ver0)는 그 메서드를 **호출만** 하고 같은 로직을 다시 작성하지 않는다. AAS 의 `description` 은 참고용이며 진실의 원천은 그 메서드 본문이다.
+- 대상은 특히 **`RuntimeVariables`** — 에피소드 중 동적으로 변해 AAS 에 `value=None` 으로 정의만 있는 변수들. 각 변수의 description 이 명시하는 산출/누적 규칙을 해당 위치 바인딩 도메인 클래스(`RuntimeVariables`, `_positions` 로 `('SimulationModels','SimulationModel','RuntimeVariables')` 바인딩)의 메서드로 구현한다.
+- 메서드 규약: **순수 산출형**은 런타임 입력만 받아 값 반환, **누적형**은 마지막 인자로 현재값을 받아 다음값 반환 (path_extractor 는 에피소드 상태를 보유하지 않는다 — 순수 함수).
+- path_extractor 는 **torch 등 시뮬/ML 의존성을 import 하지 않는다**. 순수 파이썬으로 구현하고 tensor 화는 시뮬 코드가 한다.
+- 동명 메서드가 자식 Property(value=None)를 shadow 한다. raw Property 가 필요하면 `rv['CycleCompleted']` (`__getitem__`) 로 접근.
+- 이 절은 아래 "클래스 인스턴스 = 값 그 자체 / 방어·추상화 자제 / 시뮬은 필드만 읽는다" 규칙의 **명시적 예외**다. 그 규칙들은 여전히 데이터 필드 접근의 기본값이고, 본 절은 AAS 가 description 으로 연산을 규정한 항목에 한해 적용된다.
+
 ### 클래스 인스턴스 = 값 그 자체 (JSON lazy parse 금지)
 - 클래스는 dataclass 로 선언하고, 인스턴스 생성 시점에 각 필드에 **이미 값이 채워져 있어야** 한다.
 - `sme.idShort` 같은 접근은 dict lookup 이 아니라 이미 대입된 값을 반환. raw JSON dict 를 들고 다니며 lazy 파싱하는 구조 금지.
@@ -165,6 +174,48 @@ AAS 템플릿에 미반영된 데이터는 모두 **`cpro_config.py`** 한 파�
 
 - 시각화(엑셀 저장, PNG 저장) 코드는 `cpro_visualization.py` 에 격리되어 있다. `cpro_simulation_ver3.py` 의 `ExperimentRunner.save_results` / `save_figures` 가 thin wrapper 로 위임한다.
 - `cpro_visualization.py` 는 시뮬 모듈을 import 하지 않는다 (단방향 의존). 필요한 상수는 keyword argument 로 주입한다.
+
+## `redesign/` 패키지 역할
+
+`redesign/` 은 **`simulation_ver0.py` 의 미래 모듈 분할 프리뷰**다. ver0 가 단일 파일로 진행되는 동안, `redesign/` 은 같은 코드를 `kg.py` / `sim_env.py` / `runner.py` / `factory.py` / `networks.py` 로 쪼개 놓은 선행 구현이다.
+
+- **동기화 방향: ver0 → redesign**. ver0 에서 버그가 수정되거나 새 컴포넌트가 구현되면, redesign 의 해당 모듈에 반영한다. redesign 만 단독으로 손대지 않는다.
+- **redesign 단독 버그를 발견해도 ver0 에 같은 코드가 있는지 먼저 확인**. ver0 에 이미 고쳐져 있다면 그 수정을 redesign 에 옮기는 것이 우선. ver0 에도 있는 버그라면 ver0 부터 고치고 redesign 으로 전파.
+- 그래서 redesign 은 ver0 가 아직 구현하지 않은 영역(예: `networks.py` 의 GNN/PPO, `factory.py` 의 정규화 분모 계산)을 **미리 스케치해둔 상태**일 수 있고, 그 부분은 ver0 에 해당 코드가 들어올 때까지 동작하지 않을 수 있다.
+
+### 상세 구현 상태
+
+redesign 의 모듈별 구현 / 한계 / 미구현 사항은 **`redesign/STATUS.md`** 에 추적한다. 작업 묶음 직후 같은 커밋에서 STATUS.md 를 갱신한다.
+
+## redesign / ver0 코딩 스타일
+
+`simulation_ver0.py` 의 스타일을 redesign 패키지 전체의 기준으로 삼는다. `cpro_simulation_ver3.py` 의 매니저 객체 분산 / 깊은 분기 / 다층 헬퍼는 이식하지 않는다.
+
+### 메타 원칙
+
+**가독성과 코드의 실제 흐름 순서가 최우선.** 아래 세부 규칙이 이 원칙과 충돌하면 메타 원칙을 따른다. 애매한 케이스는 작성 중에 물어본다.
+
+### 세부 규칙
+
+1. **명명 — AAS idShort 그대로**. PascalCase 무관, snake_case 강요 X. AAS 에서 본 표기와 코드에서 본 표기가 1:1 로 일치해야 한다. 파생/순수 로컬 변수만 snake_case (`model_id`, `present_stock`, `completed`, `in_progress`).
+2. **dataclass + `@classmethod build(cls, <raw>)` 단일 진입점**. 외부 raw 데이터로부터 인스턴스 한 번에 완성. lazy parse / 부분 초기화 / 나중 setter 금지.
+3. **Visual alignment**. dataclass 필드 콜론, `__init__` 의 `self.X = X` 대입, kwarg 호출의 `=` 모두 세로 정렬. 멀티라인 함수 호출 인자도 정렬해 펼침.
+4. **`#← <AAS 경로>` 인라인 주석** 으로 필드 출처 못박기. 별도 문서/TypedDict 만들지 않음.
+5. **타입 힌트는 적극적·명시적**. 모든 함수/메서드 인자·반환, dataclass generic 인자 (`Dict[str, GraphNode]`, `List[GraphEdge]`) 까지. 누락은 "여기 미확정" 의 신호로만 사용.
+6. **방어 코드 / `raise` / `try-except` 자제**. 일어나지 않을 케이스 보호 X. AAS 입력 누락은 즉시 fail (fallback 금지 절 참조).
+7. **인라인 우선**. 3 회 이상 재사용 OR 인라인이 가독성을 진짜로 해칠 때만 헬퍼 분리. 같은 줄이 두 번 나와도 인라인.
+8. **메서드 짧게 (5\~20 줄)**. 한 화면 안에서 위→아래 한 번에 읽혀야 함.
+9. **섹션 구분은 `#========이름========`**. `# region` 미사용 (path_extractor 와 의도적으로 다름 — 시뮬 코드는 한눈에 펼침).
+10. **simpy 의존은 도메인 dataclass 에 넣지 않는다.** 핵심 제약은 "**도메인 dataclass (`KnowledgeGraph`, `Warehouse`) 에 simpy 결합 금지**" — 이들은 시뮬 외 용도(RL state 추출, AAS round-trip) 로 재사용 가능해야 하므로 simpy coroutine 을 멤버로 두지 않고, 필요한 simpy process 는 자유 함수로 작성해 `env.process(fn(env, ...))` 로 등록한다. 단 **시뮬 컨트롤러(`CproSimEnv`)는 이미 `simpy.Environment` 를 보유한 시뮬 전용 객체**이므로, 그 객체에서만 쓰이는 simpy coroutine 은 `CproSimEnv` 의 제너레이터 **메서드**로 둔다(자유 함수 + `self` 전달 우회 금지). `env.process(self.process_job(...))` 형태. (알려진 잔존 위배: `Warehouse.replenish` — 도메인 dataclass 에 `yield env.timeout` 결합. 별도 후속으로 자유 함수/주입 형태로 분리 검토.)
+11. **상태 변경 패턴 (mutating container vs event hook) 은 케이스별 결정**. 새 케이스 만나면 작성 중에 물어본다.
+12. **외부 입력은 `__init__` 인자로 주입**. 클래스/함수 본문에서 `cpro_config` 글로벌을 직접 import 하지 않는다. 결합은 진입점 (`runner.py`) 한 곳.
+13. **`reset()` 에서 에피소드 상태 재생성**. `simpy.Environment`, `Warehouse`, `completed`, `in_progress`, 트래커들 모두 reset 안에서 새로 만든다. 외부 입력 (`self.X`, `__init__` 에서 받은 것) 은 건드리지 않는다.
+14. **변수명 풀네임** (CLAUDE.md 의 path_extractor 규칙과 동일). `Quantity`, `Category`, `ProcessConsumedBOM`, `WorkstationId`. 작은 루프 임시 변수 (`mp`, `ref`, `pn`) 만 약식 허용.
+15. **dict 내부 스키마는 필드 옆 inline 주석으로 못박기**. `workers : Dict[str, dict] #{WorkstationId: {'worker_count': int, 'ProcessCode': [...]}}`. TypedDict / dataclass wrapper 만들지 않음.
+
+### ver3 → redesign 이식 시
+
+ver3 에서 발췌하더라도 위 규칙으로 다시 쓴다. ver3 의 매니저 클래스 / 이벤트 핸들러 / util 모듈 / hardcoded 매핑은 그대로 옮기지 않는다. 흐름이 한 방향으로 읽히도록 재배치.
 
 ## `simulation_ver0.py` 구동 진행률
 

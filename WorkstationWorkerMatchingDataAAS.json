@@ -289,7 +289,7 @@
                   "description": [
                     {
                       "language": "en",
-                      "text": "Workstation information for the firmware input line in CPRO camera assembly. Covers F/W loading, verification, secondary confirmation, and MAC/model name programming steps (VD7_10 through VD7_10-3, BT5_10 through BT5_14, NVD_20 through NVD_23) across MODEL_A, MODEL_B, and MODEL_C. Headcount: 2 persons. Work hours: 09:00\u201318:00, break 60 min. Equipment: USB Jig Board (NO44-FW_JIG, qty 6)."
+                      "text": "Workstation information for the firmware input line in CPRO camera assembly. Covers F/W loading, verification, secondary confirmation, and MAC/model name programming steps (VD7_10 through VD7_10-3, BT5_10 through BT5_14, NVD_20 through NVD_23) across MODEL_A, MODEL_B, and MODEL_C. Headcount: 2 persons. Work hours: 09:00–18:00, break 60 min. Equipment: USB Jig Board (NO44-FW_JIG, qty 6)."
                     }
                   ],
                   "semanticId": {
@@ -791,7 +791,7 @@
                   "description": [
                     {
                       "language": "en",
-                      "text": "Workstation information for the lens holder assembly line in CPRO camera assembly. Covers SENSOR BOARD assembly steps (VD7_20, VD7_20-1, BT5_20, NVD_30) across MODEL_A, MODEL_B, and MODEL_C. Headcount: 4 persons. Work hours: 09:00\u201318:00, break 60 min."
+                      "text": "Workstation information for the lens holder assembly line in CPRO camera assembly. Covers SENSOR BOARD assembly steps (VD7_20, VD7_20-1, BT5_20, NVD_30) across MODEL_A, MODEL_B, and MODEL_C. Headcount: 4 persons. Work hours: 09:00–18:00, break 60 min."
                     }
                   ],
                   "semanticId": {
@@ -1522,7 +1522,7 @@
                   "description": [
                     {
                       "language": "en",
-                      "text": "Workstation information for the focus adjustment line in CPRO camera assembly. Covers focus setting steps (VD7_30, NVD_40) across MODEL_A and MODEL_C. Headcount: 3 persons. Work hours: 09:00\u201318:00, break 60 min."
+                      "text": "Workstation information for the focus adjustment line in CPRO camera assembly. Covers focus setting steps (VD7_30, NVD_40) across MODEL_A and MODEL_C. Headcount: 3 persons. Work hours: 09:00–18:00, break 60 min."
                     }
                   ],
                   "semanticId": {
@@ -2112,7 +2112,7 @@
                   "description": [
                     {
                       "language": "en",
-                      "text": "Workstation information for the semi-assembly line in CPRO camera assembly. Covers semi-assembly steps (VD7_50, VD7_80, VD7_80-1, BT5_40, BT5_41, BT5_42, BT5_60, BT5_61, NVD_50, NVD_51, NVD_60, NVD_61, NVD_80) across MODEL_A, MODEL_B, and MODEL_C. Headcount: 11 persons. Work hours: 09:00\u201318:00, break 60 min."
+                      "text": "Workstation information for the semi-assembly line in CPRO camera assembly. Covers semi-assembly steps (VD7_50, VD7_80, VD7_80-1, BT5_40, BT5_41, BT5_42, BT5_60, BT5_61, NVD_50, NVD_51, NVD_60, NVD_61, NVD_80) across MODEL_A, MODEL_B, and MODEL_C. Headcount: 11 persons. Work hours: 09:00–18:00, break 60 min."
                     }
                   ],
                   "semanticId": {
@@ -3825,6 +3825,10 @@
                               {
                                 "type": "GlobalReference",
                                 "value": "https://www.smart-factory.kr/ids/cd/BT5_90/1/0"
+                              },
+                              {
+                                "type": "GlobalReference",
+                                "value": "https://www.smart-factory.kr/ids/cd/BT5_60/1/0"
                               }
                             ]
                           },
@@ -3883,7 +3887,7 @@
                   "description": [
                     {
                       "language": "en",
-                      "text": "Workstation information for the SET assembly line in CPRO camera assembly. Covers SET assembly steps across MODEL_A (VD7_40, VD7_40-1, VD7_50-1, VD7_50-2, VD7_60, VD7_70, VD7_70-1, VD7_70-2, VD7_90), MODEL_B, and MODEL_C. Headcount: 16 persons arranged in subgroups (3, 4, 3, 4, 2). Inspection-dedicated subgroup allocated from within this headcount. Work hours: 09:00\u201318:00, break 60 min."
+                      "text": "Workstation information for the SET assembly line in CPRO camera assembly. Covers SET assembly steps across MODEL_A (VD7_40, VD7_40-1, VD7_50-1, VD7_50-2, VD7_60, VD7_70, VD7_70-1, VD7_70-2, VD7_90), MODEL_B, and MODEL_C. Headcount: 16 persons arranged in subgroups (3, 4, 3, 4, 2). Inspection-dedicated subgroup allocated from within this headcount. Work hours: 09:00–18:00, break 60 min."
                     }
                   ],
                   "semanticId": {
@@ -6422,7 +6426,7 @@
                   "description": [
                     {
                       "language": "en",
-                      "text": "Workstation information for the aging test line in CPRO camera assembly. Covers aging test steps (VD7_100, BT5_100, NVD_110) across MODEL_A, MODEL_B, and MODEL_C. Headcount: 6 persons. Work hours: 09:00\u201318:00, break 60 min."
+                      "text": "Workstation information for the aging test line in CPRO camera assembly. Covers aging test steps (VD7_100, BT5_100, NVD_110) across MODEL_A, MODEL_B, and MODEL_C. Headcount: 6 persons. Work hours: 09:00–18:00, break 60 min."
                     }
                   ],
                   "semanticId": {
@@ -7355,7 +7359,7 @@
                   "description": [
                     {
                       "language": "en",
-                      "text": "Workstation information for the OQC (Outgoing Quality Control) line in CPRO camera assembly. Performs sampling inspection on 5% of finished units across MODEL_A, MODEL_B, and MODEL_C prior to packaging. OQC inspection time: 10 minutes per unit. Headcount: 4 persons arranged in two groups of 2. Work hours: 09:00\u201318:00, break 60 min."
+                      "text": "Workstation information for the OQC (Outgoing Quality Control) line in CPRO camera assembly. Performs sampling inspection on 5% of finished units across MODEL_A, MODEL_B, and MODEL_C prior to packaging. OQC inspection time: 10 minutes per unit. Headcount: 4 persons arranged in two groups of 2. Work hours: 09:00–18:00, break 60 min."
                     }
                   ],
                   "semanticId": {
@@ -8841,7 +8845,7 @@
                   "description": [
                     {
                       "language": "en",
-                      "text": "Workstation information for the packaging line in CPRO camera assembly. Covers all packaging steps (VD7_110, VD7_110-1, VD7_110-2, VD7_110-3) across MODEL_A, MODEL_B, and MODEL_C. Total headcount: 6 persons. Among the 6 workers, 2 persons are dedicated to label attachment (VD7_110-2, BT5_122, NVD_122). Work hours: 09:00\u201318:00, break 60 min."
+                      "text": "Workstation information for the packaging line in CPRO camera assembly. Covers all packaging steps (VD7_110, VD7_110-1, VD7_110-2, VD7_110-3) across MODEL_A, MODEL_B, and MODEL_C. Total headcount: 6 persons. Among the 6 workers, 2 persons are dedicated to label attachment (VD7_110-2, BT5_122, NVD_122). Work hours: 09:00–18:00, break 60 min."
                     }
                   ],
                   "semanticId": {
