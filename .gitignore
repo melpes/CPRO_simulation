@@ -5,3 +5,14 @@ simulation_results.xlsx
 *.lock
 backup*.aasx
 *.zip
+*.pt
+*.log
+/legacy/
+*.pyc
+*.bak[0-9]
+*.bak
+*.aasx
+*.mp4
+.claude/
+backup/
+mod_run/result/

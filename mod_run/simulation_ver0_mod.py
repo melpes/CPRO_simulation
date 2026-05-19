@@ -9,6 +9,18 @@ import torch
 from torch_geometric.nn import GCNConv
 from torch_geometric.data import Data
 
+# ============================================================
+# ⚠️ [임시 실험 — 재고 ×N ablation]  AAS 불변, 런타임 주입.
+# Warehouse.build 의 들어오는 재고 수치(present/Min/Max)에만 곱함.
+# 기본 1.0 = 완전 무영향(평소 동작 동일). 실험 러너(_exp_stock10.py)가
+# svm._TEMP_STOCK_MULT 를 바꿔 사용. ★실험 종료 후 반드시 1.0 로 되돌릴 것★
+_TEMP_STOCK_MULT = 1.0
+# ⚠️ [임시 실험 — 고정 horizon] 에피소드 제한시간(초). None = 무제한(평소).
+# 설정 시 train() 이 env.run(max_sec=_TEMP_EP_MAX_SEC) 로 호출 → throughput 비포화.
+# 실험 러너(_exp_horizon.py)가 세팅. ★실험 종료 후 None 으로 되돌릴 것★
+_TEMP_EP_MAX_SEC = None
+# ============================================================
+
 
 @dataclass
 class GraphNode:
@@ -160,10 +172,10 @@ class Warehouse:
             inventory[Category] = {}
             for item_code in items:
                 inventory[Category][item_code] = StockItem(
-                    present_stock   = BOMCategory[Category].MinStock,
-                    MinStock        = BOMCategory[Category].MinStock,
-                    MaxStock        = BOMCategory[Category].MaxStock,
-                    OrderRatio      = BOMCategory[Category].OrderRatio,
+                    present_stock   = BOMCategory[Category].MinStock * _TEMP_STOCK_MULT,  # ←[임시] ×_TEMP_STOCK_MULT
+                    MinStock        = BOMCategory[Category].MinStock * _TEMP_STOCK_MULT,  # ←[임시] ×_TEMP_STOCK_MULT
+                    MaxStock        = BOMCategory[Category].MaxStock * _TEMP_STOCK_MULT,  # ←[임시] ×_TEMP_STOCK_MULT
+                    OrderRatio      = BOMCategory[Category].OrderRatio,                   # 비율 — 배수 미적용
                 )
         return cls(inventory)
     
@@ -560,8 +572,17 @@ class CproSimEnv:
         return {
             'Throughput'      : dict(self.Throughput),
             'makespan_sec'    : float(self.env.now),
-            'EpisodeEnergyKwh': float(self.EpisodeEnergyKwh),
+            'EpisodeEnergyKwh': float(self.total_energy_kwh()),     # idle+프리미엄 총량(버그수정: idle 포함)
+            'ActivePremiumKwh': float(self.EpisodeEnergyKwh),       # 참고: active 초과분만(기존 값)
         }
+
+    def total_energy_kwh(self) -> float:
+        # 진짜 총 에너지 = idle baseline(now 의존, 전 공정이 now 내내 idle) + active 프리미엄.
+        # 기존 버그: 보상/로그가 프리미엄(상수)만 써서 makespan 무관 → idle 누락.
+        idle_base = self.RuntimeVariables.IdleBaselineKwh(
+            self.KnowledgeGraph, self.env.now,
+            self.IdleProcessRatedPowerKw, self.IdlePowerRatio)
+        return idle_base + self.EpisodeEnergyKwh
 
     def potential(self) -> float:
         # 현재 상태의 목적함수 값 Φ(s). 임의 시점(결정점/종료)에서 호출 가능.
@@ -570,14 +591,18 @@ class CproSimEnv:
         w = self.RewardWeights
         total_target = sum(self.target_qty.values())
         work_day = self.WorkEndTime - self.WorkStartTime - (self.break_end_sec - self.break_start_sec)
-        maxE = self.RuntimeVariables.MaxEpisodeEnergyKwh(            # now 의존(idle baseline)
+        idle_base = self.RuntimeVariables.IdleBaselineKwh(
             self.KnowledgeGraph, self.env.now,
             self.IdleProcessRatedPowerKw, self.IdlePowerRatio)
-        maxE = max(maxE, 1e-6)                                       # 초기 decision div0 가드
+        maxE_full = self.RuntimeVariables.MaxEpisodeEnergyKwh(       # = 1사이클 프리미엄 + idle_base
+            self.KnowledgeGraph, self.env.now,
+            self.IdleProcessRatedPowerKw, self.IdlePowerRatio)
+        denom = max(maxE_full - idle_base, 1e-6)                     # 분모에서 idle 제거(요청) → makespan 무관 상수
+        total_energy = idle_base + self.EpisodeEnergyKwh             # 분자엔 idle 포함 → now↑ 시 페널티↑(정상방향)
         return (
             + (sum(self.Throughput.values()) / total_target)        * w['W5_Throughput']
             - (self.env.now / (work_day * total_target))            * w['W1_TimeElapsed']
-            - (self.EpisodeEnergyKwh / maxE)                        * w['W2_Energy']
+            - (total_energy / denom)                                 * w['W2_Energy']  # ←idle 분자만 포함
         )
 
     def episode_reward(self) -> float:
@@ -601,7 +626,8 @@ def train(env, agent, MaxEpisodes):
             print(f'[ep {episode}] STOP sentinel — graceful exit', flush=True)
             break
         agent.reset_buffer()
-        summary = env.run(agent=agent)
+        summary = (env.run(agent=agent, max_sec=_TEMP_EP_MAX_SEC)      # 고정 horizon(임시)
+                   if _TEMP_EP_MAX_SEC else env.run(agent=agent))
         R = env.episode_reward()
         decisions = len(agent.buf)
         metrics = agent.learn(R, env.KnowledgeGraph)                   # 진단 dict (B/C/D)
