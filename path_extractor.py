@@ -256,19 +256,45 @@ class RuntimeVariables(SubmodelElementCollection):
         ('SimulationModels', 'SimulationModel', 'RuntimeVariables'),
     ]
 
-    def MaxEpisodeEnergyKwh(self, KnowledgeGraph) -> float:
+    def IdlePowerKw(self, GraphNode, IdleProcessRatedPowerKw, IdlePowerRatio) -> float:
+        #← .DefaultParameters.IdleProcessRatedPowerKw 기반 공정별 idle 전력.
+        # 공정이 작업 중이 아닐 때(근무·휴게·퇴근후 무관) 소모하는 전력 =
+        # max(RatedPowerKw·IdlePowerRatio, IdleProcessRatedPowerKw). IdlePowerRatio
+        # (=0.10) 는 AAS 미반영 정책 상수로 호출부가 주입.
+        return max(GraphNode.RatedPowerKw * IdlePowerRatio, IdleProcessRatedPowerKw)
+
+    def IdleBaselineKwh(self, KnowledgeGraph, now,
+                        IdleProcessRatedPowerKw, IdlePowerRatio) -> float:
+        #← .RuntimeVariables.EpisodeEnergyKwh 의 idle 성분.
+        # 모든 공정이 now 초 동안 idle 전력을 연속 소모한 에너지(배타 분해의
+        # baseline). active 구간의 (rated−idle) 프리미엄은 EpisodeEnergyKwh 가
+        # 별도 누적 → 합이 곧 배타 총 에너지.
+        return now * sum(
+            self.IdlePowerKw(node, IdleProcessRatedPowerKw, IdlePowerRatio)
+            for node in KnowledgeGraph.nodes.values()
+        ) / 3600
+
+    def MaxEpisodeEnergyKwh(self, KnowledgeGraph, now,
+                            IdleProcessRatedPowerKw, IdlePowerRatio) -> float:
         #← .RuntimeVariables.MaxEpisodeEnergyKwh
-        # Σ (CycleTimeSec·RatedPowerKw)/3600 over all GraphNode. EpisodeEnergyKwh
-        # 의 W2_Energy 정규화 분모.
+        # W2_Energy 정규화 분모. Σ(CycleTimeSec·RatedPowerKw)/3600 (이상 1사이클)
+        # + now 시점 idle baseline. EpisodeEnergyKwh 가 idle 성분을 포함하므로
+        # 분모도 같은 idle 항을 더해 now→∞ 에서 비율이 발산하지 않게 한다.
         return sum(
             node.CycleTimeSec * node.RatedPowerKw / 3600
             for node in KnowledgeGraph.nodes.values()
-        )
+        ) + self.IdleBaselineKwh(KnowledgeGraph, now,
+                                 IdleProcessRatedPowerKw, IdlePowerRatio)
 
-    def EpisodeEnergyKwh(self, GraphNode, EpisodeEnergyKwh) -> float:
-        #← .RuntimeVariables.EpisodeEnergyKwh
-        # process_job 완료 시 (CycleTimeSec·RatedPowerKw)/3600 누적.
-        return EpisodeEnergyKwh + GraphNode.CycleTimeSec * GraphNode.RatedPowerKw / 3600
+    def EpisodeEnergyKwh(self, GraphNode, EpisodeEnergyKwh,
+                         IdleProcessRatedPowerKw, IdlePowerRatio) -> float:
+        #← .RuntimeVariables.EpisodeEnergyKwh (active 프리미엄 누적분)
+        # process_job 완료 시 active 구간의 idle 대비 초과분
+        # CycleTimeSec·(RatedPowerKw − idle_kw)/3600 누적. baseline 이 모든
+        # 시간을 idle 로 이미 계상하므로 여기선 차액만 더한다(배타). idle>rated
+        # 인 저전력 공정은 음수 — baseline 의 과계상을 정확히 상쇄.
+        idle_kw = self.IdlePowerKw(GraphNode, IdleProcessRatedPowerKw, IdlePowerRatio)
+        return EpisodeEnergyKwh + GraphNode.CycleTimeSec * (GraphNode.RatedPowerKw - idle_kw) / 3600
 
     def CycleCompleted(self, ProcessCode, KnowledgeGraph) -> bool:
         #← .RuntimeVariables.CycleCompleted
@@ -752,10 +778,11 @@ class AssetAdministrationShell:
             for ws in workstation_info.values()
         }
 
-    @property
-    def WarehouseManagedBOM(self) -> Dict[str, List[str]]:
-        """모든 ProductAAS 의 HierarchicalStructures entities 를 Qualifier['Category'] 로 그룹핑.
-        `{Category: [item_code, ...]}`. 모델 간 동일 item_code 는 중복 제거."""
+    def _grouped_bom(self, self_managed: bool | None) -> Dict[str, List[str]]:
+        """ProductAAS HS entities 를 Qualifier['Category'] 로 그룹핑.
+        self_managed=None  : 전부 (기존 WarehouseManagedBOM 동작 — ver0 호환)
+        self_managed=False : CoManaged 만   /  True : SelfManaged 만
+        Category 없는 entity(모델 루트 등)는 제외."""
         result: Dict[str, List[str]] = {}
         for aas in ProductAAS:
             hs = aas.submodels.get('HierarchicalStructures')
@@ -765,10 +792,28 @@ class AssetAdministrationShell:
                 category = entity.Qualifier.get('Category')
                 if not category:
                     continue
+                is_self = entity.entityType == EntityType.SelfManagedEntity
+                if self_managed is not None and is_self != self_managed:
+                    continue
                 bucket = result.setdefault(category, [])
                 if entity.idShort not in bucket:
                     bucket.append(entity.idShort)
         return result
+
+    @property
+    def WarehouseManagedBOM(self) -> Dict[str, List[str]]:
+        """전체 (SelfManaged 포함). ver0 호환 — 기존 동작 무변경."""
+        return self._grouped_bom(None)
+
+    @property
+    def CoManagedBOM(self) -> Dict[str, List[str]]:
+        """CoManaged 부품만. SelfManaged(PCB 등 자체생산 하위조립체)는 제외."""
+        return self._grouped_bom(False)
+
+    @property
+    def SelfManagedBOM(self) -> Dict[str, List[str]]:
+        """SelfManaged(Category 보유) 만 — PCB(=SMT_PCB) 등. 별도 창고/모듈 소유."""
+        return self._grouped_bom(True)
     # endregion
 
 
