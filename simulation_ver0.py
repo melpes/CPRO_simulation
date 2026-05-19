@@ -352,7 +352,8 @@ class CproSimEnv:
                  RewardWeights, ReplenishLeadDay, target_qty, MaxEpisodes,
                  WarehouseManagedBOM, BOMCategory,
                  WorkStartTime, WorkEndTime, break_start_sec, break_end_sec,
-                 IdleWorkerThreshold, RuntimeVariables):
+                 IdleWorkerThreshold, IdleProcessRatedPowerKw, IdlePowerRatio,
+                 RuntimeVariables):
         self.KnowledgeGraph       = KnowledgeGraph
         self.warehouse            = warehouse
         self.workers              = workers
@@ -370,6 +371,8 @@ class CproSimEnv:
         self.break_start_sec      = break_start_sec  # int(min.split(':')[0]) * 3600 + int(min.split(':')[1]) * 60
         self.break_end_sec        = break_end_sec    # int(max.split(':')[0]) * 3600 + int(max.split(':')[1]) * 60
         self.IdleWorkerThreshold  = IdleWorkerThreshold
+        self.IdleProcessRatedPowerKw = IdleProcessRatedPowerKw  #← DefaultParameters.IdleProcessRatedPowerKw
+        self.IdlePowerRatio       = IdlePowerRatio    # AAS 미반영 정책 상수 (rated 대비 idle 비율)
         self.RuntimeVariables     = RuntimeVariables  #← path_extractor RuntimeVariables (AAS 명시 연산)
 
     def reset(self):
@@ -379,7 +382,8 @@ class CproSimEnv:
         # (path_extractor) 가 단일 구현. 여기선 에피소드 초기값만 둔다.
         self.CycleCompleted       = False   #← .CycleCompleted
         self.Throughput           = {model_id: 0 for model_id in self.target_qty}  #← .Throughput (모델별)
-        self.EpisodeEnergyKwh     = 0.0     #← .EpisodeEnergyKwh
+        self.EpisodeEnergyKwh     = 0.0     #← .EpisodeEnergyKwh (배타 총 에너지 — step 에서 갱신)
+        self.ActiveEnergyPremiumKwh = 0.0   # process_job 누적 active 프리미엄 Σ CT·(rated−idle)/3600
         self.StockShortageCount   = 0       #← .StockShortageCount
         self.StockOverflowCount   = 0       #← .StockOverflowCount
         self.IdleViolationCount   = 0       #← .IdleViolationCount
@@ -391,21 +395,29 @@ class CproSimEnv:
                                       self.WarehouseManagedBOM,
                                       self.BOMCategory
                                     )
-        self.MaxEpisodeEnergyKwh  = self.RuntimeVariables.MaxEpisodeEnergyKwh(self.KnowledgeGraph)
-        #← .MaxEpisodeEnergyKwh = Σ(CycleTimeSec·RatedPowerKw)/3600 over all GraphNode (W2_Energy 분모)
-        ready                     = self.KnowledgeGraph.ready_queue(
-                                      self.IndependentSequence,
-                                      self.DependentSequence,
-                                      self.DependentJoin,
-                                      self.completed,
-                                      self.warehouse
-                                    )
-        return {'ready': ready, 'KnowledgeGraph': self.KnowledgeGraph}
+        self.MaxEpisodeEnergyKwh  = 0.0     #← .MaxEpisodeEnergyKwh (now 의존 — step 에서 갱신)
+        return {'ready': self._ready(), 'KnowledgeGraph': self.KnowledgeGraph}
     
     def _is_work_time(self) -> bool:
         seconds_in_day  = self.env.now % 86400
         return (self.WorkStartTime <= seconds_in_day < self.WorkEndTime and
                 not (self.break_start_sec <= seconds_in_day < self.break_end_sec))
+
+    def _ready(self) -> list:
+        # KG ready 중 '주문수량(target_qty) 이미 충족한 모델' 의 공정 제외 →
+        # 모델별 주문수량만큼만 스케줄 (초과생산 차단). nodes[pc].model_id 로 판정.
+        ready = self.KnowledgeGraph.ready_queue(
+            self.IndependentSequence,
+            self.DependentSequence,
+            self.DependentJoin,
+            self.completed,
+            self.warehouse,
+        )
+        return [
+            pc for pc in ready
+            if self.Throughput[self.KnowledgeGraph.nodes[pc].model_id]
+               < self.target_qty[self.KnowledgeGraph.nodes[pc].model_id]
+        ]
 
     def process_job(self, ProcessCode, WorkstationId):
         # step() 에서만 env.process 로 스케줄되는 simpy 코루틴. yield 가 있어
@@ -413,7 +425,10 @@ class CproSimEnv:
         self.in_progress[WorkstationId] = self.in_progress.get(WorkstationId, 0) + 1
         node = self.KnowledgeGraph.nodes[ProcessCode]
         yield self.env.timeout(node.CycleTimeSec)
-        self.EpisodeEnergyKwh = self.RuntimeVariables.EpisodeEnergyKwh(node, self.EpisodeEnergyKwh)
+        self.ActiveEnergyPremiumKwh = self.RuntimeVariables.EpisodeEnergyKwh(
+            node, self.ActiveEnergyPremiumKwh,
+            self.IdleProcessRatedPowerKw, self.IdlePowerRatio,
+        )
         if node.InputBOM:
             if self.warehouse.consume(node.InputBOM):
                 self.env.process(self.warehouse.replenish(self.env, self.ReplenishLeadDay))
@@ -438,6 +453,18 @@ class CproSimEnv:
                 self.env.now, self.IdleWorkerThreshold, self.IdleViolationCount,
             )
 
+        # 배타 idle 에너지: 모든 공정이 env.now 동안 idle 연속 소모(baseline) +
+        # active 구간 (rated−idle) 프리미엄(process_job 누적). 분모도 같은 idle
+        # 항을 포함해 now→∞ 비율 발산 방지.
+        self.EpisodeEnergyKwh = self.ActiveEnergyPremiumKwh + rv.IdleBaselineKwh(
+            self.KnowledgeGraph, self.env.now,
+            self.IdleProcessRatedPowerKw, self.IdlePowerRatio,
+        )
+        self.MaxEpisodeEnergyKwh = rv.MaxEpisodeEnergyKwh(
+            self.KnowledgeGraph, self.env.now,
+            self.IdleProcessRatedPowerKw, self.IdlePowerRatio,
+        )
+
         work_day_sec = self.WorkEndTime - self.WorkStartTime - (self.break_end_sec - self.break_start_sec)
         total_target_qty = sum(self.target_qty.values())
         step_count = max(self.env.now / (work_day_sec / total_target_qty), 1)
@@ -454,13 +481,7 @@ class CproSimEnv:
 
         done = all(self.Throughput[m] >= self.target_qty[m] for m in self.target_qty)
         observation = {
-            'ready'          : self.KnowledgeGraph.ready_queue(
-                                  self.IndependentSequence,
-                                  self.DependentSequence,
-                                  self.DependentJoin,
-                                  self.completed,
-                                  self.warehouse
-                              ),
+            'ready'          : self._ready(),
             'in_progress'    : self.in_progress,
             'inventory'      : {
                                  Category: {
@@ -480,13 +501,7 @@ class CproSimEnv:
         # 대기할 이벤트가 전혀 없으면(real deadlock) deadlock=True.
         while self.env.peek() != float('inf'):
             self.env.step()
-            ready = self.KnowledgeGraph.ready_queue(
-                self.IndependentSequence,
-                self.DependentSequence,
-                self.DependentJoin,
-                self.completed,
-                self.warehouse,
-            )
+            ready = self._ready()
             if ready:
                 return {'ready': ready, 'KnowledgeGraph': self.KnowledgeGraph}, False
         return {'ready': [], 'KnowledgeGraph': self.KnowledgeGraph}, True
@@ -581,6 +596,8 @@ if __name__ == '__main__':
     }
     ReplenishLeadDay     = int(DefaultParameters.ReplenishLeadDay.value) * 3600           #← DefaultParameters
     IdleWorkerThreshold  = int(DefaultParameters.IdleWorkerThreshold.value)
+    IdleProcessRatedPowerKw = float(DefaultParameters.IdleProcessRatedPowerKw.value)      #← DefaultParameters (임시값)
+    IDLE_POWER_RATIO     = 0.10   # AAS 미반영 정책 상수: 공정별 idle = max(rated·이비율, IdleProcessRatedPowerKw)
     WorkStartTime        = DefaultParameters.WorkStartTime.target.value
     WorkEndTime          = DefaultParameters.WorkEndTime.target.value
     break_start_sec      = DefaultParameters.BreakDurationMin.target.min
@@ -628,6 +645,8 @@ if __name__ == '__main__':
         break_start_sec      = break_start_sec,
         break_end_sec        = break_end_sec,
         IdleWorkerThreshold  = IdleWorkerThreshold,
+        IdleProcessRatedPowerKw = IdleProcessRatedPowerKw,
+        IdlePowerRatio       = IDLE_POWER_RATIO,
         RuntimeVariables     = RuntimeVariables,
     )
 
