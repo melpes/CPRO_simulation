@@ -9,18 +9,6 @@ import torch
 from torch_geometric.nn import GCNConv
 from torch_geometric.data import Data
 
-# ============================================================
-# ⚠️ [임시 실험 — 재고 ×N ablation]  AAS 불변, 런타임 주입.
-# Warehouse.build 의 들어오는 재고 수치(present/Min/Max)에만 곱함.
-# 기본 1.0 = 완전 무영향(평소 동작 동일). 실험 러너(_exp_stock10.py)가
-# svm._TEMP_STOCK_MULT 를 바꿔 사용. ★실험 종료 후 반드시 1.0 로 되돌릴 것★
-_TEMP_STOCK_MULT = 1.0
-# ⚠️ [임시 실험 — 고정 horizon] 에피소드 제한시간(초). None = 무제한(평소).
-# 설정 시 train() 이 env.run(max_sec=_TEMP_EP_MAX_SEC) 로 호출 → throughput 비포화.
-# 실험 러너(_exp_horizon.py)가 세팅. ★실험 종료 후 None 으로 되돌릴 것★
-_TEMP_EP_MAX_SEC = None
-# ============================================================
-
 
 @dataclass
 class GraphNode:
@@ -82,12 +70,12 @@ class KnowledgeGraph:
         return cls(nodes, edges, workers)
     
     def _bom_satisfied(self, ProcessCode: str, warehouse: Warehouse) -> bool:
-        node = self.nodes[ProcessCode]
-        if not node.InputBOM:
+        InputBOM = self.nodes[ProcessCode].InputBOM
+        if not InputBOM:
             return True
         return all(
             warehouse.inventory[Category][item_code].present_stock >= ProcessConsumedBOM
-            for item_code, ProcessConsumedBOM in node.InputBOM.items()
+            for item_code, ProcessConsumedBOM in InputBOM.items()
             for Category in warehouse.inventory
             if item_code in warehouse.inventory[Category]
         )
@@ -156,10 +144,11 @@ class KnowledgeGraph:
     
 @dataclass
 class StockItem:
-    present_stock      : float
+    present_stock      : float    # 초기재고 = MinStock
     MinStock           : float
     MaxStock           : float
     OrderRatio         : float
+    on_order           : bool = False   # 발주 outstanding 여부 — True 면 재발주 금지
 
 @dataclass
 class Warehouse:
@@ -172,31 +161,36 @@ class Warehouse:
             inventory[Category] = {}
             for item_code in items:
                 inventory[Category][item_code] = StockItem(
-                    present_stock   = BOMCategory[Category].MinStock * _TEMP_STOCK_MULT,  # ←[임시] ×_TEMP_STOCK_MULT
-                    MinStock        = BOMCategory[Category].MinStock * _TEMP_STOCK_MULT,  # ←[임시] ×_TEMP_STOCK_MULT
-                    MaxStock        = BOMCategory[Category].MaxStock * _TEMP_STOCK_MULT,  # ←[임시] ×_TEMP_STOCK_MULT
-                    OrderRatio      = BOMCategory[Category].OrderRatio,                   # 비율 — 배수 미적용
+                    present_stock   = BOMCategory[Category].MinStock,
+                    MinStock        = BOMCategory[Category].MinStock,
+                    MaxStock        = BOMCategory[Category].MaxStock,
+                    OrderRatio      = BOMCategory[Category].OrderRatio,
                 )
         return cls(inventory)
     
-    def consume(self, ProcessConsumedBOM: dict) -> bool:
+    def consume(self, ProcessConsumedBOM: dict) -> list:
+        # 차감 후 '발주점(MinStock·OrderRatio) 이하 & 아직 발주 안 나간' 품목을 발주.
+        # 반환: 이번에 신규 발주된 StockItem 리스트(빈 리스트=발주 없음, falsy).
         for item_code, Quantity in ProcessConsumedBOM.items():
             for Category in self.inventory:
                 if item_code in self.inventory[Category]:
                     self.inventory[Category][item_code].present_stock -= Quantity
                     break
-        return any(
-            item.present_stock <= item.MinStock * item.OrderRatio
-            for Category in self.inventory
-            for item in self.inventory[Category].values()
-        )
-    
-    def replenish(self, env, ReplenishLeadDay) -> None:
-        yield env.timeout(ReplenishLeadDay)
+        ordered = []
         for Category in self.inventory:
             for item in self.inventory[Category].values():
-                if item.present_stock <= item.MinStock * item.OrderRatio:
-                    item.present_stock += item.MaxStock * item.OrderRatio
+                if (item.present_stock <= item.MinStock * item.OrderRatio
+                        and not item.on_order):                # 이미 발주 나간 품목 재발주 금지
+                    item.on_order = True
+                    ordered.append(item)
+        return ordered
+
+    def replenish(self, env, ReplenishLeadDay, items) -> None:
+        # 발주된 품목만 lead time 후 발주량(MaxStock·OrderRatio) 입고 + 발주 해제.
+        yield env.timeout(ReplenishLeadDay)
+        for item in items:
+            item.present_stock += item.MaxStock * item.OrderRatio
+            item.on_order = False
 
 
 class _StockRouter:
@@ -214,17 +208,17 @@ class _StockRouter:
     def inventory(self):                                  # _bom_satisfied 읽기용 (병합 뷰)
         return {**self.main.inventory, **self.pcb.inventory}
 
-    def consume(self, ProcessConsumedBOM: dict) -> bool:
+    def consume(self, ProcessConsumedBOM: dict) -> list:
         main_bom, pcb_bom = {}, {}
         for code, qty in ProcessConsumedBOM.items():
             (pcb_bom if code in self._pcb_items else main_bom)[code] = qty
-        reorder = self.main.consume(main_bom) if main_bom else False
+        ordered = self.main.consume(main_bom) if main_bom else []
         if pcb_bom:
             self.pcb.consume(pcb_bom)                      # PCB 보충은 cpro_pcb 코루틴 담당
-        return reorder
+        return ordered
 
-    def replenish(self, env, ReplenishLeadDay):           # 메인만 (PCB 는 일정증가 별도)
-        return self.main.replenish(env, ReplenishLeadDay)
+    def replenish(self, env, ReplenishLeadDay, items):    # 메인만 (PCB 는 일정증가 별도)
+        return self.main.replenish(env, ReplenishLeadDay, items)
 
 
 class GNNEncoder(torch.nn.Module):
@@ -451,6 +445,10 @@ class CproSimEnv:
             WorkstationId: simpy.Resource(self.env, capacity=info['worker_count'])
             for WorkstationId, info in self.workers.items()
         }
+        # [B2 중앙 디스패처] ws별 대기 job 큐 + 깨우기 이벤트. 워커 빌 때 디스패처가
+        # 큐에서 다음 job 선택 — 후보 ≥2 면 agent.choose(cross-unit/model), 아니면 FIFO.
+        self._pending   = {ws: [] for ws in self.workers}
+        self._disp_wake = {ws: self.env.event() for ws in self.workers}
         # MaxEpisodeEnergyKwh 는 idle baseline(now 의존)으로 바뀌어 reset 캐싱 불가
         # → episode_reward() 에서 self.env.now 로 계산.
     
@@ -459,6 +457,15 @@ class CproSimEnv:
         return (self.WorkStartTime <= seconds_in_day < self.WorkEndTime and
                 not (self.break_start_sec <= seconds_in_day < self.break_end_sec))
 
+    def _off_hours_delta(self) -> float:
+        # 다음 근무 재개까지 남은 초 — process_job / _dispatcher 비근무 점프 공통.
+        sid = self.env.now % 86400
+        if sid < self.WorkStartTime:
+            return self.WorkStartTime - sid
+        if self.break_start_sec <= sid < self.break_end_sec:
+            return self.break_end_sec - sid
+        return 86400 - sid + self.WorkStartTime
+
     def process_job(self, ProcessCode, WorkstationId, done_set):
         # ver0 process_job 원본 본문 유지. 최소 수정만:
         #   (1) 파라미터 done_set 추가  (2) 근무시간 대기  (3) 워커 Resource 점유
@@ -466,22 +473,17 @@ class CproSimEnv:
         self.in_progress[WorkstationId] = self.in_progress.get(WorkstationId, 0) + 1
         node = self.KnowledgeGraph.nodes[ProcessCode]
         while not self._is_work_time():                              # (2) 비근무면 재개까지 정확 점프
-            sid = self.env.now % 86400
-            if sid < self.WorkStartTime:
-                d = self.WorkStartTime - sid
-            elif self.break_start_sec <= sid < self.break_end_sec:
-                d = self.break_end_sec - sid
-            else:
-                d = 86400 - sid + self.WorkStartTime
-            yield self.env.timeout(d)
+            yield self.env.timeout(self._off_hours_delta())
         with self.worker_resources[WorkstationId].request() as req:  # (3) 워커 capacity
             yield req
             yield self.env.timeout(node.CycleTimeSec)
         self.EpisodeEnergyKwh = self.RuntimeVariables.EpisodeEnergyKwh(
             node, self.EpisodeEnergyKwh, self.IdleProcessRatedPowerKw, self.IdlePowerRatio)
         if node.InputBOM:
-            if self.warehouse.consume(node.InputBOM):
-                self.env.process(self.warehouse.replenish(self.env, self.ReplenishLeadDay))
+            ordered = self.warehouse.consume(node.InputBOM)
+            if ordered:
+                self.env.process(self.warehouse.replenish(
+                    self.env, self.ReplenishLeadDay, ordered))
         done_set.add(ProcessCode)                                    # (4) self.completed → done_set
         self.in_progress[WorkstationId] -= 1
         self.CycleCompleted = self.RuntimeVariables.CycleCompleted(ProcessCode, self.KnowledgeGraph)
@@ -497,64 +499,101 @@ class CproSimEnv:
         return next((ws for ws in self.workers
                      if ProcessCode in self.workers[ws]['ProcessCode']), None)
 
-    def _do_process(self, ProcessCode, WorkstationId, done_set, in_flight):
-        yield self.env.process(self.process_job(ProcessCode, WorkstationId, done_set))
-        in_flight.discard(ProcessCode)
-        self.Throughput = self.RuntimeVariables.Throughput(          # terminal 이면 모델 +1
-            ProcessCode, self.KnowledgeGraph, self.Throughput)
+    # ============================================================
+    # [B2 중앙 디스패처 재설계]  per-unit 단일선택 폐기 → 전 유닛이 ready job 을
+    # ws별 큐에 제출(fan-out 병렬 유지). 워커 슬롯이 빌 때 디스패처가 그 ws 큐에서
+    # 다음 job 선택: 후보 ≥2 면 agent.choose(=cross-unit/model 우선순위, PPO 결정점),
+    # 후보 1개거나 agent=None 이면 FIFO(=기존 greedy/simpy 의미 보존).
+    # choose()/learn() 는 불변 — candidate 출처만 'cross-unit pending' 로 바뀜.
+    # ============================================================
+    def _wake_dispatcher(self, ws):
+        ev = self._disp_wake[ws]
+        if not ev.triggered:
+            ev.succeed()
+
+    def _dispatcher(self, ws, agent):
+        res = self.worker_resources[ws]
+        while True:
+            if not self._pending[ws]:                       # 큐 빌 때 잠듦(simpy 협조적 → lost-wakeup 無)
+                self._disp_wake[ws] = self.env.event()
+                yield self._disp_wake[ws]
+                continue
+            if not self._is_work_time():                    # 근무시간 게이트(시작 시점만 — ver0 의미)
+                yield self.env.timeout(self._off_hours_delta())
+                continue
+            req = res.request()                             # 워커 슬롯 대기(빌 때까지)
+            yield req
+            pend = self._pending[ws]
+            if not pend:                                    # 단일 디스패처라 보통 발생X — 안전망
+                res.release(req)
+                continue
+            if agent is not None and len(pend) >= 2:        # ★contention 결정점★ (PPO)
+                chosen_pc = agent.choose([j['pc'] for j in pend], self)
+                job = next(j for j in pend if j['pc'] == chosen_pc)
+            else:
+                job = pend[0]                               # FIFO (greedy / 후보1개)
+            pend.remove(job)
+            self.env.process(self._run_job(ws, job, req))
+
+    def _run_job(self, ws, job, req):
+        pc = job['pc']
+        node = self.KnowledgeGraph.nodes[pc]
+        self.in_progress[ws] = self.in_progress.get(ws, 0) + 1
+        yield self.env.timeout(node.CycleTimeSec)           # 점유한 채 작업(시작 후 근무외 넘어가도 ver0 동일)
+        self.worker_resources[ws].release(req)
+        self.EpisodeEnergyKwh = self.RuntimeVariables.EpisodeEnergyKwh(
+            node, self.EpisodeEnergyKwh, self.IdleProcessRatedPowerKw, self.IdlePowerRatio)
+        if node.InputBOM:
+            ordered = self.warehouse.consume(node.InputBOM)
+            if ordered:
+                self.env.process(self.warehouse.replenish(
+                    self.env, self.ReplenishLeadDay, ordered))
+        job['done_set'].add(pc)
+        job['in_flight'].discard(pc)
+        self.in_progress[ws] -= 1
+        self.CycleCompleted = self.RuntimeVariables.CycleCompleted(pc, self.KnowledgeGraph)
+        self.Throughput = self.RuntimeVariables.Throughput(pc, self.KnowledgeGraph, self.Throughput)
+        if not job['ev'].triggered:
+            job['ev'].succeed()
+        self._wake_dispatcher(ws)                           # 슬롯 비었음 → 디스패처 재가동
 
     def produce_unit(self, model_id, agent=None):
-        # 주문 1개 = 코루틴 1개. 유닛별 done_set 으로 ver0 ready_queue 호출(교차오염 X).
+        # 주문 1개 = 코루틴 1개. ready job 을 ws 큐에 제출(fan-out)하고 완료를 대기.
+        # 선택(어느 job 먼저)은 디스패처가 cross-unit 으로 — 여기선 제출/대기만.
         done_set = set()
         kg = self.KnowledgeGraph
         terminal_pcs = {pc for pc, n in kg.nodes.items()
-                        if n.model_id == model_id} - set(kg.edges.keys())
-
-        if agent is not None:
-            # PPO 결정점 경로 — 기존 단일선택 유지(학습 contract 보존). 병렬화는 greedy 만.
-            while not terminal_pcs.issubset(done_set):
-                ready = self._ready_for(model_id, done_set)
-                if not ready:
-                    yield self.env.timeout(60)
-                    continue
-                ProcessCode   = agent.choose(ready, self)
-                WorkstationId = self._workstation_of(ProcessCode)
-                if WorkstationId is None:
-                    done_set.add(ProcessCode)
-                    continue
-                yield self.env.process(
-                    self.process_job(ProcessCode, WorkstationId, done_set))
-                self.Throughput = self.RuntimeVariables.Throughput(
-                    ProcessCode, kg, self.Throughput)
-            return
-
-        # greedy: 한 유닛 내에서 '선후·BOM 충족된 ready 공정' 을 모두 동시 디스패치.
-        # 직렬화는 produce_unit 구현 인공물이었을 뿐 — 도메인 제약(ready_queue)·
-        # 워커 Resource·근무시간만 진짜 게이트. 같은 모델 다른 유닛 병렬은 그대로.
+                        if n.model_id == model_id and pc not in kg.edges}
         in_flight: set = set()
-        active: list = []
+        outstanding: list = []
         while not terminal_pcs.issubset(done_set):
-            for pc in self._ready_for(model_id, done_set):
-                if pc in in_flight:
+            ready = self._ready_for(model_id, done_set)
+            for pc in ready:
+                if pc in in_flight or pc in done_set:
                     continue
                 ws = self._workstation_of(pc)
                 if ws is None:
                     done_set.add(pc)
                     continue
                 in_flight.add(pc)
-                active.append(self.env.process(
-                    self._do_process(pc, ws, done_set, in_flight)))
-            active = [p for p in active if p.is_alive]
-            if not active:
-                yield self.env.timeout(60)                           # 재고/선행 대기
+                ev = self.env.event()
+                self._pending[ws].append({'pc': pc, 'done_set': done_set,
+                                          'in_flight': in_flight, 'ev': ev})
+                outstanding.append(ev)
+                self._wake_dispatcher(ws)
+            outstanding = [e for e in outstanding if not e.triggered]
+            if not outstanding:
+                yield self.env.timeout(60)                           # 선행·BOM 대기(ready 없음)
                 continue
-            yield simpy.AnyOf(self.env, active)                      # 하나라도 끝나면 재평가
-            active = [p for p in active if p.is_alive]
+            yield simpy.AnyOf(self.env, outstanding)                  # 하나라도 끝나면 재평가
+            outstanding = [e for e in outstanding if not e.triggered]
 
     def run(self, agent=None, max_sec: float = 60 * 86400):
         # 주문수량만큼 produce_unit 을 동시에 띄우고 한 번 진행. agent=None → greedy.
         self.reset()
         stop = self.env.event()
+        for ws in self.workers:                              # [B2] ws별 중앙 디스패처
+            self.env.process(self._dispatcher(ws, agent))
         for model_id, qty in self.target_qty.items():
             for _ in range(qty):
                 self.env.process(self.produce_unit(model_id, agent))
@@ -626,8 +665,7 @@ def train(env, agent, MaxEpisodes):
             print(f'[ep {episode}] STOP sentinel — graceful exit', flush=True)
             break
         agent.reset_buffer()
-        summary = (env.run(agent=agent, max_sec=_TEMP_EP_MAX_SEC)      # 고정 horizon(임시)
-                   if _TEMP_EP_MAX_SEC else env.run(agent=agent))
+        summary = env.run(agent=agent)
         R = env.episode_reward()
         decisions = len(agent.buf)
         metrics = agent.learn(R, env.KnowledgeGraph)                   # 진단 dict (B/C/D)
@@ -663,50 +701,15 @@ if __name__ == '__main__':
     PSM_Warehouse        = SimulationModel.Warehouse
     DefaultParameters    = SimulationModel.DefaultParameters
     RewardWeightsSME     = SimulationModel.RewardWeights
-    GNN_arch             = SimulationModel.ModelArchitecture.GNN
-    PPO_arch             = SimulationModel.ModelArchitecture.PPO
-    TrainingConfig       = PPO_arch.TrainingConfig
+    GNN_arch             = SimulationModel.ModelArchitecture.GNN                          #← ModelArchitecture.GNN
+    TrainingConfig       = SimulationModel.ModelArchitecture.PPO.TrainingConfig           #← ModelArchitecture.PPO.TrainingConfig
 
-    ManufacturingProcesses = {mp.model_id: mp for mp in PSM_Warehouse.InputBOM.target}  #← Warehouse.InputBOM
-    workers              = PSM.workers                                                   #← WWM
+    ManufacturingProcesses = {mp.model_id: mp for mp in PSM_Warehouse.InputBOM.target}    #← Warehouse.InputBOM
+    workers              = PSM.workers                                                    #← WWM
     WarehouseManagedBOM  = PSM.CoManagedBOM                                               #← ProductAAS HS (PCB 제외)
-    SelfManagedBOM       = PSM.SelfManagedBOM                                             #← PCB(SMT_PCB) 별도 창고
     BOMCategory          = PSM_Warehouse.MinStock.target                                  #← Warehouse.MinStock
-
-    IndependentSequence  = [node.idShort for ref in Action.IndependentSequence for node in ref.target]
-    DependentSequence    = [node.idShort for ref in Action.DependentSequence   for node in ref.target]
-    DependentJoin        = [node.idShort for ref in Action.DependentJoin       for node in ref.target]
-
-    RewardWeights        = {
-        'W1_TimeElapsed'   : float(RewardWeightsSME.W1_TimeElapsed.value),
-        'W2_Energy'        : float(RewardWeightsSME.W2_Energy.value),
-        'W3_StockOverflow' : float(RewardWeightsSME.W3_StockOverflow.value),
-        'W4_StockShortage' : float(RewardWeightsSME.W4_StockShortage.value),
-        'W5_Throughput'    : float(RewardWeightsSME.W5_Throughput.value),
-        'W6_IdleWorker'    : float(RewardWeightsSME.W6_IdleWorker.value),
-    }
-    ReplenishLeadDay     = int(DefaultParameters.ReplenishLeadDay.value) * 3600           #← DefaultParameters
-    IdleWorkerThreshold  = int(DefaultParameters.IdleWorkerThreshold.value)
-    WorkStartTime        = DefaultParameters.WorkStartTime.target.value
-    WorkEndTime          = DefaultParameters.WorkEndTime.target.value
-    break_start_sec      = DefaultParameters.BreakDurationMin.target.min
-    break_end_sec        = DefaultParameters.BreakDurationMin.target.max
-    MaxEpisodes          = int(SimulationModel.SimulationConfig.MaxEpisodes.value)
     RuntimeVariables     = SimulationModel.RuntimeVariables                               #← SimulationModel.RuntimeVariables (AAS 명시 연산 단일 구현처)
-
-    NodeFeatureDim       = int(GNN_arch.NodeFeatureDim.value)                             #← ModelArchitecture.GNN
-    HiddenDim            = int(GNN_arch.HiddenDim.value)
-    OutputDim            = int(GNN_arch.OutputDim.value)
-    NumLayers            = int(GNN_arch.NumLayers.value)
-    GNNEmbeddingDim      = OutputDim                                                      #← PPO.Actor.GNNEmbeddingDim → OutputDim
-    LearningRate         = float(TrainingConfig.LearningRate.value)                       #← ModelArchitecture.PPO.TrainingConfig
-    ClipEpsilon          = float(TrainingConfig.ClipEpsilon.value)
-    Gamma                = float(TrainingConfig.Gamma.value)
-    GaeLambda            = float(TrainingConfig.GaeLambda.value)
-    EntropyCoef          = float(TrainingConfig.EntropyCoef.value)
-    ValueLossCoef        = float(TrainingConfig.ValueLossCoef.value)
-    UpdateEpochs         = TrainingConfig.UpdateEpochs.value
-    BatchSize            = int(TrainingConfig.BatchSize.value)
+    MaxEpisodes          = int(SimulationModel.SimulationConfig.MaxEpisodes.value)
 
     target_qty = {
         model_id: int(input(f'{model_id} 목표 생산 수량을 입력하세요: '))
@@ -720,40 +723,47 @@ if __name__ == '__main__':
         KnowledgeGraph       = KnowledgeGraph,
         warehouse            = warehouse,
         workers              = workers,
-        IndependentSequence  = IndependentSequence,
-        DependentSequence    = DependentSequence,
-        DependentJoin        = DependentJoin,
-        RewardWeights        = RewardWeights,
-        ReplenishLeadDay     = ReplenishLeadDay,
+        IndependentSequence  = [node.idShort for ref in Action.IndependentSequence for node in ref.target],
+        DependentSequence    = [node.idShort for ref in Action.DependentSequence   for node in ref.target],
+        DependentJoin        = [node.idShort for ref in Action.DependentJoin       for node in ref.target],
+        RewardWeights        = {
+            'W1_TimeElapsed'   : float(RewardWeightsSME.W1_TimeElapsed.value),
+            'W2_Energy'        : float(RewardWeightsSME.W2_Energy.value),
+            'W3_StockOverflow' : float(RewardWeightsSME.W3_StockOverflow.value),
+            'W4_StockShortage' : float(RewardWeightsSME.W4_StockShortage.value),
+            'W5_Throughput'    : float(RewardWeightsSME.W5_Throughput.value),
+            'W6_IdleWorker'    : float(RewardWeightsSME.W6_IdleWorker.value),
+        },
+        ReplenishLeadDay     = int(DefaultParameters.ReplenishLeadDay.value) * 3600,
         target_qty           = target_qty,
         MaxEpisodes          = MaxEpisodes,
         WarehouseManagedBOM  = WarehouseManagedBOM,
         BOMCategory          = BOMCategory,
-        WorkStartTime        = WorkStartTime,
-        WorkEndTime          = WorkEndTime,
-        break_start_sec      = break_start_sec,
-        break_end_sec        = break_end_sec,
-        IdleWorkerThreshold  = IdleWorkerThreshold,
+        WorkStartTime        = DefaultParameters.WorkStartTime.target.value,
+        WorkEndTime          = DefaultParameters.WorkEndTime.target.value,
+        break_start_sec      = DefaultParameters.BreakDurationMin.target.min,
+        break_end_sec        = DefaultParameters.BreakDurationMin.target.max,
+        IdleWorkerThreshold  = int(DefaultParameters.IdleWorkerThreshold.value),
         RuntimeVariables     = RuntimeVariables,
         IdleProcessRatedPowerKw = float(DefaultParameters.IdleProcessRatedPowerKw.value),
         IdlePowerRatio       = 0.10,
-        SelfManagedBOM       = SelfManagedBOM,
+        SelfManagedBOM       = PSM.SelfManagedBOM,                                        #← PCB(SMT_PCB) 별도 창고
     )
 
     agent = PPOAgent(
-        NodeFeatureDim  = NodeFeatureDim,
-        HiddenDim       = HiddenDim,
-        OutputDim       = OutputDim,
-        NumLayers       = NumLayers,
-        GNNEmbeddingDim = GNNEmbeddingDim,
-        LearningRate    = LearningRate,
-        ClipEpsilon     = ClipEpsilon,
-        Gamma           = Gamma,
-        GaeLambda       = GaeLambda,
-        EntropyCoef     = EntropyCoef,
-        ValueLossCoef   = ValueLossCoef,
-        UpdateEpochs    = UpdateEpochs,
-        BatchSize       = BatchSize,
+        NodeFeatureDim   = int(GNN_arch.NodeFeatureDim.value),
+        HiddenDim        = int(GNN_arch.HiddenDim.value),
+        OutputDim        = int(GNN_arch.OutputDim.value),
+        NumLayers        = int(GNN_arch.NumLayers.value),
+        GNNEmbeddingDim  = int(GNN_arch.OutputDim.value),                                 #← PPO.Actor.GNNEmbeddingDim → OutputDim
+        LearningRate     = float(TrainingConfig.LearningRate.value),
+        ClipEpsilon      = float(TrainingConfig.ClipEpsilon.value),
+        Gamma            = float(TrainingConfig.Gamma.value),
+        GaeLambda        = float(TrainingConfig.GaeLambda.value),
+        EntropyCoef      = float(TrainingConfig.EntropyCoef.value),
+        ValueLossCoef    = float(TrainingConfig.ValueLossCoef.value),
+        UpdateEpochs     = TrainingConfig.UpdateEpochs.value,
+        BatchSize        = int(TrainingConfig.BatchSize.value),
         RuntimeVariables = RuntimeVariables,
     )
 
