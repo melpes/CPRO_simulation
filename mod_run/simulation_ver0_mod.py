@@ -9,6 +9,13 @@ import torch
 from torch_geometric.nn import GCNConv
 from torch_geometric.data import Data
 
+# ============================================================
+# ⚠️ [임시 실험 — 고정 horizon] 에피소드 제한시간(초). None = 무제한(평소).
+# 설정 시 train() 이 env.run(max_sec=_TEMP_EP_MAX_SEC) 로 호출 → throughput 비포화.
+# 실험 러너(_exp_horizon.py)가 세팅. ★실험 종료 후 None 으로 되돌릴 것★
+_TEMP_EP_MAX_SEC = None
+# ============================================================
+
 
 @dataclass
 class GraphNode:
@@ -240,15 +247,18 @@ class GNNEncoder(torch.nn.Module):
         return x                                   #(node 수 x OutputDim) 크기의 노드 embedding 행렬
     
 class Actor(torch.nn.Module):
-    def __init__(self, GNNEmbeddingDim, HiddenDim, NumLayers):
+    def __init__(self, GNNEmbeddingDim, HiddenDim, NumLayers, StateDim=0):
         super().__init__()
+        self.StateDim   = StateDim
         self.layers     = torch.nn.ModuleList()
-        self.layers.append(torch.nn.Linear(GNNEmbeddingDim, HiddenDim))
+        self.layers.append(torch.nn.Linear(GNNEmbeddingDim + StateDim, HiddenDim))
         for _ in range(NumLayers - 1):
             self.layers.append(torch.nn.Linear(HiddenDim, HiddenDim))
         self.score_head = torch.nn.Linear(HiddenDim, 1)
 
-    def forward(self, x):                       # x: (N_ready, GNNEmbeddingDim)
+    def forward(self, x, state=None):           # x: (N_ready, GNNEmbeddingDim), state: (StateDim,) or None
+        if self.StateDim > 0:
+            x = torch.cat([x, state.unsqueeze(0).expand(x.size(0), -1)], dim=-1)
         for i, layer in enumerate(self.layers):
             x = layer(x)
             if i < len(self.layers) - 1:
@@ -258,15 +268,18 @@ class Actor(torch.nn.Module):
         return torch.nn.functional.softmax(logits, dim=-1)  # ready 위 분포
     
 class Critic(torch.nn.Module):
-    def __init__(self, GNNEmbeddingDim, HiddenDim, NumLayers):
+    def __init__(self, GNNEmbeddingDim, HiddenDim, NumLayers, StateDim=0):
         super().__init__()
+        self.StateDim     = StateDim
         self.layers       = torch.nn.ModuleList()
-        self.layers.append(torch.nn.Linear(GNNEmbeddingDim, HiddenDim))
+        self.layers.append(torch.nn.Linear(GNNEmbeddingDim + StateDim, HiddenDim))
         for _ in range(NumLayers - 1):
             self.layers.append(torch.nn.Linear(HiddenDim, HiddenDim))
         self.value_head   = torch.nn.Linear(HiddenDim, 1)
 
-    def forward(self, x):
+    def forward(self, x, state=None):           # x: (1, GNNEmbeddingDim), state: (StateDim,) or None
+        if self.StateDim > 0:
+            x = torch.cat([x, state.unsqueeze(0)], dim=-1)
         for i, layer in enumerate(self.layers):
             x = layer(x)
             if i < len(self.layers) - 1:
@@ -279,11 +292,12 @@ class PPOAgent(torch.nn.Module):
     def __init__(self, NodeFeatureDim, HiddenDim, OutputDim, NumLayers,
                  GNNEmbeddingDim, LearningRate, ClipEpsilon, Gamma,
                  GaeLambda, EntropyCoef, ValueLossCoef, UpdateEpochs, BatchSize,
-                 RuntimeVariables):
+                 RuntimeVariables, StateDim=0):
         super().__init__()
+        self.StateDim        = StateDim
         self.GNNEncoder      = GNNEncoder(NodeFeatureDim, HiddenDim, OutputDim, NumLayers)
-        self.Actor           = Actor(GNNEmbeddingDim, HiddenDim, NumLayers)
-        self.Critic          = Critic(GNNEmbeddingDim, HiddenDim, NumLayers)
+        self.Actor           = Actor(GNNEmbeddingDim, HiddenDim, NumLayers, StateDim=StateDim)
+        self.Critic          = Critic(GNNEmbeddingDim, HiddenDim, NumLayers, StateDim=StateDim)
         self.ClipEpsilon     = ClipEpsilon
         self.Gamma           = Gamma
         self.GaeLambda       = GaeLambda
@@ -298,16 +312,19 @@ class PPOAgent(torch.nn.Module):
         self.buf = []   # 결정점마다 {ready, idx, logp, value}
 
     def choose(self, ready_pcs, env):
-        # produce_unit 의 결정점 콜백. ready_pcs 위에서 행동 샘플 + rollout 기록.
+        # produce_unit 의 결정점 콜백. 학습(training)→샘플, 평가(eval)→argmax(결정론).
+        # buf 적재는 양쪽 다(평가 시엔 안 쓰이지만 무해).
         data, node_list  = env.KnowledgeGraph.to_pyg_data()
         embeddings       = self.GNNEncoder(data)
         ready_emb        = torch.stack([embeddings[node_list.index(pc)] for pc in ready_pcs])
-        dist             = torch.distributions.Categorical(self.Actor(ready_emb))
-        idx              = dist.sample()
-        value            = self.Critic(ready_emb.mean(dim=0, keepdim=True)).squeeze()
+        state            = env.state_vec() if self.StateDim > 0 else None    # 결정점 동적 관측
+        dist             = torch.distributions.Categorical(self.Actor(ready_emb, state))
+        idx              = dist.sample() if self.training else dist.probs.argmax()
+        value            = self.Critic(ready_emb.mean(dim=0, keepdim=True), state).squeeze()
         self.buf.append({'ready': list(ready_pcs), 'idx': int(idx.item()),
                          'logp': dist.log_prob(idx).detach(),
                          'value': value.detach(),
+                         'state': (state.detach() if state is not None else None),  # 결정점 상태 snapshot
                          'phi': float(env.potential())})       # 결정점 Φ(s_t) — per-step 보상용
         return ready_pcs[idx.item()]
 
@@ -345,10 +362,11 @@ class PPOAgent(torch.nn.Module):
             for b in self.buf:
                 embeddings = self.GNNEncoder(data)
                 ready_emb  = torch.stack([embeddings[node_list.index(pc)] for pc in b['ready']])
-                dist       = torch.distributions.Categorical(self.Actor(ready_emb))
+                state      = b['state']                                          # 결정점 시점 snapshot 재사용
+                dist       = torch.distributions.Categorical(self.Actor(ready_emb, state))
                 new_logp.append(dist.log_prob(torch.tensor(b['idx'])))
                 entropy.append(dist.entropy())
-                value_preds.append(self.Critic(ready_emb.mean(dim=0, keepdim=True)).squeeze())
+                value_preds.append(self.Critic(ready_emb.mean(dim=0, keepdim=True), state).squeeze())
             new_logp    = torch.stack(new_logp)
             entropy     = torch.stack(entropy)
             value_preds = torch.stack(value_preds)
@@ -432,6 +450,7 @@ class CproSimEnv:
         self.completed            = set()
         self.in_progress          = {}
         self.idle_time            = {}
+        self.last_active          = {ws: 0.0 for ws in self.workers}   # ws 가 fully idle 진입한 시각 (state_vec idle 항 산출용)
         self.warehouse            = Warehouse.build(
                                       self.WarehouseManagedBOM,
                                       self.BOMCategory
@@ -486,6 +505,8 @@ class CproSimEnv:
                     self.env, self.ReplenishLeadDay, ordered))
         done_set.add(ProcessCode)                                    # (4) self.completed → done_set
         self.in_progress[WorkstationId] -= 1
+        if self.in_progress[WorkstationId] == 0:                     # ws fully idle 진입 — duration 기준점
+            self.last_active[WorkstationId] = self.env.now
         self.CycleCompleted = self.RuntimeVariables.CycleCompleted(ProcessCode, self.KnowledgeGraph)
         # (4) terminal 시 self.completed.clear() 제거 — 유닛-local done_set 이라 불필요/유해
 
@@ -551,6 +572,8 @@ class CproSimEnv:
         job['done_set'].add(pc)
         job['in_flight'].discard(pc)
         self.in_progress[ws] -= 1
+        if self.in_progress[ws] == 0:                       # ws fully idle 진입 — duration 기준점 갱신
+            self.last_active[ws] = self.env.now
         self.CycleCompleted = self.RuntimeVariables.CycleCompleted(pc, self.KnowledgeGraph)
         self.Throughput = self.RuntimeVariables.Throughput(pc, self.KnowledgeGraph, self.Throughput)
         if not job['ev'].triggered:
@@ -623,6 +646,53 @@ class CproSimEnv:
             self.IdleProcessRatedPowerKw, self.IdlePowerRatio)
         return idle_base + self.EpisodeEnergyKwh
 
+    @property
+    def state_dim(self) -> int:
+        # PPOAgent 인스턴스화 시점에 미리 알아야 — env.reset() 호출 불필요(설정만으로 산출).
+        # 구성: [throughput per model] + [time] + [energy]
+        #     + [worker_util per ws] + [stock_short, stock_over] + [idle_avg]
+        return len(self.target_qty) + 2 + len(self.workers) + 3
+
+    def state_vec(self) -> torch.Tensor:
+        # 결정점마다 호출. 활성 보상항(W1/W2/W5) + 미활성 채널(W3/W4/W6) 까지 전부 동적 관측.
+        # 보상에 없어도 critic V(s) 추정에 도움 — 관측은 풀로, 보상은 별도 결정.
+        # 모든 값 0~1 근방으로 정규화 — GNN 임베딩과 concat 시 한 항이 압살하지 않도록.
+        total_target = sum(self.target_qty.values())
+        work_day = self.WorkEndTime - self.WorkStartTime - (self.break_end_sec - self.break_start_sec)
+        idle_base = self.RuntimeVariables.IdleBaselineKwh(
+            self.KnowledgeGraph, self.env.now,
+            self.IdleProcessRatedPowerKw, self.IdlePowerRatio)
+        maxE_full = self.RuntimeVariables.MaxEpisodeEnergyKwh(
+            self.KnowledgeGraph, self.env.now,
+            self.IdleProcessRatedPowerKw, self.IdlePowerRatio)
+        denom = max(maxE_full - idle_base, 1e-6)
+        feats = []
+        for model_id in self.target_qty:                                # ① 모델별 throughput 진척 (W5 대응)
+            feats.append(self.Throughput[model_id] / self.target_qty[model_id])
+        feats.append(self.env.now / max(work_day * total_target, 1.0))   # ② 시간 진척 (W1 대응)
+        feats.append((idle_base + self.EpisodeEnergyKwh) / denom)        # ③ 에너지 진척 (W2 대응)
+        for ws, info in self.workers.items():                            # ④ ws별 워커 점유율
+            feats.append(self.in_progress.get(ws, 0) / info['worker_count'])
+        # ⑤ 재고 항 (W3/W4 대응) — 전 품목 정규화 합 (MinStock 부족 / MaxStock 과잉)
+        stock_short = 0.0
+        stock_over  = 0.0
+        for cat in self.warehouse.inventory.values():
+            for s in cat.values():
+                if s.MinStock > 0:
+                    stock_short += max(0, s.MinStock - s.present_stock) / s.MinStock
+                if s.MaxStock > 0:
+                    stock_over  += max(0, s.present_stock - s.MaxStock) / s.MaxStock
+        feats.append(stock_short)
+        feats.append(stock_over)
+        # ⑥ 유휴 항 (W6 대응) — fully idle ws 의 평균 지속시간 / IdleWorkerThreshold
+        # last_active[ws] = ws 가 fully idle 로 진입한 시각 (_run_job/process_job 에서 갱신)
+        idle_norm_sum = 0.0
+        for ws in self.workers:
+            if self.in_progress.get(ws, 0) == 0:
+                idle_norm_sum += (self.env.now - self.last_active[ws]) / max(self.IdleWorkerThreshold, 1.0)
+        feats.append(idle_norm_sum / len(self.workers))
+        return torch.tensor(feats, dtype=torch.float32)
+
     def potential(self) -> float:
         # 현재 상태의 목적함수 값 Φ(s). 임의 시점(결정점/종료)에서 호출 가능.
         # per-step 보상 r_t = Φ(s_{t+1})−Φ(s_t) 의 telescoping → 종료 시 episode_reward 와 일치.
@@ -648,15 +718,20 @@ class CproSimEnv:
         # 종료 시 스칼라 보상 = Φ(terminal). learn() 의 마지막 결정 보상 기준값.
         return self.potential()
 
-def train(env, agent, MaxEpisodes):
+def train(env, agent, MaxEpisodes, run_name=None):
     # 에피소드 = produce_unit 구조 1회(env.run(agent)). 결정점마다 agent.choose 가
     # rollout 기록 → 종료 후 episode_reward 로 1회 PPO learn. (직렬 step/skip 없음)
     # 매 ep rl_logger_spec 항목 JSONL 기록 + best R 갱신 시에만 agent_mod.pt 저장.
-    import os
+    # 출력 → result/runs/<run_name>/  (None 이면 timestamp 자동 생성)
+    import os, time
     from rl_logger import RLLogger
 
-    _OUT = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'result')
-    os.makedirs(_OUT, exist_ok=True)                                   # mod_run/result/
+    if run_name is None:
+        run_name = 'run_' + time.strftime('%Y-%m-%d_%H-%M-%S')
+    _OUT = os.path.join(os.path.dirname(os.path.abspath(__file__)),
+                         'result', 'runs', run_name)
+    os.makedirs(_OUT, exist_ok=True)
+    print(f'[train] outputs → result/runs/{run_name}/', flush=True)
     logger = RLLogger(os.path.join(_OUT, 'rl_log.jsonl'))
     ckpt   = os.path.join(_OUT, 'agent_mod.pt')
 
@@ -665,7 +740,8 @@ def train(env, agent, MaxEpisodes):
             print(f'[ep {episode}] STOP sentinel — graceful exit', flush=True)
             break
         agent.reset_buffer()
-        summary = env.run(agent=agent)
+        summary = (env.run(agent=agent, max_sec=_TEMP_EP_MAX_SEC)      # 고정 horizon(임시)
+                   if _TEMP_EP_MAX_SEC else env.run(agent=agent))
         R = env.episode_reward()
         decisions = len(agent.buf)
         metrics = agent.learn(R, env.KnowledgeGraph)                   # 진단 dict (B/C/D)
@@ -765,6 +841,7 @@ if __name__ == '__main__':
         UpdateEpochs     = TrainingConfig.UpdateEpochs.value,
         BatchSize        = int(TrainingConfig.BatchSize.value),
         RuntimeVariables = RuntimeVariables,
+        StateDim         = env.state_dim,                                                 #← 동적 관측 차원 주입
     )
 
     train(env, agent, MaxEpisodes)
