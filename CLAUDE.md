@@ -5,7 +5,7 @@ CPRO 조립공정 시뮬레이션 패키지.
 ## 입력 데이터 contract
 
 - 시뮬레이션의 유일한 외부 입력은 **AAS 템플릿을 따르는 JSON 파일들** 이다.
-- AAS JSON 접근은 **`path_extractor.py` 단일 진입점**만 사용한다. 시뮬 코드(예: `cpro_simulation_ver3.py`)는 `load_aas()` 가 반환하는 `AASModel` dataclass 의 필드만 읽는다. JSON 을 직접 파싱하지 말 것.
+- AAS JSON 접근은 **`path_extractor.py` 단일 진입점**만 사용한다. 시뮬 코드(예: `simulation_ver1.py`)는 `path_extractor` 가 노출하는 `ProvisionofSimulationModelsAAS` 의 필드만 읽는다. JSON 을 직접 파싱하지 말 것.
 - 같은 AAS 템플릿을 따르는 어떤 입력 데이터든 동일한 코드로 동작해야 한다. 특정 모델 ID, 특정 코드값, 특정 idShort 키워드에 종속된 분기가 있으면 안 된다.
 
 ## `path_extractor` (AAS 접근 계층) 구조 규칙
@@ -18,7 +18,7 @@ CPRO 조립공정 시뮬레이션 패키지.
 
 ### AAS 명시 연산의 단일 구현처 (path_extractor 가 연산도 보유)
 
-- **AAS 에 정의된 변수·연산은 모두 path_extractor 에 함수(메서드)로 구현한다.** 시뮬 코드(ver0)는 그 메서드를 **호출만** 하고 같은 로직을 다시 작성하지 않는다. AAS 의 `description` 은 참고용이며 진실의 원천은 그 메서드 본문이다.
+- **AAS 에 정의된 변수·연산은 모두 path_extractor 에 함수(메서드)로 구현한다.** 시뮬 코드(ver1)는 그 메서드를 **호출만** 하고 같은 로직을 다시 작성하지 않는다. AAS 의 `description` 은 참고용이며 진실의 원천은 그 메서드 본문이다.
 - 대상은 특히 **`RuntimeVariables`** — 에피소드 중 동적으로 변해 AAS 에 `value=None` 으로 정의만 있는 변수들. 각 변수의 description 이 명시하는 산출/누적 규칙을 해당 위치 바인딩 도메인 클래스(`RuntimeVariables`, `_positions` 로 `('SimulationModels','SimulationModel','RuntimeVariables')` 바인딩)의 메서드로 구현한다.
 - 메서드 규약: **순수 산출형**은 런타임 입력만 받아 값 반환, **누적형**은 마지막 인자로 현재값을 받아 다음값 반환 (path_extractor 는 에피소드 상태를 보유하지 않는다 — 순수 함수).
 - path_extractor 는 **torch 등 시뮬/ML 의존성을 import 하지 않는다**. 순수 파이썬으로 구현하고 tensor 화는 시뮬 코드가 한다.
@@ -111,85 +111,34 @@ SME 트리에서 "A 컬렉션의 각 요소에 대해 B 컬렉션을 찾아 짝�
 
 ## 정책 상수와 정적 데이터
 
-AAS 템플릿에 미반영된 데이터는 모두 **`cpro_config.py`** 한 파일에 섹션 구분으로 모은다. 시뮬 코드(`cpro_simulation_ver3.py`)는 `from cpro_config import *` 한 줄로 사용한다.
-
-`cpro_config.py` 의 섹션 구성:
-
-- 시간 / 진입점 (`RANDOM_SEED`, `DAY_SEC`, `MAX_DAYS`)
-- 시뮬 정책 상수 (`MIN_STOCK`, `RMA_*`, `THT_*` 등 — AAS qualifier 로 옮긴 항목은 제거)
-- PCB / SMT 라인 매핑 (`PCB_MAP`, `THT_PCB_BY_MODEL`, `SMT_LINE_IDS`)
-- 워커 그룹 / 라벨 매핑 (`WWM_LINE_TO_WORKER`, `PROCESS_GROUP_TO_WORKER_GROUP`, `LOCATION_*`)
-- 정격 전력 (`RATED_POWER_KW`, `get_rated_power_kw`)
-- SMT / RMA 정적 공정 데이터 (`PF_COLS`, `PF_ALL_ROWS`, `RESOURCE_MTTR_HR`)
+ver1 은 정책 상수·하이퍼파라미터를 **AAS 에서 직접 추출**한다 (`DefaultParameters`, `RewardWeights`, `ModelArchitecture.GNN`/`PPO.TrainingConfig`, `Warehouse.MinStock` 등). 별도 `cpro_config.py` 는 두지 않는다 (ver0/ver3 시절의 정책상수 모음 파일로, 현재 미사용·삭제됨).
 
 규칙:
-- 시뮬 코드 본문(클래스/함수 안)에는 정책 상수나 정적 데이터 dict 를 정의하지 않는다.
-- 새 항목은 적절한 섹션에 추가.
-- AAS 템플릿이 확장되어 어떤 항목이 AAS 에서 추출 가능해지면 `cpro_config.py` 에서 제거하고 `path_extractor` 가 추출하도록 수정.
+- AAS 에 있는 값은 `path_extractor` 메서드/필드로 추출해 시뮬·도구 코드가 읽는다. 본문에 정책상수 dict 를 정의하지 않는다.
+- AAS 미반영 정책값(예: `IdlePowerRatio=0.10`)은 **도구의 env 빌더(`make_env`/`make_envs`/`_timeit.build`) 호출부에서 키워드 인자로 주입**한다 (코딩 스타일 12번 — 본문에서 글로벌 import 금지).
+- 새 정책값이 생기면 우선 AAS 템플릿 확장 + `path_extractor` 추출을 검토하고, 불가피할 때만 도구 주입.
 - 임시 글로벌을 **AAS 에서 가져온 것처럼 위장하기 위한 prefix 추론 등 우회 로직은 만들지 말 것**.
 
-## TODO: 시뮬레이션 분기 일반화 (그룹 이름 hardcoding 제거)
+## 시뮬레이션 분기 일반화 (라벨 hardcoding 제거) — ver1 에서 대부분 해소
 
-시뮬 코드가 `'SMT'`, `'RMA'`, `'OQC'`, `'PACK'`, `'INSP'` 등 특정 ProcessGroup 라벨에 매칭해서 분기하는 곳들이 다수 남아 있다. 다른 공장의 AAS 가 자유 형식 라벨(`'GHT_MEI'`, 숫자 코드 등)을 보내도 동작해야 한다는 contract 위반. 라벨 매칭 대신 **AAS qualifier 또는 그래프 토폴로지** 같은 데이터 기반 식별로 옮길 것.
+ver3 가 `'SMT'`/`'RMA'`/`'OQC'`/`'PACK'` 등 ProcessGroup 라벨로 분기하던 문제(`SMTLine`/`run_rma`/`OutsourceTruckPool`/`resolve_worker_group` 등)는 ver1 에서 **`KnowledgeGraph` + `shared_groups`(AAS `ProcessOQC`/`ProcessRMA` 공용 노드, `model_id='ALL'`) 기반**으로 재설계되며 거의 제거됐다. OQC 확률 게이트는 `ProcessNode.SamplingRate` qualifier 로 처리(`produce_unit`).
 
-### A. 흐름 자체가 일반 KG 와 다른 경우 (시뮬 핸들러 분기)
-
-1. **SMT 컨베이어 라인** (`'SMT'`/`'SMT_SHARED'`): `SMTLine` 클래스, `KG_EXCLUDED_PROCESS_GROUPS`, `wip.enter('SMT')`, `energy.record(_,'SMT',_)` 다수.
-   → AAS qualifier `LineType: SmtConveyor` 또는 토폴로지(stage chain) 로 식별.
-2. **RMA 재투입** (`'RMA'`/`'RMA_REPAIR'`): `run_rma`, `_rma_repair_and_reinsert`, `energy.record('RMA_REPAIR','RMA',_)`, `KG_EXCLUDED_PROCESS_GROUPS` 의 `'RMA'`.
-   → AAS qualifier `LineType: ReworkLine`.
-3. **THT 외주**: `OutsourceTruckPool`, `PCB_MAP`/`THT_PCB_BY_MODEL`, `THT_DELAY_*`.
-   → AAS qualifier `PcbType: Main/Tht` + `LineType: OutsourceShipment`.
-
-### B. 일반 KG 흐름 안의 노드별 변형 (qualifier 로 옮기기 가장 쉬움)
-
-4. **OQC 5% 샘플링** — ✅ 처리 완료 (`ProcessNode.SamplingRate` qualifier).
-5. **AOI defect action** (`'repair'`/`'scrap'`): `AOI_DEFECT_ACTION` 글로벌.
-   → ProcessNode qualifier `DefectAction`.
-6. **SET_INSP 분리**: `resolve_worker_group` 의 `wgrp=='WORKER_SET' & grp=='SET' & pc.endswith('_INSP')` 하드코딩.
-   → ProcessNode qualifier `RequiresInspector` 또는 별도 워커 매핑 명시.
-
-### C. PACK 진입 식별
-
-7. **`_find_pack_entry`**: `process_group=='PACK'` + INSP 합류 검사.
-   → ProcessNode qualifier `IsPackEntry` 또는 토폴로지 (`DepNext` 없는 합류 노드).
-
-### D. 모니터링 / 통계
-
-8. **`WIP_TRACKED_GROUPS` 고정 7개 그룹**.
-   → 동적 (`for grp in self.wip:`). 라벨 자유.
-9. **`PROCESS_GROUP_DEFAULT_KW`**: `RATED_POWER_KW` 못 찾을 때 group 기본값.
-   → 검증기에서 `RATED_POWER_KW` 누락 raise. fallback 자체 제거.
-10. **`PCB_MAP` / `THT_PCB_BY_MODEL`**: 모델별 main/THT PCB 코드.
-    → AAS `pcb_entries` 의 qualifier `PcbType: Main/Tht` 도입.
-
-### 진행 원칙
-
-- **B 부터** (4의 OQC 패턴 그대로 적용 가능).
-- **A** 는 핸들러 자체는 도메인 특화로 유지하되, AAS qualifier 로 식별만 옮김.
-- 새 qualifier 도입 = AAS 템플릿 확장 + `path_extractor` 추출 + 시뮬 사용.
+- 새 공장 AAS 의 자유 라벨도 그래프 토폴로지·qualifier 로 식별하므로 **라벨 매칭 분기를 새로 추가하지 말 것**.
+- 새 노드별 변형이 필요하면 AAS 템플릿에 qualifier 추가 → `path_extractor` 추출 → 시뮬 사용 (`SamplingRate` 패턴 그대로).
 
 
 ## 시각화 분리
 
-- 시각화(엑셀 저장, PNG 저장) 코드는 `cpro_visualization.py` 에 격리되어 있다. `cpro_simulation_ver3.py` 의 `ExperimentRunner.save_results` / `save_figures` 가 thin wrapper 로 위임한다.
-- `cpro_visualization.py` 는 시뮬 모듈을 import 하지 않는다 (단방향 의존). 필요한 상수는 keyword argument 로 주입한다.
+- ver1 시각화(영상·간트·히트맵)는 `mod_run/cpro_ver1_viz.py`(공유 렌더 유틸 + `make_envs` env 진입점)와 `mod_run/` 의 도구들(`_render_*`, `_capture_*`, `cpro_worker_util` 등)에 둔다.
+- `cpro_ver1_viz` 는 `simulation_ver1` 을 함수 내부에서만 lazy import 하고, AAS·정책값은 호출부에서 주입한다 (단방향 의존).
 
-## `redesign/` 패키지 역할
+## `redesign/` 패키지 (legacy 아카이브)
 
-`redesign/` 은 **`simulation_ver0.py` 의 미래 모듈 분할 프리뷰**다. ver0 가 단일 파일로 진행되는 동안, `redesign/` 은 같은 코드를 `kg.py` / `sim_env.py` / `runner.py` / `factory.py` / `networks.py` 로 쪼개 놓은 선행 구현이다.
+`redesign/`(ver0 의 모듈분할 프리뷰: `kg.py`/`sim_env.py`/`factory.py`/`networks.py`/`runner.py`)는 ver1 이 단일파일 메인이 되며 역할을 다했다. `legacy/redesign/` 으로 아카이브됨(`.gitignore` 비추적). ver1 작업에는 참조하지 않는다.
 
-- **동기화 방향: ver0 → redesign**. ver0 에서 버그가 수정되거나 새 컴포넌트가 구현되면, redesign 의 해당 모듈에 반영한다. redesign 만 단독으로 손대지 않는다.
-- **redesign 단독 버그를 발견해도 ver0 에 같은 코드가 있는지 먼저 확인**. ver0 에 이미 고쳐져 있다면 그 수정을 redesign 에 옮기는 것이 우선. ver0 에도 있는 버그라면 ver0 부터 고치고 redesign 으로 전파.
-- 그래서 redesign 은 ver0 가 아직 구현하지 않은 영역(예: `networks.py` 의 GNN/PPO, `factory.py` 의 정규화 분모 계산)을 **미리 스케치해둔 상태**일 수 있고, 그 부분은 ver0 에 해당 코드가 들어올 때까지 동작하지 않을 수 있다.
+## ver1 코딩 스타일
 
-### 상세 구현 상태
-
-redesign 의 모듈별 구현 / 한계 / 미구현 사항은 **`redesign/STATUS.md`** 에 추적한다. 작업 묶음 직후 같은 커밋에서 STATUS.md 를 갱신한다.
-
-## redesign / ver0 코딩 스타일
-
-`simulation_ver0.py` 의 스타일을 redesign 패키지 전체의 기준으로 삼는다. `cpro_simulation_ver3.py` 의 매니저 객체 분산 / 깊은 분기 / 다층 헬퍼는 이식하지 않는다.
+`simulation_ver1.py` 의 스타일을 시뮬·도구 코드 전체의 기준으로 삼는다. (구 ver3 의 매니저 객체 분산 / 깊은 분기 / 다층 헬퍼는 이식하지 않는다.)
 
 ### 메타 원칙
 
@@ -197,7 +146,10 @@ redesign 의 모듈별 구현 / 한계 / 미구현 사항은 **`redesign/STATUS.
 
 ### 세부 규칙
 
-1. **명명 — AAS idShort 그대로**. PascalCase 무관, snake_case 강요 X. AAS 에서 본 표기와 코드에서 본 표기가 1:1 로 일치해야 한다. 파생/순수 로컬 변수만 snake_case (`model_id`, `present_stock`, `completed`, `in_progress`).
+1. **명명 — AAS 변수는 idShort CamelCase 그대로, 비-AAS 변수는 snake_case**.
+   - AAS 데이터에 존재하는 변수는 idShort 가 CamelCase 이므로 코드에서도 **줄이지 않고 동일한 CamelCase** 로 쓴다 (`Quantity`, `Category`, `WorkstationId`, `ProcessConsumedBOM`). AAS 표기와 코드 표기가 1:1.
+   - AAS 에 정의되지 않았으나 코드에서 필요해 만든 파생/순수 로컬 변수는 **Python 기본 권장대로 `_` snake_case** (`model_id`, `present_stock`, `completed`, `in_progress`).
+   - **AAS 미정의 변수는 최소화**한다 — 가능하면 AAS 추출값을 직접 쓰고, 임시 파생 변수를 남발하지 않는다.
 2. **dataclass + `@classmethod build(cls, <raw>)` 단일 진입점**. 외부 raw 데이터로부터 인스턴스 한 번에 완성. lazy parse / 부분 초기화 / 나중 setter 금지.
 3. **Visual alignment**. dataclass 필드 콜론, `__init__` 의 `self.X = X` 대입, kwarg 호출의 `=` 모두 세로 정렬. 멀티라인 함수 호출 인자도 정렬해 펼침.
 4. **`#← <AAS 경로>` 인라인 주석** 으로 필드 출처 못박기. 별도 문서/TypedDict 만들지 않음.
@@ -208,173 +160,20 @@ redesign 의 모듈별 구현 / 한계 / 미구현 사항은 **`redesign/STATUS.
 9. **섹션 구분은 `#========이름========`**. `# region` 미사용 (path_extractor 와 의도적으로 다름 — 시뮬 코드는 한눈에 펼침).
 10. **simpy 의존은 도메인 dataclass 에 넣지 않는다.** 핵심 제약은 "**도메인 dataclass (`KnowledgeGraph`, `Warehouse`) 에 simpy 결합 금지**" — 이들은 시뮬 외 용도(RL state 추출, AAS round-trip) 로 재사용 가능해야 하므로 simpy coroutine 을 멤버로 두지 않고, 필요한 simpy process 는 자유 함수로 작성해 `env.process(fn(env, ...))` 로 등록한다. 단 **시뮬 컨트롤러(`CproSimEnv`)는 이미 `simpy.Environment` 를 보유한 시뮬 전용 객체**이므로, 그 객체에서만 쓰이는 simpy coroutine 은 `CproSimEnv` 의 제너레이터 **메서드**로 둔다(자유 함수 + `self` 전달 우회 금지). `env.process(self.process_job(...))` 형태. (알려진 잔존 위배: `Warehouse.replenish` — 도메인 dataclass 에 `yield env.timeout` 결합. 별도 후속으로 자유 함수/주입 형태로 분리 검토.)
 11. **상태 변경 패턴 (mutating container vs event hook) 은 케이스별 결정**. 새 케이스 만나면 작성 중에 물어본다.
-12. **외부 입력은 `__init__` 인자로 주입**. 클래스/함수 본문에서 `cpro_config` 글로벌을 직접 import 하지 않는다. 결합은 진입점 (`runner.py`) 한 곳.
+12. **외부 입력은 `__init__` 인자로 주입**. 클래스/함수 본문에서 정책상수 글로벌을 직접 import 하지 않는다 (별도 `cpro_config` 없음 — "정책 상수와 정적 데이터" 절 참조). 결합은 도구 진입점(env 빌더 호출부) 한 곳.
 13. **`reset()` 에서 에피소드 상태 재생성**. `simpy.Environment`, `Warehouse`, `completed`, `in_progress`, 트래커들 모두 reset 안에서 새로 만든다. 외부 입력 (`self.X`, `__init__` 에서 받은 것) 은 건드리지 않는다.
 14. **변수명 풀네임** (CLAUDE.md 의 path_extractor 규칙과 동일). `Quantity`, `Category`, `ProcessConsumedBOM`, `WorkstationId`. 작은 루프 임시 변수 (`mp`, `ref`, `pn`) 만 약식 허용.
 15. **dict 내부 스키마는 필드 옆 inline 주석으로 못박기**. `workers : Dict[str, dict] #{WorkstationId: {'worker_count': int, 'ProcessCode': [...]}}`. TypedDict / dataclass wrapper 만들지 않음.
 
-### ver3 → redesign 이식 시
+### 옛 코드(legacy) 발췌 시
 
-ver3 에서 발췌하더라도 위 규칙으로 다시 쓴다. ver3 의 매니저 클래스 / 이벤트 핸들러 / util 모듈 / hardcoded 매핑은 그대로 옮기지 않는다. 흐름이 한 방향으로 읽히도록 재배치.
+legacy(ver0/ver3) 코드를 참고·발췌하더라도 위 규칙으로 다시 쓴다. 매니저 클래스 / 이벤트 핸들러 / util 모듈 / hardcoded 매핑은 그대로 옮기지 않고, 흐름이 한 방향으로 읽히도록 재배치한다.
 
-## `simulation_ver0.py` 구동 진행률
+## ver1 GNN / PPO 참조
 
-`cpro_simulation_ver3.py` 의 동작을 ver0 에서 재구현 중. 구성요소별 구현률은 작업 시 갱신. **% 갱신 규칙**: 새 항목 구현·확장 직후 같은 커밋에서 본 표를 수정. 상태는 `0% → ~50%(부분) → 100%(완료)` 단순 단계로 본다.
+ver1 은 도메인 모델·simpy 코어·RL(GNN/PPO) 전부 `simulation_ver1.py` 단일 파일에 구현·검증 완료. 아키텍처의 **진실의 원천은 코드 본문**이다 — 차원·수식을 이 문서에 옮겨 적지 않는다 (다음 리팩터에서 또 stale 해진다).
 
-**총 진행률: 9%** (가중평균 — 도메인 모델 40%, simpy 코어 40%, RL 20%)
-
-### 도메인 모델 / 상태 추적자
-
-| # | 컴포넌트 | 진행률 | 비고 |
-|---|---|---:|---|
-| 1 | 시간/근무 글로벌 (`_active_schedule`, `_is_work_time`, `_next_work_start`, `work_timeout`, `_work_seconds_between`) | 10% | `CproSimEnv._is_work_time` 부분만. 글로벌 `_active_schedule` 없음 |
-| 2 | `_log_event` / `_EVENT_BUF` | 0% |  |
-| 3 | `GraphNode` / `GraphEdge` / `KnowledgeGraph` | 40% | `build`/`ready_queue`/`_bom_satisfied` ✓. `dep_type`/`worker_group`/`rated_kw`/`transfer_time`/`feat`/`get_adj`/`get_feat_matrix` 미구현 |
-| 4 | `ReadyContext` + `ReadyStatus` + `is_process_ready` | 0% | 현재 `_bom_satisfied` 만 |
-| 5 | `StockItem` / `Warehouse` | 30% | `consume`/`replenish` ✓. `wait_stock`/`restore`/`snapshot_loop`/`pcb_flow`/`outsource_log`/demand 기반 초기재고 ✗ |
-| 6 | `WIPTracker` | 0% |  |
-| 7 | `EnergyLogger` | 5% | `total_energy_kwh: list[float]` 한 개 |
-| 8 | `IdleTracker` | 0% |  |
-| 9 | `SolderCream` | 0% |  |
-| 10 | `OutsourceTruckPool` | 0% |  |
-| 11 | `SMTLine` | 0% |  |
-| 12 | `ProcessActivityLogger` | 0% |  |
-
-### simpy 코어 (env.process 등록 코루틴 / 메인 컨테이너)
-
-| # | 컴포넌트 | 진행률 | 비고 |
-|---|---|---:|---|
-| 13 | `CproSimEnv.__init__` / `_init_sim` (자원·프로세스 등록 컨테이너) | 15% | 필드 받기만. `wres`/`aoi_res`/`rma`/`smt_lines`/`outsource_pool` 미생성 |
-| 14 | `CproSimEnv.reset` | 20% | 부분 — `Warehouse.build` 호출 ✓, simpy.Environment 생성 ✓. 나머지 자원 미생성 |
-| 15 | `CproSimEnv.step` / `run` | 10% | step 골격만. `run(until=stop_event)` 미구현 |
-| 16 | `process_job` / `run_process` | 10% | `process_job` 단순형만. 근무시간/BOM wait/skill/JOIN-AnyOf/defect 분기 ✗ |
-| 17 | `produce_unit` (KG 워크플로우) | 0% |  |
-| 18 | `run_rma` (RMA 큐 핸들러) | 0% |  |
-| 19 | `_smt_schedule` / `_run_line` (SMT 보드 발사) | 0% |  |
-| 20 | `_event_smt_breakdown` / `_event_worker_absent` / `_event_replenishment` / `_deliver` | 0% |  |
-| 21 | `monitor` (콘솔 대시보드) | 0% |  |
-| 22 | `wh.snapshot_loop` / `wip.snapshot_loop` / `_check_done` | 0% |  |
-
-### RL (옵션 — greedy 모드 동작 후 추가)
-
-| # | 컴포넌트 | 진행률 | 비고 |
-|---|---|---:|---|
-| 23 | `ProcessGNN` (2-layer GCN + score head) | 0% |  |
-| 24 | `PPOAgent` (encoder + actor/critic + GAE + clip) | 0% |  |
-| 25 | `ManufacturingEnv.get_state` / `reward` (6항 분해) | 0% |  |
-| 26 | `ExperimentRunner.run_ppo_training` / `run_inference` | 0% |  |
-
-### 보조
-
-| # | 컴포넌트 | 진행률 | 비고 |
-|---|---|---:|---|
-| 27 | `cpro_visualization.py` 위임 (`save_results`/`save_figures`) | 0% | ver3 코드 그대로 재사용 가능 |
-
-## GNN / PPO 아키텍처 명세
-
-ver3 의 `ProcessGNN` / `PPOAgent` 를 ver0 에 그대로 옮길 때의 spec. **forward 계산 흐름과 차원**을 박아놓아 재구현 시 차원 불일치를 막는다.
-
-### ProcessGNN — 노드 임베딩 + per-node score
-
-학습 파라미터를 가진 모듈은 `Linear` 3개. mp(인접행렬 곱)는 파라미터 없는 텐서 연산이라 별도 모듈 아님.
-
-```
-입력  H   : (N, in_dim=6)         # 노드 피처 (정규화된 ct, dr, worker_count/20, kw/100, fork_flag, join_flag)
-입력  adj : (N, N)                # 인접행렬 (KG.edges 에서 빌드)
-
-A_n = adj / row_degree.clamp(min=1e-6)        # row-normalized adjacency
-
-H1 = ReLU( conv1( A_n @ H  ) )    # (N, 32)   ← GCN layer 1  (1-hop)
-H2 = ReLU( conv2( A_n @ H1 ) )    # (N, 16)   ← GCN layer 2  (2-hop)
-
-score(H2) : (N, 1) → squeeze → (N,)            # forward() 의 출력 = per-node logit
-graph_embed = H2.mean(dim=0) : (16,)           # graph_embed() / act() 에서 사용
-```
-
-| 모듈 | shape | 역할 |
-|---|---|---|
-| `conv1 = nn.Linear(6, 32)` | (6→32) | GCN layer 1 의 W |
-| `conv2 = nn.Linear(32, 16)` | (32→16) | GCN layer 2 의 W |
-| `score = nn.Linear(16, 1)` | (16→1) | per-node action score (PPO actor 의 logit) |
-
-**"layer 몇 개냐"**: PyTorch 모듈 관점 = Linear 3개. GCN 논문 관점 = 2 GCN layer + 1 readout (mp 는 학습 파라미터 없는 sub-step). 코드상 mp 는 `A_n @ H` 한 줄로만 등장.
-
-### PPOAgent — actor/critic 공유 인코더 + GNN per-node score
-
-```
-state_vec   : (state_dim,)             # state_dim = n_models + n_workers + 6
-graph_embed : (16,)                    # GNN.graph_embed() 의 출력
-
-x   = concat(state_vec, graph_embed) : (state_dim + 16,)
-enc = encoder(x) : (64,)               # Linear(_, 128) → ReLU → Linear(128, 64) → ReLU
-                                        # ← actor/critic 공유 trunk
-
-critic_head(enc) : (1,)                # value V(s)
-                                        # actor 의 logit 은 head 가 아니라
-                                        # GNN.score(H2) 를 ready_mask 로 마스킹해서 사용
-```
-
-학습 흐름 (`act` → `store` → `update`):
-```
-act(state, H, adj, ready_mask):
-    H2          = GNN forward (위 다이어그램)
-    emb         = H2.mean(0)
-    _, value    = self.forward(state, emb)
-    node_scores = GNN.score(H2).squeeze(-1)
-                  .masked_fill(~ready_mask, -inf)
-    probs       = softmax(node_scores)
-    action      = Categorical(probs).sample()
-    → return (action, log_prob, value, emb, mask_bytes)
-
-store(s, emb, a, r, lp, v, mask, model_id):
-    self.buf.append(...)               # 에피소드 끝까지 누적
-
-update(graphs_cache):
-    rewards, values, model_ids ← buf
-    advs = GAE(λ=0.95, γ=0.99) over reversed(buf[:-1])
-    advs = (advs - mean) / (std + 1e-8)
-
-    for epoch in range(EPOCHS=4):
-        for entry in buf[:-1]:
-            new_lp = log_prob(a) under fresh GNN forward (mask 복원)
-            ratio  = exp(new_lp - old_lp)
-            loss_p = -min(ratio*adv, clip(ratio, 1-ε, 1+ε)*adv)   # PPO-clip, ε=0.2
-            loss_v = MSE(critic_out, old_value)
-            loss   = loss_p + 0.5 * loss_v
-            backward → clip_grad_norm_(0.5) → optimizer.step()
-    buf.clear()
-```
-
-| 하이퍼파라미터 | 값 |
-|---|---:|
-| LR (Adam) | 3e-4 |
-| GAMMA (γ) | 0.99 |
-| LAM (λ, GAE) | 0.95 |
-| EPS (PPO clip) | 0.2 |
-| EPOCHS (per update) | 4 |
-| value loss weight | 0.5 |
-| grad clip norm | 0.5 |
-| CONV_WINDOW / THRESHOLD (조기종료) | 100 / 0.01 |
-
-### state_vec / reward 구성 (`ManufacturingEnv`)
-
-```
-state_vec (n_models + n_workers + 6 차원):
-    completion_per_model        : n_models      # done/total per model
-    worker_utilization          : n_workers     # 1 - count/capacity per group
-    energy_per_sec              : 1             # energy.total / (env.now+1)
-    time_progress               : 1             # env.now / t_max
-    stock_penalty_norm          : 1             # wh.stock_penalty() / total_order
-    wip_violation_norm          : 1             # wip.violations() / n_workers
-    idle_penalty_norm           : 1             # idle.worker_idle_penalty() / (env.now+1)
-    smt_breakdown_ratio         : 1             # broken / (n_smt_pcs+1)
-
-reward = w1·r1 + w2·r2 + w3·r3 + w4·r4 + w5·r5 + w6·r6
-   W_DEFAULT = (0.30, 0.25, 0.15, 0.10, 0.10, 0.10)
-   r1 = -dt_wall / t_max                       # 시간 페널티
-   r2 = -d_kwh / (kwh_now+1)                   # 전력 증가분 페널티
-   r3 = -d_wip / n_workers                     # WIP 위반 증가
-   r4 = -d_stock / (total_order * 10)          # 재고 부족 증가
-   r5 =  d_done / total_order  (+1.0 if 완성)   # 생산 보상
-   r6 = -d_idle / (total_cap * dt_work)        # 유휴 증가
-```
+- **GNN/PPO**: `GNNEncoder`(torch_geometric `GCNConv` ×`NumLayers`) + `Actor`/`Critic` **분리** 모듈 + `PPOAgent`. (ver3 의 수동 GCN·공유 trunk·`GNN.score` 마스킹 명세와 다름.)
+- **상태 관측**: `state_vec()` / `state_dim = n_models + 2 + n_workers + 3` — 모델별 throughput, time, energy, ws별 점유율, stock_short/over, idle_avg 의 6 채널 모두 관측.
+- **보상**: `potential()` 기반 Φ telescoping (`r_t = Φ(s_{t+1}) − Φ(s_t)`). 현재 **transitional** — W5/W1/W2(throughput·time·energy)만 반영하고 W3/W4/W6(재고·유휴)은 `state_vec` 으로 관측만 하며 보상 반영은 후속 재설계 예정.
+- **하이퍼파라미터·차원**: AAS `ModelArchitecture.GNN`/`PPO.TrainingConfig` 에서 주입(고정값 표 아님). 도구 env 빌더(`_capture_oqc.make_env`, `_timeit.build`)가 추출·주입하는 형태가 표준.

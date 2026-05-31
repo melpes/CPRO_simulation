@@ -16,3 +16,10 @@ backup*.aasx
 .claude/
 backup/
 mod_run/result/
+
+# 학습 로그 산출물 (rl_log.jsonl, rl_log_qty10.jsonl 등)
+rl_log*.jsonl
+# 일회성 스크립트·스모크 보관소
+scratch/
+# 빌드 캐시 디렉토리
+__pycache__/
