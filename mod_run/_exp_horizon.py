@@ -13,13 +13,13 @@ import os, sys, shutil, time
 
 HORIZON_SEC = 52200      # greedy 기준 총 ~50개 시점(14.5h). 조정 가능.
 QTY         = 100
-EP          = 40         # 추세 관찰용
+EP          = 60         # 본 학습(체크 통과 후 스케일) ~2.5h
 
 _DIR  = os.path.dirname(os.path.abspath(__file__))
 _RES  = os.path.join(_DIR, 'result')
 sys.path.insert(0, _DIR); sys.path.insert(0, os.path.dirname(_DIR))
 
-import simulation_ver0_mod as svm
+import simulation_ver1 as svm
 svm._TEMP_EP_MAX_SEC = HORIZON_SEC                          # ★임시 주입★
 import _timeit as T
 
@@ -35,19 +35,18 @@ if __name__ == '__main__':
         p = os.path.join(_RES, m)
         if os.path.exists(p):
             os.remove(p); say(f'잔존 신호 제거: {m}')
+    run_name = f'horizon_qty{QTY}_T{HORIZON_SEC}_ep{EP}_' + time.strftime('%Y-%m-%d_%H-%M-%S')
     try:
-        sv, env, agent = T.build('simulation_ver0_mod', QTY, EP)
+        sv, env, agent = T.build('simulation_ver1', QTY, EP)
         assert svm._TEMP_EP_MAX_SEC == HORIZON_SEC, 'horizon lost'
-        say('build 완료, train 시작')
-        sv.train(env, agent, EP)
-        for src, dst in (('rl_log.jsonl', 'rl_log_horizon_qty100.jsonl'),
-                         ('agent_mod.pt', 'agent_horizon_qty100.pt')):
-            s = os.path.join(_RES, src)
-            if os.path.exists(s):
-                shutil.copy2(s, os.path.join(_RES, dst))
-        open(os.path.join(_RES, 'HORIZON_DONE'), 'w').write(time.strftime('%Y-%m-%d %H:%M:%S'))
-        say('###### HORIZON_DONE → rl_log_horizon_qty100.jsonl 보존 ######')
+        say(f'build 완료, train 시작 → result/runs/{run_name}/')
+        sv.train(env, agent, EP, run_name=run_name)              # 자체 subfolder 에 저장
+        open(os.path.join(_RES, 'runs', run_name, 'HORIZON_DONE'),
+             'w').write(time.strftime('%Y-%m-%d %H:%M:%S'))
+        say(f'###### HORIZON_DONE → result/runs/{run_name}/ ######')
     except Exception as e:
         import traceback
         say('FATAL ' + repr(e)); traceback.print_exc(file=_LOG)
-        open(os.path.join(_RES, 'HORIZON_DONE'), 'w').write('ERROR ' + repr(e))
+        os.makedirs(os.path.join(_RES, 'runs', run_name), exist_ok=True)
+        open(os.path.join(_RES, 'runs', run_name, 'HORIZON_DONE'),
+             'w').write('ERROR ' + repr(e))

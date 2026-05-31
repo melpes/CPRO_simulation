@@ -1,13 +1,13 @@
 # -*- coding: utf-8 -*-
-"""ver0 / ver0_mod 공장 물류·작업 흐름 동영상 (관측·비교용).
+"""ver1 공장 물류·작업 흐름 동영상 + 시각화 유틸 (관측용).
 
-- ver0      : 직렬(step/skip) 원본.            → factory_ver0.mp4
-- ver0_mod  : produce_unit + 워커 capacity.    → factory_ver0_mod.mp4
-둘 다 A/B/C 각 100개 주문, greedy.
+- ver1  : 워커 디스패처(_run_job) 경로. produce_unit + 워커 capacity.  → factory_ver1.mp4
+A/B/C 각 100개 주문, greedy/학습. (구 ver0/ver0_mod 비교판은 _gantt3 와 함께 legacy.)
 
 시간축: 야간(퇴근 18:00 ~ 출근 08:00)은 영상에서 생략하고 08:00~18:00 만
 표현(=하루 중 08~09시 + 근무 + 점심까지 보임). 점심(12~13)은 그대로 표현.
-동작/수치 무변경 — CproSimEnv subclass 로 process_job 만 감싸 이벤트 기록.
+동작/수치 무변경 — CproSimEnv subclass 로 _run_job 만 감싸 이벤트 기록.
+make_envs() 는 _capture_and_gantt / _render_trained_det 의 env 진입점이기도 하다.
 """
 from __future__ import annotations
 import os, importlib, bisect
@@ -25,16 +25,16 @@ import path_extractor as pe
 # ====== 설정 ======
 TARGET_PER_MODEL = {'MODEL_A': 100, 'MODEL_B': 100, 'MODEL_C': 100}
 DISP_START   = 28800            # 08:00 — 이 시각부터 표현 (그 전 야간 생략)
-SIM_HOUR_TO_SEC = 4.0           # 표현되는 시뮬 1h → 4 real-sec
+SIM_HOUR_TO_SEC = 1.2           # 표현되는 시뮬 1h → 1.2 real-sec (≈현재 effective 재생속도 고정)
 FPS          = 15
-MAX_FRAMES   = 900
+MAX_FRAMES   = 99999            # 사실상 캡 해제 — 영상 길이 = D(=근무시간 합산)/base_spf 비례
 TRANSITION_HOLD_FRAMES = 1
 MAX_EVENTS   = 60000            # 100*3 유닛 안전 상한
 
 # ====== AAS 로드 (루트에서) ======
 for _f in ['ProvisionOfSimulationModel.json', 'WorkstationWorkerMatchingDataAAS.json',
            'MODEL_A.json', 'MODEL_B.json', 'MODEL_C.json']:
-    pe.load(os.path.join(_ROOT, _f))
+    pe.load(os.path.join(_ROOT, 'aas_data', _f))
 PSM = pe.ProvisionofSimulationModelsAAS
 SM  = PSM.SimulationModels.SimulationModel
 A   = SM.KnowledgeGraph.Action
@@ -75,55 +75,45 @@ class _Rec:
 
 
 def make_envs():
-    """ver0 / ver0_mod 각각의 기록용 env 생성."""
-    sv0  = importlib.import_module('simulation_ver0')
-    svm  = importlib.import_module('simulation_ver0_mod')
+    """ver1 기록용 env 생성 (워커 디스패처 _run_job 경로). 인자 구성은 _capture_oqc 템플릿과 동일."""
+    import simulation_ver1 as sv1
 
-    class RecV0(_Rec, sv0.CproSimEnv):              # ver0: process_job(pc, ws) — 직렬
-        def reset(self):
-            obs = super().reset(); self._init_rec(); return obs
-        def process_job(self, ProcessCode, WorkstationId):
-            t0 = self.env.now
-            yield from super().process_job(ProcessCode, WorkstationId)
-            self._record(ProcessCode, t0)
-
-    class RecMod(_Rec, svm.CproSimEnv):             # ver0_mod: process_job(pc, ws, done_set)
+    class RecMod(_Rec, sv1.CproSimEnv):             # ver1: _run_job 가 실제 실행 — 여기서 이벤트 기록
         def reset(self):
             super().reset(); self._init_rec()
-        def process_job(self, ProcessCode, WorkstationId, done_set):
+        def _run_job(self, ws, job, req):
             t0 = self.env.now
-            yield from super().process_job(ProcessCode, WorkstationId, done_set)
-            self._record(ProcessCode, t0)
+            pc = job['pc']
+            yield from super()._run_job(ws, job, req)
+            self._record(pc, t0)
 
-    def _kwargs(sv, pcb_split=False):
-        KG = sv.KnowledgeGraph.build(
-            {mp.model_id: mp for mp in SM.Warehouse.InputBOM.target}, PSM.workers)
-        WH = sv.Warehouse.build(PSM.WarehouseManagedBOM, SM.Warehouse.MinStock.target)
-        extra = ({'SelfManagedBOM': PSM.SelfManagedBOM} if pcb_split else {})
-        return dict(
-            **extra,
-            IdleProcessRatedPowerKw=float(DP.IdleProcessRatedPowerKw.value),
-            IdlePowerRatio=0.10,
-            KnowledgeGraph=KG, warehouse=WH, workers=PSM.workers,
-            IndependentSequence=[n.idShort for r in A.IndependentSequence for n in r.target],
-            DependentSequence=[n.idShort for r in A.DependentSequence for n in r.target],
-            DependentJoin=[n.idShort for r in A.DependentJoin for n in r.target],
-            RewardWeights={k: float(RW[k].value) for k in
-                           ['W1_TimeElapsed', 'W2_Energy', 'W3_StockOverflow',
-                            'W4_StockShortage', 'W5_Throughput', 'W6_IdleWorker']},
-            ReplenishLeadDay=int(DP.ReplenishLeadDay.value) * 3600,
-            target_qty=dict(TARGET_PER_MODEL), MaxEpisodes=1,
-            WarehouseManagedBOM=(PSM.CoManagedBOM if pcb_split else PSM.WarehouseManagedBOM),
-            BOMCategory=SM.Warehouse.MinStock.target,
-            WorkStartTime=DP.WorkStartTime.target.value,
-            WorkEndTime=DP.WorkEndTime.target.value,
-            break_start_sec=DP.BreakDurationMin.target.min,
-            break_end_sec=DP.BreakDurationMin.target.max,
-            IdleWorkerThreshold=int(DP.IdleWorkerThreshold.value),
-            RuntimeVariables=SM.RuntimeVariables)
-
-    return [('ver0',     RecV0(**_kwargs(sv0)),                  'serial'),
-            ('ver0_mod', RecMod(**_kwargs(svm, pcb_split=True)), 'run')]
+    KG = sv1.KnowledgeGraph.build(
+        {mp.model_id: mp for mp in SM.Warehouse.InputBOM.target},
+        PSM.workers,
+        {name: g for name, g in SM.KnowledgeGraph.Node.value.items() if name in ('ProcessOQC',)})
+    WH = sv1.Warehouse.build(PSM.CoManagedBOM, SM.Warehouse.MinStock.target)
+    env = RecMod(
+        KnowledgeGraph=KG, warehouse=WH, workers=PSM.workers,
+        IndependentSequence=[n.idShort for r in A.IndependentSequence for n in r.target if n is not None],
+        DependentSequence=[n.idShort for r in A.DependentSequence for n in r.target if n is not None],
+        DependentJoin=[n.idShort for r in A.DependentJoin for n in r.target if n is not None],
+        RewardWeights={k: float(RW[k].value) for k in
+                       ['W1_TimeElapsed', 'W2_Energy', 'W3_StockOverflow',
+                        'W4_StockShortage', 'W5_Throughput', 'W6_IdleWorker']},
+        ReplenishLeadDay=int(DP.ReplenishLeadDay.value) * 3600,
+        target_qty=dict(TARGET_PER_MODEL), MaxEpisodes=1,
+        WarehouseManagedBOM=PSM.CoManagedBOM,
+        BOMCategory=SM.Warehouse.MinStock.target,
+        WorkStartTime=DP.WorkStartTime.target.value,
+        WorkEndTime=DP.WorkEndTime.target.value,
+        break_start_sec=DP.BreakDurationMin.target.min,
+        break_end_sec=DP.BreakDurationMin.target.max,
+        IdleWorkerThreshold=int(DP.IdleWorkerThreshold.value),
+        RuntimeVariables=SM.RuntimeVariables,
+        IdleProcessRatedPowerKw=float(DP.IdleProcessRatedPowerKw.value),
+        IdlePowerRatio=0.10,
+        SelfManagedBOM=PSM.SelfManagedBOM)
+    return [('ver1', env, 'run')]
 
 
 def drive_serial(env):
@@ -142,8 +132,8 @@ def drive_serial(env):
     return env.events, env.stock_ts
 
 
-def drive_run(env):
-    env.run()                                       # produce_unit greedy
+def drive_run(env, agent=None):
+    env.run(agent=agent)                            # agent=None=greedy / 학습 정책 = pass agent
     return env.events, env.stock_ts
 
 
@@ -172,8 +162,8 @@ def _disp_segments(makespan, disp_end):
     return segs or [(0.0, makespan)]   # 전 구간이 08:00 이전이면 생략 없이 전체
 
 
-def render(name, env, mode):
-    events, stock_ts = (drive_run if mode == 'run' else drive_serial)(env)
+def render(name, env, mode, agent=None):
+    events, stock_ts = (drive_run(env, agent) if mode == 'run' else drive_serial(env))
     out = os.path.join(_DIR, f'factory_{name}.mp4')
     if not events:
         print(f'[{name}] 이벤트 0 — 렌더 불가'); return

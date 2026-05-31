@@ -1,16 +1,16 @@
 # -*- coding: utf-8 -*-
-"""라인별 워커 활용률 히트맵 (ver0_mod).
+"""라인별 워커 활용률 히트맵 (ver1).
 
 행=워크스테이션(라인), 열=시간bin, 색=활용률(점유 워커수/capacity, 0~1).
 시뮬 1 에피소드(greedy)를 돌리며 매 SAMPLE_DT 마다
 `worker_resources[ws].count / capacity` 를 샘플. 야간(18:00→08:00)은
 영상과 동일하게 생략, 점심(12~13)은 비근무라 자연히 낮은 열(dip)로 보임.
 
-ver0 는 워커 Resource 자체가 없는 직렬 모델이라 제외(활용률 개념이 무의미).
-출력: worker_util_ver0_mod.png
+ver1 은 워커 capacity 기반 모델 — 라인별 동시 점유/capacity 를 본다.
+출력: worker_util_ver1.png
 """
 from __future__ import annotations
-import os, sys, importlib
+import os, sys
 import matplotlib
 matplotlib.use('Agg')
 import matplotlib.pyplot as plt
@@ -27,14 +27,14 @@ DISP_START = 28800             # 08:00 — 이 전(야간) 샘플은 버림 (영
 
 for _f in ['ProvisionOfSimulationModel.json', 'WorkstationWorkerMatchingDataAAS.json',
            'MODEL_A.json', 'MODEL_B.json', 'MODEL_C.json']:
-    pe.load(os.path.join(_ROOT, _f))
+    pe.load(os.path.join(_ROOT, 'aas_data', _f))
 PSM = pe.ProvisionofSimulationModelsAAS
 SM  = PSM.SimulationModels.SimulationModel
 A   = SM.KnowledgeGraph.Action
 DP  = SM.DefaultParameters
 RW  = SM.RewardWeights
 
-svm = importlib.import_module('simulation_ver0_mod')
+import simulation_ver1 as svm
 
 
 class UtilEnv(svm.CproSimEnv):
@@ -53,7 +53,7 @@ class UtilEnv(svm.CproSimEnv):
             return 1                                           # OFF (근무외/점심)
         kg = self.KnowledgeGraph
         pcs = [pc for pc in self.workers[ws]['ProcessCode'] if pc in kg.nodes]
-        served = {kg.nodes[pc].model_id for pc in pcs}
+        served = {kg.nodes[pc].model_id for pc in pcs} & set(self.target_qty)  # 'ALL'(공용 OQC/RMA) 제외 — 모델별 완성 개념 무관
         if served and all(self.Throughput[m] >= self.target_qty[m] for m in served):
             return 4                                           # DONE (담당 모델 생산완료)
         if pcs and all(not kg._bom_satisfied(pc, self.warehouse) for pc in pcs):
@@ -74,7 +74,8 @@ class UtilEnv(svm.CproSimEnv):
 
 def build():
     KG = svm.KnowledgeGraph.build(
-        {mp.model_id: mp for mp in SM.Warehouse.InputBOM.target}, PSM.workers)
+        {mp.model_id: mp for mp in SM.Warehouse.InputBOM.target}, PSM.workers,
+        {name: g for name, g in SM.KnowledgeGraph.Node.value.items() if name in ('ProcessOQC',)})
     WH = svm.Warehouse.build(PSM.CoManagedBOM, SM.Warehouse.MinStock.target)
     return UtilEnv(
         KnowledgeGraph=KG, warehouse=WH, workers=PSM.workers,
@@ -125,7 +126,7 @@ def render():
                      interpolation='nearest')
     axU.set_yticks(range(len(lines)))
     axU.set_yticklabels([ln.replace('WWM_', '') for ln in lines], fontsize=7)
-    axU.set_title(f'ver0_mod  per-line worker utilization (active/capacity)   '
+    axU.set_title(f'ver1  per-line worker utilization (active/capacity)   '
                   f'thru={summary["Throughput"]}  makespan={summary["makespan_sec"]:.0f}s'
                   f'   [night omitted, lunch=dip]', fontsize=10)
     fig.colorbar(imU, ax=axU, fraction=0.022, pad=0.01).set_label('utilization', fontsize=8)
@@ -150,7 +151,7 @@ def render():
     axR.set_xticklabels(xlab, fontsize=7, rotation=30)
 
     fig.tight_layout()
-    out = os.path.join(_DIR, 'worker_util_ver0_mod.png')
+    out = os.path.join(_DIR, 'worker_util_ver1.png')
     fig.savefig(out, dpi=130)
     plt.close(fig)
     frac = {_R_LABEL[i]: round(float((R == i).mean()), 3) for i in range(5)}

@@ -1,8 +1,8 @@
 # -*- coding: utf-8 -*-
 """학습 wall-time 실측 → qty/MaxEpisodes 사이징.
 
-ver0(직렬 step) / ver0_mod(병렬 produce_unit) 각각 작은 qty 로 N ep train 시간
-측정. 분리된 MODEL_B(12A/B..) 반영 상태에서 측정.
+ver1(워커 디스패처) 작은 qty 로 N ep train 시간 측정.
+분리된 MODEL_B(12A/B..) 반영 상태에서 측정. build() 는 ver1 도구 공유 env+agent 빌더.
 """
 import os, sys, time, importlib, io, contextlib
 
@@ -13,7 +13,7 @@ import path_extractor as pe
 
 for f in ['ProvisionOfSimulationModel.json', 'WorkstationWorkerMatchingDataAAS.json',
           'MODEL_A.json', 'MODEL_B.json', 'MODEL_C.json']:
-    pe.load(os.path.join(_ROOT, f))
+    pe.load(os.path.join(_ROOT, 'aas_data', f))
 PSM = pe.ProvisionofSimulationModelsAAS
 SM  = PSM.SimulationModels.SimulationModel
 A   = SM.KnowledgeGraph.Action
@@ -25,34 +25,32 @@ TC  = PPO.TrainingConfig
 
 
 def build(modname, qty, ep):
-    sv = importlib.import_module(modname)
-    is_mod = modname.endswith('_mod')
+    sv = importlib.import_module(modname)                     # 'simulation_ver1'
     MPs = {mp.model_id: mp for mp in SM.Warehouse.InputBOM.target}
-    KG  = sv.KnowledgeGraph.build(MPs, PSM.workers)
-    wbom = PSM.CoManagedBOM if is_mod else PSM.WarehouseManagedBOM
-    WH  = sv.Warehouse.build(wbom, SM.Warehouse.MinStock.target)
+    KG  = sv.KnowledgeGraph.build(MPs, PSM.workers,
+            {name: g for name, g in SM.KnowledgeGraph.Node.value.items() if name in ('ProcessOQC',)})
+    WH  = sv.Warehouse.build(PSM.CoManagedBOM, SM.Warehouse.MinStock.target)
     rw = {k: float(RW[k].value) for k in
           ['W1_TimeElapsed', 'W2_Energy', 'W3_StockOverflow',
            'W4_StockShortage', 'W5_Throughput', 'W6_IdleWorker']}
     kw = dict(
         KnowledgeGraph=KG, warehouse=WH, workers=PSM.workers,
-        IndependentSequence=[n.idShort for r in A.IndependentSequence for n in r.target],
-        DependentSequence=[n.idShort for r in A.DependentSequence for n in r.target],
-        DependentJoin=[n.idShort for r in A.DependentJoin for n in r.target],
+        IndependentSequence=[n.idShort for r in A.IndependentSequence for n in r.target if n is not None],
+        DependentSequence=[n.idShort for r in A.DependentSequence for n in r.target if n is not None],
+        DependentJoin=[n.idShort for r in A.DependentJoin for n in r.target if n is not None],
         RewardWeights=rw, ReplenishLeadDay=int(DP.ReplenishLeadDay.value) * 3600,
         target_qty={'MODEL_A': qty, 'MODEL_B': qty, 'MODEL_C': qty}, MaxEpisodes=ep,
-        WarehouseManagedBOM=wbom, BOMCategory=SM.Warehouse.MinStock.target,
+        WarehouseManagedBOM=PSM.CoManagedBOM, BOMCategory=SM.Warehouse.MinStock.target,
         WorkStartTime=DP.WorkStartTime.target.value, WorkEndTime=DP.WorkEndTime.target.value,
         break_start_sec=DP.BreakDurationMin.target.min,
         break_end_sec=DP.BreakDurationMin.target.max,
         IdleWorkerThreshold=int(DP.IdleWorkerThreshold.value),
         RuntimeVariables=SM.RuntimeVariables,
         IdleProcessRatedPowerKw=float(DP.IdleProcessRatedPowerKw.value),
-        IdlePowerRatio=0.10)
-    if is_mod:
-        kw['SelfManagedBOM'] = PSM.SelfManagedBOM
+        IdlePowerRatio=0.10,
+        SelfManagedBOM=PSM.SelfManagedBOM)
     env = sv.CproSimEnv(**kw)
-    agent = sv.PPOAgent(
+    agent_kw = dict(
         NodeFeatureDim=int(GNN.NodeFeatureDim.value), HiddenDim=int(GNN.HiddenDim.value),
         OutputDim=int(GNN.OutputDim.value), NumLayers=int(GNN.NumLayers.value),
         GNNEmbeddingDim=int(GNN.OutputDim.value),
@@ -61,6 +59,9 @@ def build(modname, qty, ep):
         EntropyCoef=float(TC.EntropyCoef.value), ValueLossCoef=float(TC.ValueLossCoef.value),
         UpdateEpochs=TC.UpdateEpochs.value, BatchSize=int(TC.BatchSize.value),
         RuntimeVariables=SM.RuntimeVariables)
+    if hasattr(env, 'state_dim'):                             # ver1: 동적 관측 state_vec 주입
+        agent_kw['StateDim'] = env.state_dim
+    agent = sv.PPOAgent(**agent_kw)
     return sv, env, agent
 
 
@@ -77,7 +78,7 @@ def measure(modname, qty, ep):
 
 if __name__ == '__main__':
     target = float(sys.argv[1]) if len(sys.argv) > 1 else 7200.0
-    for mod in ['simulation_ver0_mod', 'simulation_ver0']:
+    for mod in ['simulation_ver1']:
         print(f'\n==== {mod} ====')
         rows = []
         for qty in (2, 4):

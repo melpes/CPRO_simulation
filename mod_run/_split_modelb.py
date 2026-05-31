@@ -25,10 +25,10 @@ DEPPREV = {'BT5_12A': 'BT5_10',  'BT5_12B': 'BT5_11',
 IDLE_KW = '0.0993'                       # = round(min RatedPowerKw 0.1986 * 0.5, 4)
 
 
-def _load(f):  return json.load(open(os.path.join(DIR, f), encoding='utf-8'))
+def _load(f):  return json.load(open(os.path.join(DIR, 'aas_data', f), encoding='utf-8'))
 def _save(f, d):
-    shutil.copy2(os.path.join(DIR, f), os.path.join(DIR, f'{f}.{TS}.bak'))
-    json.dump(d, open(os.path.join(DIR, f), 'w', encoding='utf-8'),
+    shutil.copy2(os.path.join(DIR, 'aas_data', f), os.path.join(DIR, 'aas_data', f'{f}.{TS}.bak'))
+    json.dump(d, open(os.path.join(DIR, 'aas_data', f), 'w', encoding='utf-8'),
               ensure_ascii=False, indent=1)
 
 
@@ -249,13 +249,14 @@ def verify():
     importlib.reload(pe)
     for f in ['ProvisionOfSimulationModel.json', 'WorkstationWorkerMatchingDataAAS.json',
               'MODEL_A.json', 'MODEL_B.json', 'MODEL_C.json']:
-        pe.load(os.path.join(DIR, f))
+        pe.load(os.path.join(DIR, 'aas_data', f))
     PSM = pe.ProvisionofSimulationModelsAAS
     SM  = PSM.SimulationModels.SimulationModel
     A   = SM.KnowledgeGraph.Action
-    svm = importlib.import_module('simulation_ver0_mod')
+    import simulation_ver1 as svm
     KG  = svm.KnowledgeGraph.build(
-        {mp.model_id: mp for mp in SM.Warehouse.InputBOM.target}, PSM.workers)
+        {mp.model_id: mp for mp in SM.Warehouse.InputBOM.target}, PSM.workers,
+        {name: g for name, g in SM.KnowledgeGraph.Node.value.items() if name in ('ProcessOQC',)})
     IS = [n.idShort for r in A.IndependentSequence for n in r.target]
     DS = [n.idShort for r in A.DependentSequence  for n in r.target]
     DJ = [n.idShort for r in A.DependentJoin      for n in r.target]
