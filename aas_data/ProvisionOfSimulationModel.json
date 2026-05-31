@@ -11907,6 +11907,94 @@
                "valueType": "xs:float",
                "value": "0.4965",
                "modelType": "Property"
+              },
+              {
+               "category": "PARAMETER",
+               "idShort": "DepType",
+               "description": [
+                {
+                 "language": "en",
+                 "text": "Dependency type of process OQC. SEQUENCE — ready when any predecessor in DepPrev completed."
+                }
+               ],
+               "semanticId": {
+                "type": "ModelReference",
+                "keys": [
+                 {
+                  "type": "ConceptDescription",
+                  "value": "https://www.smart-factory.kr/ids/cd/DepType/1/0"
+                 }
+                ]
+               },
+               "valueType": "xs:string",
+               "value": "SEQUENCE",
+               "modelType": "Property"
+              },
+              {
+               "category": "PARAMETER",
+               "idShort": "DepPrev",
+               "description": [
+                {
+                 "language": "en",
+                 "text": "Predecessor process codes of OQC. ';'-separated across all camera models — OQC is a shared sampling station that any model can enter after its final pre-pack process."
+                }
+               ],
+               "semanticId": {
+                "type": "ModelReference",
+                "keys": [
+                 {
+                  "type": "ConceptDescription",
+                  "value": "https://www.smart-factory.kr/ids/cd/DepPrev/1/0"
+                 }
+                ]
+               },
+               "valueType": "xs:string",
+               "value": "VD7_100;BT5_110;NVD_110",
+               "modelType": "Property"
+              },
+              {
+               "category": "PARAMETER",
+               "idShort": "DepNext",
+               "description": [
+                {
+                 "language": "en",
+                 "text": "Successor process codes of OQC. ';'-separated across all camera models — OQC routes to each model's first packaging node. Reverse-edge declaration (avoids modifying per-model MP files when a shared station is added)."
+                }
+               ],
+               "semanticId": {
+                "type": "ModelReference",
+                "keys": [
+                 {
+                  "type": "ConceptDescription",
+                  "value": "https://www.smart-factory.kr/ids/cd/DepNext/1/0"
+                 }
+                ]
+               },
+               "valueType": "xs:string",
+               "value": "VD7_110;BT5_120;NVD_120",
+               "modelType": "Property"
+              },
+              {
+               "category": "PARAMETER",
+               "idShort": "DefectRate",
+               "description": [
+                {
+                 "language": "en",
+                 "text": "Defect rate of OQC sampling — 0 (not a defect-producing step, just an inspection gate)."
+                }
+               ],
+               "semanticId": {
+                "type": "ModelReference",
+                "keys": [
+                 {
+                  "type": "ConceptDescription",
+                  "value": "https://www.smart-factory.kr/ids/cd/DefectRate/1/0"
+                 }
+                ]
+               },
+               "valueType": "xs:float",
+               "value": "0.0",
+               "modelType": "Property"
               }
              ],
              "modelType": "SubmodelElementCollection"
@@ -12476,6 +12564,25 @@
                {
                 "type": "GlobalReference",
                 "value": "https://www.smart-factory.kr/ids/cd/NVD_123/1/0"
+               }
+              ]
+             },
+             "modelType": "ReferenceElement"
+            },
+            {
+             "category": "PARAMETER",
+             "description": [
+              {
+               "language": "en",
+               "text": "Reference to OQC shared sampling node. Predecessor is each model's final pre-pack process (DepPrev='VD7_100;BT5_110;NVD_110'). DepType=SEQUENCE — ready when any one predecessor is completed. SamplingRate=0.05 governs probabilistic consumption (5% of units actually inspected, 95% bypass)."
+              }
+             ],
+             "value": {
+              "type": "ExternalReference",
+              "keys": [
+               {
+                "type": "GlobalReference",
+                "value": "https://www.smart-factory.kr/ids/cd/OQC/1/0"
                }
               ]
              },

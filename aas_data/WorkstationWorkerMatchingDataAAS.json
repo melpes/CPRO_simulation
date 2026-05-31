@@ -6470,6 +6470,28 @@
          "value": [
           {
            "category": "PARAMETER",
+           "idShort": "UnitsPerWorker",
+           "description": [
+            {
+             "language": "en",
+             "text": "Number of product units one worker monitors concurrently on this line. Absent = 1 (one unit per worker, default for hands-on lines). AGING line = 10: an aging operator watches many chambers in parallel during the 3h test (CycleTimeSec=10800), so effective line capacity = worker_count x UnitsPerWorker = 6 x 10 = 60. Chamber count is ~30 but equipment is abundant so concurrency is treated as effectively unconstrained."
+            }
+           ],
+           "semanticId": {
+            "type": "ModelReference",
+            "keys": [
+             {
+              "type": "ConceptDescription",
+              "value": "https://www.smart-factory.kr/ids/cd/UnitsPerWorker/1/0"
+             }
+            ]
+           },
+           "valueType": "xs:int",
+           "value": "10",
+           "modelType": "Property"
+          },
+          {
+           "category": "PARAMETER",
            "idShort": "AssignedProcessGroups",
            "description": [
             {

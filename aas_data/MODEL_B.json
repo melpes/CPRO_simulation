@@ -40571,7 +40571,7 @@
           }
          ],
          "valueType": "xs:integer",
-         "value": "240",
+         "value": "10800",
          "modelType": "Property"
         },
         {
@@ -58804,6 +58804,47 @@
        {
         "language": "en",
         "text": "The duration in seconds required for an adhesive or bonding material to fully polymerize and reach its design mechanical strength after application, during which the bonded assembly must remain undisturbed."
+       }
+      ],
+      "modelType": "DataSpecificationIec61360"
+     }
+    }
+   ],
+   "modelType": "ConceptDescription"
+  },
+  {
+   "idShort": "AgingTestDurationSec",
+   "displayName": [
+    {
+     "language": "en",
+     "text": "Aging Test Duration"
+    }
+   ],
+   "id": "https://www.smart-factory.kr/ids/cd/AgingTestDurationSec/1/0",
+   "embeddedDataSpecifications": [
+    {
+     "dataSpecification": {
+      "type": "ExternalReference",
+      "keys": [
+       {
+        "type": "GlobalReference",
+        "value": "https://admin-shell.io/DataSpecificationTemplates/DataSpecificationIec61360/3/0"
+       }
+      ]
+     },
+     "dataSpecificationContent": {
+      "preferredName": [
+       {
+        "language": "en",
+        "text": "AgingTestDurationSec"
+       }
+      ],
+      "unit": "s",
+      "dataType": "INTEGER_COUNT",
+      "definition": [
+       {
+        "language": "en",
+        "text": "The duration in seconds for which an assembled camera unit is subjected to aging test under operating conditions to detect latent defects. During this wait the worker is not occupied — the operator only loads the unit onto the aging chamber slot at the start (covered by CycleTimeSec)."
        }
       ],
       "modelType": "DataSpecificationIec61360"
