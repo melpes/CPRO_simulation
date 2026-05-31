@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
-"""RL 학습 진단 로거 — rl_logger_spec.py 항목을 매 에피소드 JSONL 로 기록.
+"""RL 학습 진단 로거 — 학습 진단 항목을 매 에피소드 JSONL 로 기록.
 
-`simulation_ver0_mod.py:train()` 에서 에피소드마다 1회 호출. PPOAgent.learn 이
+`simulation_ver1.py:train()` 에서 에피소드마다 1회 호출. PPOAgent.learn 이
 반환하는 진단 dict(B/C/D 패널) + 도메인 결과(E) + rollout/길이(F) + running
 best(A 부분) 를 한 줄(JSON) 로 누적 append. 별도 eval rollout/baseline 이
 필요한 A·F 일부(eval/return_mean, vs_random, vs_baseline, train_eval_gap)는

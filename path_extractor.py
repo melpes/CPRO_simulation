@@ -189,9 +189,20 @@ class ProcessNode(SubmodelElementCollection):
         RatedPowerKw  → Property (float)
         DepPrev       → Property (str, ';' 구분으로 join)
         DepType       → Property (str: 'SEQUENCE'|'JOIN'|'FORK')
+        DepNext       → Property (str, ';' 구분으로 join) — 옵셔널. 공용 노드(OQC 등)가
+                        자신의 후속을 선언해 모델별 MP 의 DepPrev 를 수정하지 않고 edge 형성.
         InputBOM      → InputBOM (dict-like {item_code: Quantity})
+        DepWaitSec    → DepWaitSec (Property, 옵셔널 — 본드 경화·AGING 등 후처리 대기)
+        SamplingRate  → SamplingRate (Property, 옵셔널 — 확률적 분기 게이트)
+
+    위치 매칭 (`_positions`):
+        - 모델별 MP 의 그룹·노드 — 'ManufacturingProcess', '*', '*'
+        - PSM 의 모델 공용 노드 (ProcessOQC/ProcessRMA 등) — model_id='ALL' 흐름.
     """
-    _positions: ClassVar[List[Tuple[str, ...]]] = [('ManufacturingProcess', '*', '*')]
+    _positions: ClassVar[List[Tuple[str, ...]]] = [
+        ('ManufacturingProcess', '*', '*'),
+        ('SimulationModels', 'SimulationModel', 'KnowledgeGraph', 'Node', '*', '*'),
+    ]
 
     def _resolve(self, name: str):
         child = self.value[name]
@@ -208,9 +219,30 @@ class ProcessNode(SubmodelElementCollection):
     @property
     def DepType(self)      -> 'Property':  return self._resolve('DepType')
     @property
+    def DepNext(self)      -> 'Property | None':
+        """공용 노드 reverse-edge 선언용. 없으면 None — 일반 노드는 DepPrev 만 사용."""
+        return self._resolve('DepNext') if 'DepNext' in self.value else None
+    @property
     def InputBOM(self)     -> 'InputBOM':
         """InputBOM 없는 노드도 있으므로 None 허용 (시뮬은 `if not node.InputBOM` 검사)."""
         return self._resolve('InputBOM') if 'InputBOM' in self.value else None
+    @property
+    def DepWaitSec(self)   -> 'DepWaitSec | None':
+        """자식 중 DepWaitSec 인스턴스가 있으면 반환. 없으면 None.
+        AAS 데이터의 자식 idShort 가 'CuringTimeSec' / 'AgingTestDurationSec' 등
+        무엇이든 본 도메인 클래스로 통합 — _positions 매칭으로 isinstance 보장."""
+        for child in self.value.values():
+            if isinstance(child, DepWaitSec):
+                return child
+        return None
+    @property
+    def SamplingRate(self) -> 'SamplingRate | None':
+        """자식 중 SamplingRate 인스턴스가 있으면 반환. 없으면 None (= 항상 실행).
+        OQC 등 확률적 분기 게이트 노드만 가짐. 시뮬: random < value 일 때만 실행, 그 외 skip."""
+        for child in self.value.values():
+            if isinstance(child, SamplingRate):
+                return child
+        return None
 
 
 @dataclass(kw_only=True)
@@ -242,7 +274,7 @@ class RuntimeVariables(SubmodelElementCollection):
 
     AAS 는 각 변수의 정의(description)만 보유하고 value=None (실행 중 결정).
     이 클래스가 그 정의에 대응하는 **AAS 명시 연산의 단일 구현처**다. 시뮬
-    코드(ver0)는 메서드를 호출만 하고 같은 로직을 다시 작성하지 않는다.
+    코드(ver1)는 메서드를 호출만 하고 같은 로직을 다시 작성하지 않는다.
     description 은 참고용이며 진실의 원천은 아래 메서드.
 
     동명 메서드가 자식 Property(value=None) 를 shadow 한다. raw Property 가
@@ -422,6 +454,35 @@ class Property(SubmodelElement):
 
 
 @dataclass(kw_only=True)
+class DepWaitSec(Property):
+    """공정 cycle_time 이후 다음 공정 ready 까지의 추가 대기 시간 (초).
+    워커 비점유 — 본드 경화 같은 후처리 지연을 일반화한 도메인 타입.
+    AAS 의 자식 idShort 는 데이터마다 달라도 본 클래스로 통합 추출:
+      - BT5_42 본드 경화: idShort='CuringTimeSec', value=86400 (24h)
+      - 새 idShort 추가는 본 클래스의 _positions 에 한 줄 추가만 하면 됨.
+    ※ AGING (VD7_100/BT5_100/NVD_110) 은 2026-05-28 부터 DepWait 가 아니라 워커 점유
+      CycleTimeSec=10800(3h) + WWM UnitsPerWorker=10 (병렬 모니터링) 으로 변경 → 여기서 제외.
+    """
+    _positions: ClassVar[List[Tuple[str, ...]]] = [
+        ('ManufacturingProcess', '*', '*', 'CuringTimeSec'),
+    ]
+
+
+@dataclass(kw_only=True)
+class SamplingRate(Property):
+    """노드가 ready 됐을 때 실제 실행될 확률 (0~1). 확률적 분기 게이트.
+    AAS 의 자식 idShort 가 무엇이든 본 클래스로 통합 추출:
+      - OQC: idShort='SamplingRate', value=0.05 (5% 만 거치고 95% 는 skip)
+      - 향후 다른 검사·샘플링 노드도 동일 패턴 재사용 — _positions 에 한 줄 추가.
+    시뮬에서 `if random.random() >= node.SamplingRate: done_set.add(pc); continue`
+    로 ready 큐 진입 시 확률적으로 소비.
+    """
+    _positions: ClassVar[List[Tuple[str, ...]]] = [
+        ('SimulationModels', 'SimulationModel', 'KnowledgeGraph', 'Node', '*', '*', 'SamplingRate'),
+    ]
+
+
+@dataclass(kw_only=True)
 class Range(SubmodelElement):
     min: Any = None
     max: Any = None
@@ -593,10 +654,10 @@ class ProcessNodeListRef(ReferenceElement):
     value: List[semanticId] (ProcessNode CD URL 들).
     target: ProcessNode 들의 list (각 CD URL semanticId 매칭, ProcessNode 타입 필터)."""
     _positions: ClassVar[List[Tuple[str, ...]]] = [
-        ('SimulationModels', 'SimulationModel', 'Action', 'IndependentSequence', '*'),
-        ('SimulationModels', 'SimulationModel', 'Action', 'DependentSequence', '*'),
-        ('SimulationModels', 'SimulationModel', 'Action', 'DependentJoin', '*'),
-        ('SimulationModels', 'SimulationModel', 'Action', 'AssignedProcessGroups', '*'),
+        ('SimulationModels', 'SimulationModel', 'KnowledgeGraph', 'Action', 'IndependentSequence', '*'),
+        ('SimulationModels', 'SimulationModel', 'KnowledgeGraph', 'Action', 'DependentSequence', '*'),
+        ('SimulationModels', 'SimulationModel', 'KnowledgeGraph', 'Action', 'DependentJoin', '*'),
+        ('SimulationModels', 'SimulationModel', 'KnowledgeGraph', 'Action', 'AssignedProcessGroups', '*'),
     ]
     value: List[semanticId]
     @property
@@ -771,6 +832,8 @@ class AssetAdministrationShell:
         return {
             ws.idShort: {
                 'worker_count': len(ws.WorkstationConfigurationRecords),
+                'UnitsPerWorker': (ws.value['UnitsPerWorker'].value        #← WorkstationInformation.UnitsPerWorker
+                                   if 'UnitsPerWorker' in ws.value else 1),  # 부재 = 1 (병렬 확장 없음 — DepWaitSec None 과 동일 옵셔널 패턴)
                 'ProcessCode': [node.idShort
                                 for ref in ws.AssignedProcessGroups
                                 for node in ref.target]

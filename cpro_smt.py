@@ -1,16 +1,15 @@
 # -*- coding: utf-8 -*-
-"""PCB(SelfManaged 하위조립체) 전용 모듈.
+"""SMT 라인 전용 모듈 (PCB SelfManaged 보충 + SMT 공정 구현).
 
-PCB 는 원래 자체 SMT 공정으로 생산되는 SelfManaged entity 다. 본 시뮬은
-아직 SMT 라인을 모델링하지 않으므로, '일단' 실제 생산을 다음 stub 으로 대체:
+PCB 는 SelfManaged 하위조립체로 자체 SMT 공정에서 생산된다. 본 모듈은
+SMT 라인 [Loader → ScreenPrinter → SPI → Mounter(×2 기종) → Reflow →
+AOI → Unloader] 를 모델링해, PCB 별도 Warehouse 를 채운다.
 
-    매 interval 마다 각 PCB 종류 재고 += (라인당 평균 PCB 생산량 × 라인수) / PCB 종류수
+현재는 stub 코루틴(`pcb_supply`) — 라인당 평균 생산량을 매 interval 마다
+종류별로 균등 증가시킨다. 이 stub 자리에 실제 설비 단위 SMT 공정이 들어갈
+예정 (Loader/Printer/SPI/Mounter/Reflow/AOI/Unloader IDEF0 → simpy 코루틴).
 
-→ 전체 PCB 가 종류별로 균등하게 일정 증가. PCB 는 별도 Warehouse 인스턴스에
-보관되고(시뮬 코드가 SelfManagedBOM 으로 build), 본 모듈의 코루틴이 그 인스턴스만
-채운다. (path_extractor 가 SelfManaged 를 SelfManagedBOM 으로 분리 제공.)
-
-향후 실제 SMT 라인 모듈로 교체될 자리. 그때 본 파일이 SMT 공정 구현을 가짐.
+(path_extractor 가 SelfManaged 를 SelfManagedBOM 으로 분리 제공.)
 """
 from __future__ import annotations
 
