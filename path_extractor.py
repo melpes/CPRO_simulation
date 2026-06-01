@@ -306,17 +306,22 @@ class RuntimeVariables(SubmodelElementCollection):
             for node in KnowledgeGraph.nodes.values()
         ) / 3600
 
-    def MaxEpisodeEnergyKwh(self, KnowledgeGraph, now,
+    def MaxEpisodeEnergyKwh(self, KnowledgeGraph, target_qty,
                             IdleProcessRatedPowerKw, IdlePowerRatio) -> float:
         #← .RuntimeVariables.MaxEpisodeEnergyKwh
-        # W2_Energy 정규화 분모. Σ(CycleTimeSec·RatedPowerKw)/3600 (이상 1사이클)
-        # + now 시점 idle baseline. EpisodeEnergyKwh 가 idle 성분을 포함하므로
-        # 분모도 같은 idle 항을 더해 now→∞ 에서 비율이 발산하지 않게 한다.
-        return sum(
-            node.CycleTimeSec * node.RatedPowerKw / 3600
+        # W2_Energy 정규화 분모 = 전 unit 완성 시 active 프리미엄 총량 (energy 항 [0,1] 상한).
+        # 각 노드가 target_qty 회 가동될 때의 (RatedPowerKw − idle)·CycleTimeSec 합.
+        # EpisodeEnergyKwh(분자) 도 같은 프리미엄만 누적하므로 비율 ∈ [0,1].
+        # idle baseline 은 makespan 비용이라 W1_TimeElapsed 가 담당 — 에너지 항 분자·분모 모두 제외
+        #   (이전엔 분자에 하루치 idle 포함 + 분모는 1사이클뿐이라 비율이 ~38 로 폭발, W5 를 152× 지배).
+        # node.model_id 가 target_qty 키에 없으면(공용 'ALL' 노드) 전체 target 합으로 상한 근사.
+        total = sum(target_qty.values())
+        return max(1e-6, sum(
+            target_qty.get(node.model_id, total)
+            * node.CycleTimeSec
+            * max(node.RatedPowerKw - self.IdlePowerKw(node, IdleProcessRatedPowerKw, IdlePowerRatio), 0.0)
             for node in KnowledgeGraph.nodes.values()
-        ) + self.IdleBaselineKwh(KnowledgeGraph, now,
-                                 IdleProcessRatedPowerKw, IdlePowerRatio)
+        ) / 3600)
 
     def EpisodeEnergyKwh(self, GraphNode, EpisodeEnergyKwh,
                          IdleProcessRatedPowerKw, IdlePowerRatio) -> float:

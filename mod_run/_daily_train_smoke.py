@@ -20,9 +20,13 @@ import _timeit as T
 
 
 def main():
-    # 검증된 풀런(300unit, makespan 134.3h)에서 일 처리량 ≈ 54unit/day ≈ 모델당 18/일.
-    # qty 가 18/model 초과면 1일 비포화 보장 → 검증된 코루틴 수(300=100/model)면 충분·고속.
-    QTY, EP = 100, 2      # 1일에 못 끝나는(>18/model) qty + 2 ep (신호 변동 보기)
+    # qty=100 이 1일 학습의 올바른 regime — 하한·상한 둘 다 있다:
+    #   하한: 일 처리량 ≈ 모델당 18/일(풀런 300unit/134h 환산) → qty>18/model 이면 1일 비포화.
+    #   상한: qty≥500 이면 1500+ unit 이 1단계 job 으로 큐를 범람 → greedy 가 하루 내내 초기단계만
+    #         처리, AGING→PACK 도달 0 → throughput=0(붕괴) + 보상 degenerate(W5=0 → 다른 항 ∞배).
+    #   또한 보상 정규화(W5=produced/total_target, W4/W6=counter/(품목·워커×틱))는 qty~100 에서만
+    #   균형 — qty 키우면 W5/W2 만 ∝1/qty 줄고 W4/W6 은 고정이라 재고·유휴가 지배. (scratch/_phi_scale_check.py 실측)
+    QTY, EP = 100, 2      # 비포화(20% 완성) + 보상 균형 + throughput>0 동시 만족하는 regime
     print(f'==== 1일 학습 smoke ====  qty={QTY}/model, ep={EP}, horizon=86400s(=1일)')
 
     sv, env, agent = T.build('simulation_ver1', QTY, EP)
@@ -51,7 +55,7 @@ def main():
     # 핵심 검증 (makespan 은 rl_log 미기록 — train() stdout 의 'makespan=86400' 으로 확인)
     print('\n===== 검증 =====')
     rv = [r['critic/returns_var'] for r in rows]
-    th = [sum(r['task/throughput'].values()) for r in rows]
+    th = [r['task/throughput'] for r in rows]                  # task/throughput = 총 throughput(int)
     total_target = QTY * 3
     print(f'  throughput 합: {th}  (1일에 처리한 총 unit 수)')
     print(f'  returns_var: {rv}')
@@ -63,6 +67,34 @@ def main():
         print(f'  ✓ throughput 비포화 (1일에 {th} < target {total_target}) — 학습 leverage 있음')
     else:
         print(f'  ⚠ 1일에 target 도달 — qty 더 키워야')
+
+    # ===== Φ 항별 분해 (마지막 ep terminal 상태) — W3/W4/W6 추가 후 항 스케일 검증 =====
+    # train 후 env 는 마지막 에피소드 terminal 상태 보유. potential() 의 6항을 동일 수식으로 재현.
+    print('\n===== Φ 항별 분해 (terminal, |항| 이 throughput 항과 1자릿수 내여야 비지배) =====')
+    w = env.RewardWeights
+    tt = sum(env.target_qty.values())
+    work_day = env.WorkEndTime - env.WorkStartTime - (env.break_end_sec - env.break_start_sec)
+    maxE_premium = env.RuntimeVariables.MaxEpisodeEnergyKwh(env.KnowledgeGraph, env.target_qty,
+                    env.IdleProcessRatedPowerKw, env.IdlePowerRatio)
+    terms = {
+        'W5_Throughput  ': + (sum(env.Throughput.values()) / tt)            * w['W5_Throughput'],
+        'W1_Time        ': - (env.env.now / (work_day * tt))               * w['W1_TimeElapsed'],
+        'W2_Energy      ': - (env.EpisodeEnergyKwh / maxE_premium)         * w['W2_Energy'],
+        'W3_StockOver   ': - (env.StockOverflowCount / env._stock_violation_norm) * w['W3_StockOverflow'],
+        'W4_StockShort  ': - (env.StockShortageCount / env._stock_violation_norm) * w['W4_StockShortage'],
+        'W6_Idle        ': - (env.IdleViolationCount / env._idle_violation_norm)  * w['W6_IdleWorker'],
+    }
+    print(f'  counters: shortage={env.StockShortageCount} overflow={env.StockOverflowCount} '
+          f'idle={env.IdleViolationCount}  (norm: stock={env._stock_violation_norm:.0f} idle={env._idle_violation_norm:.0f})')
+    for name, val in terms.items():
+        print(f'    {name}: {val:+.5f}')
+    print(f'    {"Φ(total)      "}: {sum(terms.values()):+.5f}  (env.potential()={env.potential():+.5f})')
+    thr_mag = abs(terms['W5_Throughput  ']) or 1e-9
+    for name, val in terms.items():
+        if name.startswith('W5'): continue
+        ratio = abs(val) / thr_mag
+        flag = '✓' if ratio <= 10 else '⚠ 지배'
+        print(f'    {name} / W5 비율 = {ratio:6.2f}  {flag}')
 
 
 if __name__ == '__main__':

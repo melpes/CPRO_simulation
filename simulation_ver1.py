@@ -11,9 +11,13 @@ from torch_geometric.nn import GCNConv
 from torch_geometric.data import Data
 
 # ============================================================
-# 1 epoch = 1일 (00:00~24:00, 86400s). train() 의 epoch horizon 기본값.
-# 평가/그리디 단발 호출은 CproSimEnv.run(max_sec=...) 인자로 별도 horizon 주입.
-EPISODE_DURATION_SEC = 86400
+# 1 epoch = 3일 (259200s). 학습 horizon 기본값.
+# 1일(86400)로는 BT5_42 24h 본드(DepWaitSec)가 에피소드 전체를 먹어 MODEL_B 완성 불가 +
+# A/C 가 capacity-bound → 스케줄링 학습 leverage 거의 0 (2026-06-01 60ep 실측: 전 지표 flat).
+# 3일이면 B 의 24h 본드가 들어가 B 생산 가능 + throughput 이 정책 민감 → 학습 leverage 확보.
+# qty 고정(100)에선 horizon 을 늘려도 보상항 비율 보존(throughput·energy·위반카운터 모두 시간 비례).
+# 평가는 전량완료 기준(CproSimEnv.run(max_sec=큰 cap) 으로 target 도달까지).
+EPISODE_DURATION_SEC = 3 * 86400
 # ============================================================
 
 
@@ -113,13 +117,14 @@ class KnowledgeGraph:
         )
     
     def _predecessors(self, ProcessCode: str) -> list:
-        # edges(이전 공정 → 다음 공정) 역방향 검색으로 이전 공정 목록 복원.
-        return [
-            DepPrev
-            for DepPrev, GraphEdges in self.edges.items()
-            for GraphEdge in GraphEdges
-            if GraphEdge.ProcessCode == ProcessCode
-        ]
+        # edges(이전 공정 → 다음 공정) 역방향 맵. edges 는 build 후 불변이라 1회 캐싱
+        # (ready_queue 가 매 평가마다 호출 → 매번 전 엣지 스캔하던 비용 제거, Track F).
+        if not hasattr(self, '_pred_cache'):
+            self._pred_cache = {}
+            for DepPrev, GraphEdges in self.edges.items():
+                for GraphEdge in GraphEdges:
+                    self._pred_cache.setdefault(GraphEdge.ProcessCode, []).append(DepPrev)
+        return self._pred_cache.get(ProcessCode, [])
 
     def ready_queue(self, IndependentSequence, DependentSequence, DependentJoin,
                     completed: set, warehouse: Warehouse) -> list:
@@ -217,19 +222,23 @@ class Warehouse:
                     ordered.append(item)
         return ordered
 
-    def replenish(self, env, ReplenishLeadDay, items) -> None:
+    def replenish(self, env, ReplenishLeadDay, items, notify=None) -> None:
         # 발주된 품목만 lead time 후 발주량(MaxStock·OrderRatio) 입고 + 발주 해제.
         # ★ 입고 직후 발주점 재검사 (deadlock 방지): 누적 부족분이 1회 발주량보다 클 때,
         #   해당 부품의 모든 consumer 노드가 ready 차단되면 consume 못 일어남 → trigger 영구 차단.
         #   on_order=False 직후 발주점 이하면 즉시 추가 발주 1회. on_order 단일 락 유지하므로
         #   consume 시 폭증 트리거는 여전히 차단됨 (도착 시점 1회만 추가).
+        # notify: 입고(BOM 해제) 직후 호출 — BOM 대기로 잠든 produce_unit 깨우기(Track F).
+        #   재귀 발주에도 그대로 전달해 모든 입고가 깨우기를 트리거하도록(이벤트 누락 방지).
         yield env.timeout(ReplenishLeadDay)
         for item in items:
             item.present_stock += item.MaxStock * item.OrderRatio
             item.on_order = False
             if item.present_stock <= item.MinStock * item.OrderRatio:
                 item.on_order = True
-                env.process(self.replenish(env, ReplenishLeadDay, [item]))
+                env.process(self.replenish(env, ReplenishLeadDay, [item], notify))
+        if notify:
+            notify()
 
 
 class _StockRouter:
@@ -256,8 +265,8 @@ class _StockRouter:
             self.pcb.consume(pcb_bom)                      # PCB 보충은 cpro_smt 코루틴 담당
         return ordered
 
-    def replenish(self, env, ReplenishLeadDay, items):    # 메인만 (PCB 는 일정증가 별도)
-        return self.main.replenish(env, ReplenishLeadDay, items)
+    def replenish(self, env, ReplenishLeadDay, items, notify=None):    # 메인만 (PCB 는 일정증가 별도)
+        return self.main.replenish(env, ReplenishLeadDay, items, notify)
 
 
 class GNNEncoder(torch.nn.Module):
@@ -503,8 +512,21 @@ class CproSimEnv:
         # 큐에서 다음 job 선택 — 후보 ≥2 면 agent.choose(cross-unit/model), 아니면 FIFO.
         self._pending   = {ws: [] for ws in self.workers}
         self._disp_wake = {ws: self.env.event() for ws in self.workers}
-        # MaxEpisodeEnergyKwh 는 idle baseline(now 의존)으로 바뀌어 reset 캐싱 불가
-        # → episode_reward() 에서 self.env.now 로 계산.
+        # 재고 입고 broadcast 이벤트 — BOM 대기로 잠든 produce_unit 들을 한 번에 깨움(Track F).
+        # replenish(notify=self._wake_stock) 가 입고 직후 트리거. 폴링(timeout 60s) 대체.
+        self._stock_wake = self.env.event()
+        # 위반 카운터(W3/W4/W6) 정규화 상수 — 1일 근무틱(30s 샘플) × 대상 수 = 매 틱 전부 위반 시 최대치.
+        # 고정값이라 potential() telescoping 안전(시간가변 분모 X). 1일 학습 스케일 기준 → 항 ~[0,1].
+        work_day_sec              = self.WorkEndTime - self.WorkStartTime - (self.break_end_sec - self.break_start_sec)
+        nominal_work_ticks        = work_day_sec / 30.0                          # _watch 샘플 주기 30s
+        self._stock_violation_norm = max(1.0, sum(len(items) for items in self.warehouse.inventory.values())
+                                               * nominal_work_ticks)
+        self._idle_violation_norm  = max(1.0, sum(info['worker_count'] for info in self.workers.values())
+                                               * nominal_work_ticks)
+        # W2_Energy 정규화 분모 = 전 unit 완성 시 active 프리미엄 (target_qty·KG 만 의존 → 에피소드 내 고정).
+        self._max_episode_premium = self.RuntimeVariables.MaxEpisodeEnergyKwh(
+            self.KnowledgeGraph, self.target_qty,
+            self.IdleProcessRatedPowerKw, self.IdlePowerRatio)
     
     def _is_work_time(self) -> bool:                    # ver0 원본 그대로 (무변경)
         seconds_in_day  = self.env.now % 86400
@@ -568,6 +590,15 @@ class CproSimEnv:
         if not ev.triggered:
             ev.succeed()
 
+    def _wake_stock(self):
+        # 재고 입고 시 호출(replenish notify). 현재 _stock_wake 를 succeed → BOM 대기 unit 전부 깨움.
+        # 즉시 새 이벤트로 교체해 다음 대기자가 fresh 이벤트를 받게 함(broadcast-recreate).
+        # simpy 협조적 스케줄 → unit 의 'ready 확인 후 yield' 사이 끼어듦 없어 lost-wakeup 無.
+        ev = self._stock_wake
+        self._stock_wake = self.env.event()
+        if not ev.triggered:
+            ev.succeed()
+
     def _dispatcher(self, ws, agent):
         res = self.worker_resources[ws]
         while True:
@@ -605,7 +636,7 @@ class CproSimEnv:
             ordered = self.warehouse.consume(node.InputBOM)
             if ordered:
                 self.env.process(self.warehouse.replenish(
-                    self.env, self.ReplenishLeadDay, ordered))
+                    self.env, self.ReplenishLeadDay, ordered, self._wake_stock))   # 입고 시 BOM 대기 unit 깨움
         self.in_progress[ws] -= 1                           # ★ 워커 즉시 자유 — DepWait 중 다른 job 가능
         if self.in_progress[ws] == 0:                       # ws fully idle 진입 — duration 기준점 갱신
             self.last_active[ws] = self.env.now
@@ -653,8 +684,8 @@ class CproSimEnv:
                 self._wake_dispatcher(ws)
             outstanding = [e for e in outstanding if not e.triggered]
             if not outstanding:
-                yield self.env.timeout(60)                           # 선행·BOM 대기(ready 없음)
-                continue
+                yield self._stock_wake                               # BOM 부족으로 제출불가 → 재고 입고 시까지 대기(Track F: 폴링 제거)
+                continue                                             #   유일한 unblock 이벤트가 replenish 임을 분석으로 확인
             yield simpy.AnyOf(self.env, outstanding)                  # 하나라도 끝나면 재평가
             outstanding = [e for e in outstanding if not e.triggered]
 
@@ -671,6 +702,14 @@ class CproSimEnv:
         def _watch():
             while not stop.triggered:
                 yield self.env.timeout(30)
+                if self._is_work_time():                         # 근무시간 틱마다 위반 카운터 누적 (W3/W4/W6)
+                    self.StockShortageCount = self.RuntimeVariables.StockShortageCount(
+                        self.warehouse, self.StockShortageCount)
+                    self.StockOverflowCount = self.RuntimeVariables.StockOverflowCount(
+                        self.warehouse, self.StockOverflowCount)
+                    self.IdleViolationCount = self.RuntimeVariables.IdleViolationCount(
+                        self.workers, self.in_progress, self.idle_time, self.env.now,
+                        self.IdleWorkerThreshold, self.IdleViolationCount)
                 if (all(self.Throughput[m] >= self.target_qty[m] for m in self.target_qty)
                         or self.env.now >= max_sec):
                     if not stop.triggered:
@@ -706,18 +745,11 @@ class CproSimEnv:
         # 모든 값 0~1 근방으로 정규화 — GNN 임베딩과 concat 시 한 항이 압살하지 않도록.
         total_target = sum(self.target_qty.values())
         work_day = self.WorkEndTime - self.WorkStartTime - (self.break_end_sec - self.break_start_sec)
-        idle_base = self.RuntimeVariables.IdleBaselineKwh(
-            self.KnowledgeGraph, self.env.now,
-            self.IdleProcessRatedPowerKw, self.IdlePowerRatio)
-        maxE_full = self.RuntimeVariables.MaxEpisodeEnergyKwh(
-            self.KnowledgeGraph, self.env.now,
-            self.IdleProcessRatedPowerKw, self.IdlePowerRatio)
-        denom = max(maxE_full - idle_base, 1e-6)
         feats = []
         for model_id in self.target_qty:                                # ① 모델별 throughput 진척 (W5 대응)
             feats.append(self.Throughput[model_id] / self.target_qty[model_id])
         feats.append(self.env.now / max(work_day * total_target, 1.0))   # ② 시간 진척 (W1 대응)
-        feats.append((idle_base + self.EpisodeEnergyKwh) / denom)        # ③ 에너지 진척 (W2 대응)
+        feats.append(self.EpisodeEnergyKwh / self._max_episode_premium)  # ③ 에너지 진척 (W2 대응) — active 프리미엄 / 전량 [0,1] (potential 과 동일 분모)
         for ws, info in self.workers.items():                            # ④ ws별 워커 점유율
             feats.append(self.in_progress.get(ws, 0) / info['worker_count'])
         # ⑤ 재고 항 (W3/W4 대응) — 전 품목 정규화 합 (MinStock 부족 / MaxStock 과잉)
@@ -743,22 +775,21 @@ class CproSimEnv:
     def potential(self) -> float:
         # 현재 상태의 목적함수 값 Φ(s). 임의 시점(결정점/종료)에서 호출 가능.
         # per-step 보상 r_t = Φ(s_{t+1})−Φ(s_t) 의 telescoping → 종료 시 episode_reward 와 일치.
-        # 구조상 per-step 누적이 없어 W3/W4/W6(재고·유휴)은 생략 — 후속 reward 재설계.
+        # W3/W4/W6(재고과잉·재고부족·유휴)은 _watch 30s 틱이 누적한 단조 카운터로 반영 —
+        # 순간값이 아닌 누적이라야 중간 위반이 telescoping 에서 상쇄되지 않음. 고정 분모로 ~[0,1].
+        # ★스케일 균형은 1일 학습 qty≈100(모델당) 기준 — 6항 모두 throughput 의 1.0~1.7× (검증).
+        #   W5/W2 는 total_target·전량프리미엄(∝qty)으로 정규화돼 ∝1/qty 줄지만 W4/W6 은 qty 무관
+        #   → qty 를 크게(≥500) 키우면 재고·유휴가 지배 + throughput 자체도 0 붕괴. qty~100 유지할 것.
         w = self.RewardWeights
         total_target = sum(self.target_qty.values())
         work_day = self.WorkEndTime - self.WorkStartTime - (self.break_end_sec - self.break_start_sec)
-        idle_base = self.RuntimeVariables.IdleBaselineKwh(
-            self.KnowledgeGraph, self.env.now,
-            self.IdleProcessRatedPowerKw, self.IdlePowerRatio)
-        maxE_full = self.RuntimeVariables.MaxEpisodeEnergyKwh(       # = 1사이클 프리미엄 + idle_base
-            self.KnowledgeGraph, self.env.now,
-            self.IdleProcessRatedPowerKw, self.IdlePowerRatio)
-        denom = max(maxE_full - idle_base, 1e-6)                     # 분모에서 idle 제거(요청) → makespan 무관 상수
-        total_energy = idle_base + self.EpisodeEnergyKwh             # 분자엔 idle 포함 → now↑ 시 페널티↑(정상방향)
-        return (
+        return (                                                     # W2 분모 _max_episode_premium = reset 캐싱(전량 프리미엄)
             + (sum(self.Throughput.values()) / total_target)        * w['W5_Throughput']
             - (self.env.now / (work_day * total_target))            * w['W1_TimeElapsed']
-            - (total_energy / denom)                                 * w['W2_Energy']  # ←idle 분자만 포함
+            - (self.EpisodeEnergyKwh / self._max_episode_premium)    * w['W2_Energy']   # active 프리미엄만 / 전량 프리미엄 ∈ [0,1] (idle 제외)
+            - (self.StockOverflowCount / self._stock_violation_norm) * w['W3_StockOverflow']
+            - (self.StockShortageCount / self._stock_violation_norm) * w['W4_StockShortage']
+            - (self.IdleViolationCount / self._idle_violation_norm)  * w['W6_IdleWorker']
         )
 
     def episode_reward(self) -> float:
@@ -799,7 +830,10 @@ def train(env, agent, MaxEpisodes, run_name=None, episode_max_sec=EPISODE_DURATI
             episode, R=R, makespan=summary['makespan_sec'],
             energy=summary['EpisodeEnergyKwh'],
             throughput=dict(env.Throughput), target_qty=dict(env.target_qty),
-            decisions=decisions, metrics=metrics)
+            decisions=decisions, metrics=metrics,
+            violations={'stock_shortage': env.StockShortageCount,     # W4/W3/W6 추세 추적
+                        'stock_overflow': env.StockOverflowCount,
+                        'idle_violation': env.IdleViolationCount})
         if is_best:
             torch.save(agent.state_dict(), ckpt)                       # best 갱신 시에만, 덮어쓰기
         thru = ' '.join(f'{m}:{env.Throughput[m]}/{env.target_qty[m]}' for m in env.target_qty)

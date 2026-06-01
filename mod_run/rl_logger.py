@@ -31,7 +31,8 @@ class RLLogger:
 
     def log_episode(self, episode: int, *, R: float, makespan: float,
                      energy: float, throughput: dict, target_qty: dict,
-                     decisions: int, metrics: Optional[dict]) -> bool:
+                     decisions: int, metrics: Optional[dict],
+                     violations: Optional[dict] = None) -> bool:
         """한 에피소드 기록 후 is_best 반환 (best 갱신 시 train 이 .pt 저장)."""
         self._R_hist.append(float(R))
         self._len_hist.append(int(decisions))
@@ -66,6 +67,8 @@ class RLLogger:
             'task/throughput_ratio'       : produced / ordered,
             'task/feasibility_rate'       : 1.0 if feasible else produced / ordered,
         }
+        if violations:                                       # W3/W4/W6 누적 카운터 (보상 구성요소 — 학습 추세 추적용)
+            row.update({f'task/{k}': v for k, v in violations.items()})
 
         # [B] CRITIC / [C] STABILITY / [D] EXPLORATION — learn() 진단 dict
         if metrics:
