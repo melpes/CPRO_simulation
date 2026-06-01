@@ -111,11 +111,12 @@ def build_agent_StateDim0():
     return ag
 
 
-def capture(label, agent):
-    print(f'[{time.strftime("%H:%M:%S")}] {label} sim 시작 (OQC SamplingRate=0.05)...', flush=True)
+def capture(label, agent, max_sec):
+    print(f'[{time.strftime("%H:%M:%S")}] {label} sim 시작 '
+          f'(OQC SamplingRate=0.05, max_sec={max_sec}s={max_sec/3600:.1f}h)...', flush=True)
     env = make_env(seed=42)
     t0  = time.time()
-    summary = env.run(agent=agent, max_sec=360 * 86400)
+    summary = env.run(agent=agent, max_sec=max_sec)
     dt  = time.time() - t0
     ev  = env.events
     print(f'[{time.strftime("%H:%M:%S")}] {label} 완료 dt={dt:.1f}s events={len(ev)} '
@@ -132,11 +133,22 @@ def capture(label, agent):
 
 
 def main():
+    # 평가 horizon 선택: (1) 1일 (86400s) — 1일당 throughput 비교
+    #                   (2) 전체 — target_qty 도달까지 (60일 기본 timeout)
+    mode = input('평가 horizon (1=1일 86400s, 2=전체 target_qty 도달까지, 기본=2): ').strip()
+    if mode == '1':
+        max_sec = 86400
+        horizon_tag = '1day'
+    else:
+        max_sec = 60 * 86400
+        horizon_tag = 'full'
+    print(f'[main] horizon={horizon_tag} max_sec={max_sec}s ({max_sec/3600:.1f}h)', flush=True)
+
     runs = {}
-    ev_g, s_g, env_g = capture('greedy', None)
+    ev_g, s_g, env_g = capture('greedy', None, max_sec)
     runs['greedy'] = (ev_g, s_g, env_g)
     ag = build_agent_StateDim0()
-    ev_t, s_t, env_t = capture('trained_det', ag)
+    ev_t, s_t, env_t = capture('trained_det', ag, max_sec)
     runs['trained_det'] = (ev_t, s_t, env_t)
 
     # summary.md

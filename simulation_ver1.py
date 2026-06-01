@@ -11,10 +11,9 @@ from torch_geometric.nn import GCNConv
 from torch_geometric.data import Data
 
 # ============================================================
-# ⚠️ [임시 실험 — 고정 horizon] 에피소드 제한시간(초). None = 무제한(평소).
-# 설정 시 train() 이 env.run(max_sec=_TEMP_EP_MAX_SEC) 로 호출 → throughput 비포화.
-# 실험 러너(_exp_horizon.py)가 세팅. ★실험 종료 후 None 으로 되돌릴 것★
-_TEMP_EP_MAX_SEC = None
+# 1 epoch = 1일 (00:00~24:00, 86400s). train() 의 epoch horizon 기본값.
+# 평가/그리디 단발 호출은 CproSimEnv.run(max_sec=...) 인자로 별도 horizon 주입.
+EPISODE_DURATION_SEC = 86400
 # ============================================================
 
 
@@ -344,9 +343,11 @@ class PPOAgent(torch.nn.Module):
     def reset_buffer(self):
         self.buf = []   # 결정점마다 {ready, idx, logp, value}
 
+    @torch.no_grad()        # rollout 은 무-grad (표준 PPO). grad 는 learn() 이 forward 재실행하며 계산.
     def choose(self, ready_pcs, env):
         # produce_unit 의 결정점 콜백. 학습(training)→샘플, 평가(eval)→argmax(결정론).
-        # buf 적재는 양쪽 다(평가 시엔 안 쓰이지만 무해).
+        # ready_pcs 는 distinct 공정 코드 리스트(디스패처가 중복 압축해 전달) — 큐 깊이가 아니라
+        # 공정 타입 위 분포를 학습. 저장값은 전부 스칼라/snapshot 텐서라 grad 불요. buf 는 학습·평가 양쪽 다.
         data, node_list  = env.KnowledgeGraph.to_pyg_data()
         embeddings       = self.GNNEncoder(data)
         ready_emb        = torch.stack([embeddings[node_list.index(pc)] for pc in ready_pcs])
@@ -355,9 +356,9 @@ class PPOAgent(torch.nn.Module):
         idx              = dist.sample() if self.training else dist.probs.argmax()
         value            = self.Critic(ready_emb.mean(dim=0, keepdim=True), state).squeeze()
         self.buf.append({'ready': list(ready_pcs), 'idx': int(idx.item()),
-                         'logp': dist.log_prob(idx).detach(),
-                         'value': value.detach(),
-                         'state': (state.detach() if state is not None else None),  # 결정점 상태 snapshot
+                         'logp': dist.log_prob(idx),                          # no_grad 컨텍스트 — grad_fn 없음
+                         'value': value,
+                         'state': state,                                      # 결정점 상태 snapshot
                          'phi': float(env.potential())})       # 결정점 Φ(s_t) — per-step 보상용
         return ready_pcs[idx.item()]
 
@@ -583,11 +584,12 @@ class CproSimEnv:
             if not pend:                                    # 단일 디스패처라 보통 발생X — 안전망
                 res.release(req)
                 continue
-            if agent is not None and len(pend) >= 2:        # ★contention 결정점★ (PPO)
-                chosen_pc = agent.choose([j['pc'] for j in pend], self)
-                job = next(j for j in pend if j['pc'] == chosen_pc)
+            distinct_pcs = list(dict.fromkeys(j['pc'] for j in pend))   # 순서보존 distinct (동일 공정 중복 unit job 압축)
+            if agent is not None and len(distinct_pcs) >= 2:            # ★contention 결정점★ (PPO) — 공정 타입 ≥2 경합 시만
+                chosen_pc = agent.choose(distinct_pcs, self)            #   choose 후보 = distinct 공정 (큐 깊이 무관, buf·연산 폭증 방지)
+                job = next(j for j in pend if j['pc'] == chosen_pc)     #   고른 공정의 첫 job (같은 공정 unit 은 교환가능)
             else:
-                job = pend[0]                               # FIFO (greedy / 후보1개)
+                job = pend[0]                                           # FIFO (greedy / 단일 공정 / 후보1개)
             pend.remove(job)
             self.env.process(self._run_job(ws, job, req))
 
@@ -763,10 +765,11 @@ class CproSimEnv:
         # 종료 시 스칼라 보상 = Φ(terminal). learn() 의 마지막 결정 보상 기준값.
         return self.potential()
 
-def train(env, agent, MaxEpisodes, run_name=None):
-    # 에피소드 = produce_unit 구조 1회(env.run(agent)). 결정점마다 agent.choose 가
+def train(env, agent, MaxEpisodes, run_name=None, episode_max_sec=EPISODE_DURATION_SEC):
+    # 에피소드 = produce_unit 구조 1회(env.run(agent, max_sec=episode_max_sec)). 결정점마다 agent.choose 가
     # rollout 기록 → 종료 후 episode_reward 로 1회 PPO learn. (직렬 step/skip 없음)
     # 매 ep rl_logger_spec 항목 JSONL 기록 + best R 갱신 시에만 agent_mod.pt 저장.
+    # episode_max_sec: 1 epoch 길이 (기본 86400s = 1일). target_qty 도달 또는 이 시간 도달 시 종료.
     # 출력 → mod_run/result/runs/<run_name>/  (None 이면 timestamp 자동 생성)
     import os, sys, time
     _ROOT    = os.path.dirname(os.path.abspath(__file__))           # 패키지 루트 (이 파일 위치)
@@ -788,8 +791,7 @@ def train(env, agent, MaxEpisodes, run_name=None):
             print(f'[ep {episode}] STOP sentinel — graceful exit', flush=True)
             break
         agent.reset_buffer()
-        summary = (env.run(agent=agent, max_sec=_TEMP_EP_MAX_SEC)      # 고정 horizon(임시)
-                   if _TEMP_EP_MAX_SEC else env.run(agent=agent))
+        summary = env.run(agent=agent, max_sec=episode_max_sec)        # 1 epoch = episode_max_sec (기본 1일)
         R = env.episode_reward()
         decisions = len(agent.buf)
         metrics = agent.learn(R, env.KnowledgeGraph)                   # 진단 dict (B/C/D)

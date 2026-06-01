@@ -1,26 +1,25 @@
 # -*- coding: utf-8 -*-
-"""⚠️ [임시 실험] 고정 horizon — qty=100, 제한시간 T 로 throughput 비포화 학습.
+"""고정 horizon 실험 — qty=N, 제한시간 T 로 throughput 비포화 학습.
 
 배경: 전량완료 regime 에선 throughput 항상 100% → 순서 leverage 0(학습 평탄).
-greedy probe: T=52,200s(14.5h) 에서 총 ~50/300, MODEL_B=0 (greedy 가 B 기아).
 → 시간 제한 시 순서/우선순위가 throughput 에 큰 영향 → 학습 신호 기대.
 
-AAS 불변. svm._TEMP_EP_MAX_SEC=HORIZON_SEC 주입(train 이 env.run(max_sec=T)).
-재고는 기본(×1). 결과 result/rl_log_horizon_qty100.jsonl 별도 저장.
-★실험 일회성. 끝나면 _TEMP_EP_MAX_SEC 는 코드상 None 으로.★
-"""
-import os, sys, shutil, time
+1일 학습이 본 도입(`simulation_ver1.EPISODE_DURATION_SEC=86400`)된 이후 본 스크립트는
+임의 horizon (T ≠ 86400) 실험 전용. 일반 학습은 simulation_ver1.train() 의
+episode_max_sec 기본값(=86400) 으로 진행.
 
-HORIZON_SEC = 52200      # greedy 기준 총 ~50개 시점(14.5h). 조정 가능.
+AAS 불변. train() 의 episode_max_sec 인자로 horizon 주입. 결과 result/runs/<run_name>/ 저장.
+"""
+import os, sys, time
+
+HORIZON_SEC = 52200      # 임의 horizon. None 또는 86400 이면 기본 1일 학습과 동일.
 QTY         = 100
-EP          = 60         # 본 학습(체크 통과 후 스케일) ~2.5h
+EP          = 60
 
 _DIR  = os.path.dirname(os.path.abspath(__file__))
 _RES  = os.path.join(_DIR, 'result')
 sys.path.insert(0, _DIR); sys.path.insert(0, os.path.dirname(_DIR))
 
-import simulation_ver1 as svm
-svm._TEMP_EP_MAX_SEC = HORIZON_SEC                          # ★임시 주입★
 import _timeit as T
 
 _LOG = open(os.path.join(_RES, 'exp_horizon_console.log'), 'a', encoding='utf-8', buffering=1)
@@ -31,16 +30,15 @@ def say(m):
 
 if __name__ == '__main__':
     say(f'###### 고정 horizon 실험: qty={QTY} T={HORIZON_SEC}s({HORIZON_SEC/3600:.1f}h) ep={EP} ######')
-    for m in ('STOP', 'SWITCH_TO', 'ALL_DONE', 'HORIZON_DONE'):       # 잔존 신호 제거(즉시종료 방지)
+    for m in ('STOP', 'SWITCH_TO', 'ALL_DONE', 'HORIZON_DONE'):       # 잔존 신호 제거
         p = os.path.join(_RES, m)
         if os.path.exists(p):
             os.remove(p); say(f'잔존 신호 제거: {m}')
     run_name = f'horizon_qty{QTY}_T{HORIZON_SEC}_ep{EP}_' + time.strftime('%Y-%m-%d_%H-%M-%S')
     try:
         sv, env, agent = T.build('simulation_ver1', QTY, EP)
-        assert svm._TEMP_EP_MAX_SEC == HORIZON_SEC, 'horizon lost'
         say(f'build 완료, train 시작 → result/runs/{run_name}/')
-        sv.train(env, agent, EP, run_name=run_name)              # 자체 subfolder 에 저장
+        sv.train(env, agent, EP, run_name=run_name, episode_max_sec=HORIZON_SEC)
         open(os.path.join(_RES, 'runs', run_name, 'HORIZON_DONE'),
              'w').write(time.strftime('%Y-%m-%d %H:%M:%S'))
         say(f'###### HORIZON_DONE → result/runs/{run_name}/ ######')
