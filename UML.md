@@ -186,7 +186,7 @@ sequenceDiagram
     E->>E: produce_unit(model_id)
     E->>KG: ready_queue(completed, WH)
     KG-->>E: ready PCs
-    E->>D: _pending[ws] += job ; wake
+    E->>D: pending 큐에 job 추가 후 dispatcher wake
   end
   loop 워커 슬롯이 빌 때마다
     D->>D: 근무시간 게이트 · 슬롯 확보
@@ -206,7 +206,7 @@ sequenceDiagram
       J->>WH: produce(OutputBOM)
     end
     Note over J,WH: produce()는 A안 신규 — ⚠AAS OutputBOM 합의 필요
-    J->>E: Throughput++ ; wake dispatcher
+    J->>E: Throughput 증가 후 dispatcher wake
   end
   E-->>C: {Throughput, makespan_sec, EpisodeEnergyKwh, events}
 ```
