@@ -12879,6 +12879,40 @@
     }
    ],
    "modelType": "ConceptDescription"
+  },
+  {
+   "idShort": "UnitsPerWorker",
+   "id": "https://www.smart-factory.kr/ids/cd/UnitsPerWorker/1/0",
+   "embeddedDataSpecifications": [
+    {
+     "dataSpecification": {
+      "type": "ExternalReference",
+      "keys": [
+       {
+        "type": "GlobalReference",
+        "value": "https://admin-shell.io/DataSpecificationTemplates/DataSpecificationIec61360/3/0"
+       }
+      ]
+     },
+     "dataSpecificationContent": {
+      "preferredName": [
+       {
+        "language": "en",
+        "text": "UnitsPerWorker"
+       }
+      ],
+      "definition": [
+       {
+        "language": "en",
+        "text": "Number of product units a single worker monitors concurrently on this line; absent defaults to 1."
+       }
+      ],
+      "modelType": "DataSpecificationIec61360",
+      "dataType": "INTEGER_COUNT"
+     }
+    }
+   ],
+   "modelType": "ConceptDescription"
   }
  ]
 }

@@ -49950,6 +49950,74 @@
         }
       ],
       "modelType": "ConceptDescription"
+    },
+    {
+      "idShort": "WORKER_FW",
+      "id": "https://www.smart-factory.kr/ids/cd/WORKER_FW/1/0",
+      "embeddedDataSpecifications": [
+        {
+          "dataSpecification": {
+            "type": "ExternalReference",
+            "keys": [
+              {
+                "type": "GlobalReference",
+                "value": "https://admin-shell.io/DataSpecificationTemplates/DataSpecificationIec61360/3/0"
+              }
+            ]
+          },
+          "dataSpecificationContent": {
+            "preferredName": [
+              {
+                "language": "en",
+                "text": "WORKER_FW"
+              }
+            ],
+            "definition": [
+              {
+                "language": "en",
+                "text": "Worker group identifier for the firmware-input stage."
+              }
+            ],
+            "modelType": "DataSpecificationIec61360",
+            "dataType": "STRING"
+          }
+        }
+      ],
+      "modelType": "ConceptDescription"
+    },
+    {
+      "idShort": "NO44_FW_JIG",
+      "id": "https://www.smart-factory.kr/ids/cd/NO44_FW_JIG/1/0",
+      "embeddedDataSpecifications": [
+        {
+          "dataSpecification": {
+            "type": "ExternalReference",
+            "keys": [
+              {
+                "type": "GlobalReference",
+                "value": "https://admin-shell.io/DataSpecificationTemplates/DataSpecificationIec61360/3/0"
+              }
+            ]
+          },
+          "dataSpecificationContent": {
+            "preferredName": [
+              {
+                "language": "en",
+                "text": "NO44_FW_JIG"
+              }
+            ],
+            "definition": [
+              {
+                "language": "en",
+                "text": "Jig/fixture identifier (No.44 FW jig) used in the firmware-input process."
+              }
+            ],
+            "modelType": "DataSpecificationIec61360",
+            "dataType": "STRING"
+          }
+        }
+      ],
+      "modelType": "ConceptDescription"
     }
   ]
 }

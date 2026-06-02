@@ -181,7 +181,7 @@
          "description": [
           {
            "language": "en",
-           "text": "HasPart relationship. MODEL_B_NVD1 contains SENSOR PCB/2X3[21.05.13]/1.2T/4LY/Black Matte PCB assembly (MP8600_IP-R1)."
+           "text": "HasPart relationship. MODEL_B_BT5 contains SENSOR PCB/2X3[21.05.13]/1.2T/4LY/Black Matte PCB assembly (MP8600_IP-R1)."
           }
          ],
          "semanticId": {
@@ -268,7 +268,7 @@
          "description": [
           {
            "language": "en",
-           "text": "HasPart relationship. MODEL_B_NVD1 contains 0Ω jumper resistor MCR01MZPEJ0.00 used for PCB routing and circuit configuration."
+           "text": "HasPart relationship. MODEL_B_BT5 contains 0Ω jumper resistor MCR01MZPEJ0.00 used for PCB routing and circuit configuration."
           }
          ],
          "semanticId": {
@@ -355,7 +355,7 @@
          "description": [
           {
            "language": "en",
-           "text": "HasPart relationship. MODEL_B_NVD1 contains 0.01uF 25V MLCC capacitor for decoupling and noise filtering applications."
+           "text": "HasPart relationship. MODEL_B_BT5 contains 0.01uF 25V MLCC capacitor for decoupling and noise filtering applications."
           }
          ],
          "semanticId": {
@@ -448,7 +448,7 @@
          "description": [
           {
            "language": "en",
-           "text": "HasPart relationship. MODEL_B_NVD1 contains 0.1uF 50V MLCC capacitor for power stabilization and signal filtering."
+           "text": "HasPart relationship. MODEL_B_BT5 contains 0.1uF 50V MLCC capacitor for power stabilization and signal filtering."
           }
          ],
          "semanticId": {
@@ -498,7 +498,7 @@
            },
            {
             "type": "Entity",
-            "value": "MODEL_B_NVD1"
+            "value": "MODEL_B_BT5"
            },
            {
             "type": "Entity",
@@ -515,7 +515,7 @@
            },
            {
             "type": "Entity",
-            "value": "MODEL_B_NVD1"
+            "value": "MODEL_B_BT5"
            },
            {
             "type": "Entity",
@@ -535,7 +535,7 @@
          "description": [
           {
            "language": "en",
-           "text": "HasPart relationship. MODEL_B_NVD1 contains 0.1uF 16V MLCC capacitor used for decoupling and filtering."
+           "text": "HasPart relationship. MODEL_B_BT5 contains 0.1uF 16V MLCC capacitor used for decoupling and filtering."
           }
          ],
          "semanticId": {
@@ -622,7 +622,7 @@
          "description": [
           {
            "language": "en",
-           "text": "HasPart relationship. MODEL_B_NVD1 contains 0.22uF 10V MLCC capacitor used for local power decoupling and filtering."
+           "text": "HasPart relationship. MODEL_B_BT5 contains 0.22uF 10V MLCC capacitor used for local power decoupling and filtering."
           }
          ],
          "semanticId": {
@@ -705,7 +705,7 @@
          "description": [
           {
            "language": "en",
-           "text": "HasPart relationship. MODEL_B_NVD1 contains 0Ω resistor used for signal routing and jumper configuration."
+           "text": "HasPart relationship. MODEL_B_BT5 contains 0Ω resistor used for signal routing and jumper configuration."
           }
          ],
          "semanticId": {
@@ -792,7 +792,7 @@
          "description": [
           {
            "language": "en",
-           "text": "HasPart relationship. MODEL_B_NVD1 contains 1.5kΩ chip resistor used for voltage division and signal conditioning."
+           "text": "HasPart relationship. MODEL_B_BT5 contains 1.5kΩ chip resistor used for voltage division and signal conditioning."
           }
          ],
          "semanticId": {
@@ -879,7 +879,7 @@
          "description": [
           {
            "language": "en",
-           "text": "HasPart relationship. MODEL_B_NVD1 contains 1uF 16V MLCC capacitor for local decoupling and power smoothing."
+           "text": "HasPart relationship. MODEL_B_BT5 contains 1uF 16V MLCC capacitor for local decoupling and power smoothing."
           }
          ],
          "semanticId": {
@@ -966,7 +966,7 @@
          "description": [
           {
            "language": "en",
-           "text": "HasPart relationship. MODEL_B_NVD1 contains 10R(1005)/CR1005-100 resistor chip."
+           "text": "HasPart relationship. MODEL_B_BT5 contains 10R(1005)/CR1005-100 resistor chip."
           }
          ],
          "semanticId": {
@@ -1053,7 +1053,7 @@
          "description": [
           {
            "language": "en",
-           "text": "HasPart relationship. MODEL_B_NVD1 contains 10uF-10V/SMD/0805(2012) capacitor."
+           "text": "HasPart relationship. MODEL_B_BT5 contains 10uF-10V/SMD/0805(2012) capacitor."
           }
          ],
          "semanticId": {
@@ -1140,7 +1140,7 @@
          "description": [
           {
            "language": "en",
-           "text": "HasPart relationship. MODEL_B_NVD1 contains 10uF-10V/SMD/0603(1608) capacitor."
+           "text": "HasPart relationship. MODEL_B_BT5 contains 10uF-10V/SMD/0603(1608) capacitor."
           }
          ],
          "semanticId": {
@@ -1227,7 +1227,7 @@
          "description": [
           {
            "language": "en",
-           "text": "HasPart relationship. MODEL_B_NVD1 contains 10uF-10V/SMD/0402(1005) capacitor."
+           "text": "HasPart relationship. MODEL_B_BT5 contains 10uF-10V/SMD/0402(1005) capacitor."
           }
          ],
          "semanticId": {
@@ -1314,7 +1314,7 @@
          "description": [
           {
            "language": "en",
-           "text": "HasPart relationship. MODEL_B_NVD1 contains 1nF-50V/SMD/0402(1005) capacitor."
+           "text": "HasPart relationship. MODEL_B_BT5 contains 1nF-50V/SMD/0402(1005) capacitor."
           }
          ],
          "semanticId": {
@@ -1401,7 +1401,7 @@
          "description": [
           {
            "language": "en",
-           "text": "HasPart relationship. MODEL_B_NVD1 contains VLS252010HBX-2R2M-1 inductor component."
+           "text": "HasPart relationship. MODEL_B_BT5 contains VLS252010HBX-2R2M-1 inductor component."
           }
          ],
          "semanticId": {
@@ -1488,7 +1488,7 @@
          "description": [
           {
            "language": "en",
-           "text": "HasPart relationship. MODEL_B_NVD1 contains 30KR 1% (1005)/CR1005-303-F resistor chip."
+           "text": "HasPart relationship. MODEL_B_BT5 contains 30KR 1% (1005)/CR1005-303-F resistor chip."
           }
          ],
          "semanticId": {
@@ -1575,7 +1575,7 @@
          "description": [
           {
            "language": "en",
-           "text": "HasPart relationship. MODEL_B_NVD1 contains 4.7uF-6.3V/SMD/0402(1005) capacitor."
+           "text": "HasPart relationship. MODEL_B_BT5 contains 4.7uF-6.3V/SMD/0402(1005) capacitor."
           }
          ],
          "semanticId": {
@@ -1662,7 +1662,7 @@
          "description": [
           {
            "language": "en",
-           "text": "HasPart relationship. MODEL_B_NVD1 contains 47uF-10V/SMD/0805(2012) capacitor."
+           "text": "HasPart relationship. MODEL_B_BT5 contains 47uF-10V/SMD/0805(2012) capacitor."
           }
          ],
          "semanticId": {
@@ -1749,7 +1749,7 @@
          "description": [
           {
            "language": "en",
-           "text": "HasPart relationship. MODEL_B_NVD1 contains 47uF-6.3V/SMD/0805(2012) capacitor."
+           "text": "HasPart relationship. MODEL_B_BT5 contains 47uF-6.3V/SMD/0805(2012) capacitor."
           }
          ],
          "semanticId": {
@@ -1836,7 +1836,7 @@
          "description": [
           {
            "language": "en",
-           "text": "HasPart relationship. MODEL_B_NVD1 contains 470pF-50V/SMD/0402(1005) capacitor."
+           "text": "HasPart relationship. MODEL_B_BT5 contains 470pF-50V/SMD/0402(1005) capacitor."
           }
          ],
          "semanticId": {
@@ -1923,7 +1923,7 @@
          "description": [
           {
            "language": "en",
-           "text": "HasPart relationship. MODEL_B_NVD1 contains BU24026GU-E2 IC regulator component."
+           "text": "HasPart relationship. MODEL_B_BT5 contains BU24026GU-E2 IC regulator component."
           }
          ],
          "semanticId": {
@@ -43079,7 +43079,7 @@
       "definition": [
        {
         "language": "en",
-        "text": "A multi-layer sensor PCB assembly used as a sub-board in the MODEL_B_NVD1 surveillance camera system. The board provides electrical interconnection and mounting support for imaging and signal processing components."
+        "text": "A multi-layer sensor PCB assembly used as a sub-board in the MODEL_B_BT5 surveillance camera system. The board provides electrical interconnection and mounting support for imaging and signal processing components."
        }
       ],
       "modelType": "DataSpecificationIec61360"
@@ -58804,47 +58804,6 @@
        {
         "language": "en",
         "text": "The duration in seconds required for an adhesive or bonding material to fully polymerize and reach its design mechanical strength after application, during which the bonded assembly must remain undisturbed."
-       }
-      ],
-      "modelType": "DataSpecificationIec61360"
-     }
-    }
-   ],
-   "modelType": "ConceptDescription"
-  },
-  {
-   "idShort": "AgingTestDurationSec",
-   "displayName": [
-    {
-     "language": "en",
-     "text": "Aging Test Duration"
-    }
-   ],
-   "id": "https://www.smart-factory.kr/ids/cd/AgingTestDurationSec/1/0",
-   "embeddedDataSpecifications": [
-    {
-     "dataSpecification": {
-      "type": "ExternalReference",
-      "keys": [
-       {
-        "type": "GlobalReference",
-        "value": "https://admin-shell.io/DataSpecificationTemplates/DataSpecificationIec61360/3/0"
-       }
-      ]
-     },
-     "dataSpecificationContent": {
-      "preferredName": [
-       {
-        "language": "en",
-        "text": "AgingTestDurationSec"
-       }
-      ],
-      "unit": "s",
-      "dataType": "INTEGER_COUNT",
-      "definition": [
-       {
-        "language": "en",
-        "text": "The duration in seconds for which an assembled camera unit is subjected to aging test under operating conditions to detect latent defects. During this wait the worker is not occupied — the operator only loads the unit onto the aging chamber slot at the start (covered by CycleTimeSec)."
        }
       ],
       "modelType": "DataSpecificationIec61360"

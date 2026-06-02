@@ -1,0 +1,797 @@
+{
+ "verifyPart1": [
+  {
+   "scope": "SMT 설비 3개(Loader, Mounter, AOI)의 Part-1 감사(_aas_full_audit.json) 수치를, _audit_all_aas.py 로직을 재사용하지 않고 zipfile+xml.etree 로 raw XML 을 직접 walk 하는 독립 파서로 재현·대조. 7개 지표(n_nodes/n_cd, idShort누락, CamelCase위반, description누락, semanticId누락, dangling, CD불완전, 중복CD id) 전부를 노드/CD 단위 신원(idShort·path·CD id)까지 일치시켜 검증했고, dangling 은 13개 파일 전체 global CD union(1752) 을 독립 재계산해 대조. cd_incomplete 는 navigation-independent 한 raw element 존재/부재 카운트와 raw CD 육안 확인으로 ground-truth 까지 검증.",
+   "verdict": "confirmed",
+   "parser_bugs": [],
+   "false_positives": [],
+   "missed_findings": [
+    "dangling 지표의 커버리지 한계(오탐/오답 아닌 scope 한계): 감사의 dangling 은 각 노드의 1차 semanticId 만 검사한다(sem_value 가 node.semanticId 만 읽음). supplementalSemanticIds / valueId / isCaseOf / referenceElement.value / relationshipElement first·second 등 참조-보유 필드는 dangling 검사 대상에서 빠진다. 3개 설비에서 이 미검사 필드 안의 CD-type 참조 중 global union 에 없는 것이 Loader 133 / Mounter 199 / AOI 199 개 존재. 단 전수 확인 결과 이들은 100% external(ECLASS IRDI '0173-1#02-...' 및 'api.eclass-cdp.com' URL)이며 project-internal(smart-factory.kr) 미해결 참조는 0개. 따라서 외부 dict 참조로 정상이고 project-dangling 수치(Loader 2/Mounter 2/AOI 3)에는 영향 없음. 보고된 수치를 틀리게 만들지는 않으나, 감사가 '모든 참조의 dangling' 이 아니라 '1차 semanticId 한정 dangling' 임을 명시할 가치가 있는 커버리지 캐비엇."
+   ],
+   "notes": "검증 강도와 ground-truth 결과:\n\n[전 지표 독립 재현 — 3개 설비 모두 정확히 일치]\n- n_nodes: Loader 313 / Mounter 586 / AOI 428 — 일치(raw XML 직접 walk).\n- n_cd: 302 / 552 / 515 — 일치. n_cd 는 raw conceptDescription element 수(중복 id 포함)이며 의도된 per-element 카운트.\n- idShort_missing: 0/0/0 — 일치.\n- CamelCase 위반(underscore): Loader 1 / Mounter 10 / AOI 1 — 신원까지 일치. 실제 위반 문자열: Mounter = HasPart_FETs×3, HasPart_Inductors×3, HasPart_Resistors×3, IPCommunication__00__×1 / Loader·AOI = IPCommunication__00__×1. 전부 실재(오탐 아님).\n- description_missing: 16/16/8 — modelType multiset + (mt,idShort) 신원 일치. (Loader 의 16건은 Entity/File/Property/ReferenceElement/Submodel/SMC 혼재.)\n- semanticId_missing: 0/8/1 — (mt,idShort) 신원 일치. Mounter 8·AOI 1 은 전부 idShort 없는 SMC(ECLASS 스타일 중첩 컬렉션의 SML 자식)로 자체 semanticId 부재가 정상.\n- dangling: Loader 2 / Mounter 2 / AOI 3 — CD URL 까지 동일. (DigitalNameplate=.../Nameplate, GuidelineSpecificProperties/[0]=0173-1#01-AHD205#004 공통; AOI 추가분=TechnicalData 0173-1#01-AHX837#002.)\n- cd_incomplete: 166/145/134 — 일치.\n- dup_cd_id: Loader 1 / Mounter 81 / AOI 35 그룹 — 일치.\n\n[파서 엣지케이스 적대적 검증 — 모두 정상]\n- 네임스페이스: NS='https://admin-shell.io/aas/3/0' 전 태그 일관 처리 확인.\n- SML 자식 판정: typeValueListElement 가 value 의 형제(자식 아님)임을 raw 확인 → _conv 의 e.find('value') 자식 순회가 typeValueListElement 를 올바르게 제외. SML 자식 idShort/camel 면제는 dangling/sem traversal 에는 적용 안 됨(올바름).\n- langString 빈 텍스트: <text> 가 None(self-closing)인 케이스 Mounter 3·AOI 2 존재하나 모두 description/definition/preferredName 밖에 위치 → 어떤 지표에도 영향 없음. text_nonempty 의 (text or '').strip() 가 None 을 빈 값으로 정확 판정.\n- Entity 재귀: 3개 설비 모두 Entity 1개씩, 전부 SML value 안에 위치(SML 자식)라 idShort 면제가 정당 → idMiss=0 무결. statements 비어있음.\n- Operation 재귀: 이 3개 설비에 operation element 0개 → 감사의 Operation 경로(_conv 가 operationVariable 당 kids[0]만 취함)는 이 데이터로는 미실행/미검증(데이터 부재). 오류 아님, 단지 untested-by-data. (psm_smt JSON 의 Materials operation 이 이 경로를 행사하나 3-XML 범위 밖이라 scope note.)\n- dataType 텍스트 추출: cd_incomplete 의 dataType 누락이 navigation-독립 카운트와 정확히 일치 — Loader 166 = raw <dataType> 부재 IEC 블록 166개와 동일. Mounter 145·AOI 134 도 (dataType부재 + definition부재 + preferredName empty-text + embeddedDataSpec부재) 버킷 합산으로 정확히 재구성됨. raw CD 육안: id=.../cd/File/1/0(idShort=File), Markings 등이 실제로 <dataType> 없이 preferredName+definition 만 보유, MCF CD 는 embeddedDataSpecifications 자체가 없음 — 전부 실재 누락.\n- 중복 CD id dedup: global union 은 setdefault 로 첫 항목만 보관하나 dangling 은 membership(key)만 보므로 중복이 어떤 항목도 가리지 않음. n_cd·cd_incomplete 는 raw element 전수 카운트라 중복이 누락되지 않음 확인.\n- global CD union: 13개 파일 독립 재계산 = 1752, 감사값과 일치.\n\n결론: 감사 _aas_full_audit.json 의 Loader/Mounter/AOI 7개 지표는 raw XML 기준으로 정확. 파서 버그·오탐·수치오류 없음. 유일한 보강점은 dangling 의 1차-semanticId 한정이라는 커버리지 캐비엇이며, 이는 (외부 ECLASS 참조만 미검사이므로) 보고 수치를 바꾸지 않음. SPI/ScreenPrinter/Reflow/Unloader 4개 설비는 본 검증 범위 밖(요청은 최소 3개)."
+  },
+  {
+   "scope": "Adversarial verification of mod_run/_aas_full_audit.json (Part-1 audit) for the 6 in-scope JSON files: MODEL_A, MODEL_B, MODEL_C, WorkstationWorkerMatchingDataAAS (wwm), ProvisionOfSimulationModel (psm), ProvisionOfSimulationModel_smt (psm_smt). Method: independent raw-JSON parse with my own traversal (did NOT import the audit script's walk/sem_value/camel_violation); independently rebuilt the 13-file CD-id union (6 JSON + 7 SMT .aasx XML via ET).",
+   "verdict": "confirmed",
+   "parser_bugs": [
+    "camel_violation() startsDigit dead branch: CAMEL_OK=^[A-Za-z][A-Za-z0-9]*$ makes 'if not CAMEL_OK.match -> return special' fire BEFORE 'if ids[0].isdigit() -> startsDigit' is ever reached, so any digit-leading idShort would be misclassified as 'special'. ZERO data impact here: independently confirmed all 929 camel violations across the 6 files are 'underscore' type and no idShort starts with a digit, so the dead branch is never exercised.",
+    "is_cd_ref() is over-broad: it treats EVERY (ExternalReference, GlobalReference) terminal key as a CD reference. Consequence: IDTA submodel-template semanticIds on Submodel roots (admin-shell.io/idta/HierarchicalStructures/1/1/Submodel; admin-shell.io/idta/sm/workstationworkermatchingdata) get bucketed into dangling['external'] as if they were missing ConceptDescriptions. The COUNT is computed correctly per this criterion (external=1 each for MODEL_A/B/C and wwm), but the label 'dangling CD' is semantically wrong for these template refs.",
+    "Dangling detection only follows semanticId chains. It NEVER inspects the actual reference payloads: ReferenceElement.value, RelationshipElement.first/second, and qualifier-level semanticIds are not checked for CD resolution. For this dataset this blind spot has no effect on the reported semanticId-dangling COUNTS (verified by brute-force whole-subtree diff), but it does cause genuine malformed/dangling payloads to go uncaught (see missed_findings)."
+   ],
+   "false_positives": [
+    "dangling['external'] for MODEL_A/MODEL_B/MODEL_C = 'https://admin-shell.io/idta/HierarchicalStructures/1/1/Submodel' on the HierarchicalStructures Submodel root. This is a valid IDTA submodel-template semanticId (ExternalReference/GlobalReference type=GlobalReference), NOT a missing ConceptDescription. Counted correctly but mislabeled as a dangling CD by the over-broad is_cd_ref.",
+    "dangling['external'] for wwm = 'https://admin-shell.io/idta/sm/workstationworkermatchingdata' on the WorkstationWorkerMatchingData Submodel root. Same nature: valid submodel-template semanticId, not a dangling CD. (The only genuinely dangling external entries are psm/psm_smt's 'https://example.com/ids/cd/0445_8041_5062_7858' placeholder, which is a legitimate flag.)"
+   ],
+   "missed_findings": [
+    "MODEL_A malformed ReferenceElement.value payload with LEADING SPACE: HierarchicalStructures/submodelElements[1]/value[0]/value[5]/value[4] (a ReferenceElement) has value key ' https://www.smart-factory.kr/ids/cd/P30500003/1/0' (note leading space). The CD 'https://www.smart-factory.kr/ids/cd/P30500003/1/0' IS defined in MODEL_A, so this is a real data defect (whitespace-corrupted reference that breaks string resolution), not a true missing CD. The audit catches nothing here: its dangling check only reads this node's semanticId (which resolves fine to InputBomItem), and it never inspects ReferenceElement.value payloads.",
+    "MODEL_A malformed qualifier semanticId with LEADING SPACE: HierarchicalStructures/submodelElements[1]/statements[22]/qualifiers[0] has semanticId terminal ' https://admin-shell.io/SubmodelTemplates/Cardinality/1/0' (leading space). This is a Qualifier-level semanticId, outside the audit's SME-node walk scope, so it is not flagged. Mirrors the P30500003 leading-space class of defect. (This is the sole brute-force-vs-structured dangling delta: MODEL_A brute=4 vs audit structured=3.)"
+   ],
+   "corrected_counts": "NONE — every reported scalar reproduces EXACTLY in my independent recomputation. Per-file (n_submodels / n_nodes / n_cd / idShort_missing / camel_underscore / desc_missing / sem_missing / dangling-project / dangling-external / cd_incomplete / dup_cd_id-count): MODEL_A 2/571/287/0/188/13/0/2/1/159/16; MODEL_B 2/797/437/0/311/396/0/0/1/198/39; MODEL_C 2/642/305/0/227/134/0/0/1/2/0; wwm 1/240/74/0/10/15/0/1/1/5/0; psm 1/450/186/0/93/258/10/1/1/58/1; psm_smt 2/1385/284/0/100/258/10/70/1/156/1. dup_cd_id dicts match key-for-key AND value-for-value (not just counts). global_cd_count audit=1752, my independent 13-file union=1752.",
+   "notes": "Verdict 'confirmed': every NUMBER the audit reports is accurate and independently reproduced; the listed parser_bugs are latent (zero count impact on this data) and the false_positives are misclassifications within a correctly-computed count (the external=1 totals are right; only the 'dangling CD' LABEL is wrong for the IDTA template refs), so no reported count is wrong. KEY TASK-REQUESTED CHECKS RESOLVED: (1) Operation recursion is genuinely fixed — psm_smt has 14 Operations (2 SMT lines x 7 equipment 'Materials' ops), and all 34 ReferenceElements inside their inputVariables/outputVariables are traversed and semanticId-checked; the 34 op-RE dangling targets are a subset of psm_smt's 70 project-dangling entries (e.g. .../LoaderProcess/Materials/PCB, .../ScreenPrinterProcess/Materials/SolderCream). The previously-reported Operation-recursion miss bug is NOT present in the current script/output. (2) SML-child exclusion is real and exercised — all 6 files contain SML children (52/78/63/83/20/160) and the is_sml_child flag correctly suppresses them from idShort_missing and camel checks. (3) Traversal completeness verified by brute-force diff: a whole-subtree semanticId scan equals the structured SME-walk dangling set for MODEL_B/C, wwm, psm, psm_smt; MODEL_A differs by exactly 1, which is the out-of-scope qualifier semanticId noted in missed_findings. METHODOLOGY CAVEATS worth surfacing to the user: (a) 'dangling' is judged against the 13-file GLOBAL union, so an in-scope JSON file referencing a CD defined only in an SMT .aasx is NOT flagged dangling — intended but worth stating; (b) the audit's dangling/sem checks are SME-semanticId-only by design, so reference payloads (ReferenceElement.value, Relationship first/second) and qualifier semanticIds are blind spots that happen to hide two real leading-space data defects in MODEL_A. Cross-check artifact: I confirmed n_cd per file (287/437/305/74/186/284) equals the conceptDescriptions length in each raw JSON. Note the task's separate Part-1 'naming-mismatch' hypotheses (CycleTime vs CycleTimeSec, RatedPowerKw vs RatedPower, DepNext missing, RatedPowerKw double-defined in psm/psm_smt) are about CD definitions across files and are NOT what this audit JSON measures; I did confirm RatedPowerKw is defined twice in psm (both idShort 'RatedPowerKw') consistent with dup_cd_id, and DepNext appears as a project-dangling target in psm/psm_smt — both consistent with the audit output."
+  },
+  {
+   "scope": "Code review of mod_run/_audit_all_aas.py judgment logic (Part-1 deterministic audit), verified against all 13 AAS sources (6 JSON + 7 SMT .aasx) and the produced _aas_full_audit.json.",
+   "verdict": "partly_wrong",
+   "parser_bugs": [
+    "dangling check has NO `mt != 'Submodel'` guard (line 287, vs the sem_missing check at line 284 which DOES guard Submodel). Combined with is_cd_ref accepting any ExternalReference->GlobalReference, every Submodel whose semanticId is a standard IDTA submodel-template URL is misclassified as a dangling CD reference. Confirmed false positives: MODEL_A/B/C HierarchicalStructures -> https://admin-shell.io/idta/HierarchicalStructures/1/1/Submodel; wwm WorkstationWorkerMatchingData -> .../idta/sm/workstationworkermatchingdata; all 7 equipment DigitalNameplate (a Submodel) -> .../idta/nameplate/3/0/Nameplate. FIX: add `mt != 'Submodel'` to line 287, or in is_cd_ref reject GlobalReference values ending in '/Submodel' / matching admin-shell.io submodel-template URLs.",
+    "is_cd_ref (line 172-176) treats EVERY ExternalReference->GlobalReference as a concept-description reference. That is true for this project's own CDs (smart-factory.kr/ids/cd/...) but also sweeps in (a) submodel-template refs on Submodel/SMC nodes and (b) external dictionary IRDIs like '0173-1#01-AHD205#004' (ECLASS) and admin-shell.io/vdi/2770/.../EntityForDocumentation. These are intentional external classifications, not authoring defects, yet they land in dangling['external'] as if broken. FIX: classify admin-shell.io / IRDI (regex ^\\d{4}-\\d#) targets as 'intentional-external' bucket, separate from genuine project-CD dangling. NOTE this is a SEPARATE fix from the Submodel guard: the guard removes Nameplate/HierarchicalStructures (Submodel nodes) but NOT the IRDIs (which sit on Property/SMC nodes).",
+    "Global-union dangling basis (lines 246-251, 287) masks within-environment dangling: a reference in file X resolves if ANY of the 13 files defines that CD id. Measured 66 references that resolve ONLY cross-file. Most significant: psm_smt's `cd/CycleTime/1/0` (14x) and `cd/DepPrev/1/0` (15x) do not exist in psm_smt's own CDs and resolve only because ScreenPrinter.aasx happens to define CycleTime and MODEL_A/B/C define DepPrev. This exactly hides the CycleTime-vs-CycleTimeSec naming-mismatch the task flagged. MODEL_C masks 26x cd/RatedPowerKw. FIX: report BOTH per-file dangling (resolve against own CDs only) and cross-file-resolved delta; treat cross-file-only resolution as a warning, since the project contract is each AAS is a standalone input.",
+    "dangling/sem_missing/cd-incomplete checks read ONLY node.get('semanticId'). They never inspect ReferenceElement.value, RelationshipElement.first/second, or Qualifier.semanticId. Consequence: project-CD references carried by ReferenceElement.value are NOT counted as dangling. Confirmed missed REAL project dangling: MODEL_A cd/P30500003 (1x); psm_smt's Materials Operation in/output refs -> cd/PCB, cd/SolderPastedPCB, cd/SolderCream, cd/ChipMountedPCB, cd/ReflowedPCB, cd/GoodPCB, cd/DefectPCB (7 distinct, all genuinely undefined). So the headline project-dangling counts are an UNDERCOUNT. (psm/psm_smt also carry 255 ModelReference->Property and 1 ModelReference->Submodel in ReferenceElement.value; is_cd_ref correctly does NOT treat ModelReference->Property/Submodel as CD refs, so those are fine to skip as CD-dangling -- but the GlobalReference cd/ URLs above should be checked.)",
+    "cd_incomplete (lines 217-235) treats missing IEC 61360 `dataType` as a hard incompleteness reason, dominating the counts (MODEL_A: 133 of 159 incomplete CDs are dataType-only). dataType has optional cardinality in IEC 61360 and is meaningless for CDs describing structural/part concepts. Evidence: PCB_03203204 has full preferredName + definition + sourceOfDefinition but no dataType, and is a well-formed part CD. RECOMMEND: split severity -- HARD = missing embeddedDataSpec / dataSpecificationContent / preferredName; SOFT (advisory) = missing dataType, missing definition. Do not let dataType inflate the incomplete-CD headline."
+   ],
+   "false_positives": [
+    "dangling['external'] entries that are standard submodel-template semanticIds on Submodel nodes: MODEL_A/B/C HierarchicalStructures (.../HierarchicalStructures/1/1/Submodel), wwm WorkstationWorkerMatchingData (.../sm/workstationworkermatchingdata), all 7 equipment DigitalNameplate (.../nameplate/3/0/Nameplate). Not CD references at all -> not dangling CDs.",
+    "dangling['external'] entries that are external dictionary classifications, intentionally not in our CD union: ECLASS IRDIs 0173-1#01-AHD205#004 (all 7 equipment, on GuidelineSpecificProperties), 0173-1#01-AHX837#002 (AOI), 0173-1#01-AHF578#003 (AOI), and admin-shell.io/vdi/2770/1/0/EntityForDocumentation (ScreenPrinter/Mounter/Reflow). These are correct external references, not authoring errors.",
+    "cd_incomplete count is inflated: in MODEL_A 133/159 incomplete CDs are flagged solely for missing dataType, which is optional and inapplicable to structural/part CDs (e.g. PCB_03203204 is otherwise complete)."
+   ],
+   "missed_findings": [
+    "Real project-CD dangling references carried by ReferenceElement.value are NOT detected because the audit only walks semanticId: MODEL_A cd/P30500003; psm_smt cd/PCB, cd/SolderPastedPCB, cd/SolderCream, cd/ChipMountedPCB, cd/ReflowedPCB, cd/GoodPCB, cd/DefectPCB (the Materials Operation material-flow targets). These are genuine undefined CDs and the audit's project-dangling totals undercount them.",
+    "Within-environment dangling masked by the global union: psm_smt cd/CycleTime (14x, resolves only via ScreenPrinter.aasx) and cd/DepPrev (15x, resolves only via MODEL_A/B/C); MODEL_C cd/RatedPowerKw (26x). These should be surfaced because each AAS is contractually a standalone input, and they confirm the CycleTime/CycleTimeSec and RatedPower/RatedPowerKw naming-mismatch hypotheses from the task brief.",
+    "Latent (not triggered on this data, count = 0): is_sml_child = (parent_mt == 'SubmodelElementList') is direct-child-only, whereas 'SML 하위' most naturally reads as SML *descendants*. No current violation has an SML ancestor beyond its direct parent, so the divergence is academic here -- but if a future AAS nests SMC/Entity inside an SML, that SMC's own children would be CamelCase/idShort-checked despite living under an SML. If descendant-exclusion is the true intent, track an ancestor flag instead of parent_mt."
+   ],
+   "notes": "Concern-by-concern: (1) NOT correct -- the audit does not 'exclude' non-CD references; it never even inspects ReferenceElement.value / Relationship.first-second / Qualifier.semanticId (so it misses real dangling there), AND it fails to exclude Submodel-template refs from the semanticId path (missing `mt != 'Submodel'` guard + over-broad is_cd_ref). ModelReference->Property/Submodel in ReferenceElement.value are correctly NOT treated as CD refs, so that specific exclusion is fine. (2) Over-detects: dataType-missing should be SOFT, not hard; hard = preferredName/embeddedDataSpec/content. (3) Global union is too forgiving -- 66 cross-file-masked refs, including the task's own CycleTime/DepPrev/RatedPowerKw cases; report per-file + cross-file delta. (4) idShort/CamelCase SML-child exclusion is implemented as direct-child only; intent ('하위'=descendants) is broader but the divergence is zero on current data. Priority of fixes: A) split dangling into project-genuine / submodel-template / external-dictionary buckets and add the Submodel guard (kills the bulk of false 'external dangling'); B) extend the reference walk to ReferenceElement.value / Relationship to catch the real missed material-CD dangling; C) add per-file dangling alongside global; D) demote dataType to soft. SEPARATE-USER-DECISION (do not decide silently): ~726 HasPart_*/PCB_*/MODEL_*_* underscore idShorts in MODEL_A/B/C are flagged as CamelCase 'underscore' violations, but the underscores encode part numbers / model identity in HierarchicalStructures Entity ids. Ask the user whether the CamelCase rule should exempt HierarchicalStructures entity/part ids before counting them as violations -- this dominates the camelV column (188/311/227)."
+  }
+ ],
+ "part2": {
+  "enumerate": {
+   "summary": "SMTProcess 서브트리(psm_smt) 전체 참조 전수 추출 결과: 193개 raw 참조. (1) 설비공정 SMC semanticId = 자산URL '/ids/asset/<Fac>/<모델명>' 7종(라인당 1회씩 14회) — 이 중 Loader/SLD-120 1개만 해소되고, 그것도 설비 globalAssetId('/ids/aas/Loader/1/0')가 아니라 Loader의 DigitalNameplate/URIOfTheProduct value(='/ids/asset/Loader/SLD-120')와 일치하여 해소됨. 나머지 6개(ScreenPrinter/HS-520S, SPI/KY-8030, Mounter/M-Series, Reflow/GT-R8, Unloader/SUD-120, AOI/BF-Comet-c)는 어디에도 없음 — 해당 6개 설비는 nameplate가 아직 IDTA 템플릿 placeholder('FM-ABC-1234', 'www.domain-abc.com/Model-Nr-1234/Serial-Nr-5678') 상태라 모델명 자체가 데이터에 부재. (2) CycleTime RE와 RatedPowerKw RE는 value가 자기 semanticId CD와 동일한 trivial self-reference(설비의 실제 값을 가리키지 않음). cd/CycleTime/1/0은 7개 설비 중 ScreenPrinter에만 우연히 존재(설비 본래 버전은 v2/0). 설비는 CycleTime을 6개 중 어디에도 안 두고, 전력은 RatedPower(cd/RatedPower/1/0)·PowerConsumption으로 보유. cd/RatedPowerKw/1/0은 psm_smt/psm/MODEL_A·B에만 정의되고 설비엔 RatedPower로만 있어 semanticId 불일치로 자동 lookup 불가. (3) DepPrev/1/0은 MODEL_A/B/C에서 해소. PCB_* 13종은 모델에서 해소. (4) 물질흐름 CD(Materials, PCB, SolderPastedPCB, ChipMountedPCB, ReflowedPCB, SolderCream, GoodPCB, DefectPCB)·구조 CD(SMTProcess, SMTLines, Line_1, Line_2, SMTMaterials, MODEL_A/B/C)·n_modules는 전부 missing_everywhere. 추가발견: Mounter의 Chips input 변수는 idShort=Chips이나 ref value가 cd/PCB/1/0을 가리켜 변수명-타겟 CD 불일치.",
+   "refs": [
+    {
+     "target": "https://www.smart-factory.kr/ids/asset/Loader/SLD-120",
+     "usedAt": "SMTProcess.SMTLines.Line_1.LoaderProcess (semanticId, ExternalReference→AssetAdministrationShell); also Line_2.LoaderProcess (2 occurrences total)",
+     "status": "resolves_facility",
+     "issue": "해소되지만 의도된 경로가 아님: 설비 globalAssetId는 https://www.smart-factory.kr/ids/asset/Loader/1/0 가 아니라 https://www.smart-factory.kr/ids/aas/Loader/1/0 임. 이 자산URL은 Loader 설비의 DigitalNameplate/URIOfTheProduct value 와만 일치(우연/유일). 7개 설비 중 Loader만 nameplate에 실제 모델명(SLD-120)이 채워져 있어 매칭됨."
+    },
+    {
+     "target": "https://www.smart-factory.kr/ids/asset/ScreenPrinter/HS-520S",
+     "usedAt": "SMTProcess.SMTLines.Line_1/Line_2.ScreenPrinterProcess (semanticId, asset URL; 2 occurrences)",
+     "status": "missing_everywhere",
+     "issue": "ScreenPrinter 설비 globalAssetId는 /ids/aas/ScreenPrinter/1/0, URIOfTheProduct는 placeholder https://www.domain-abc.com/Model-Nr-1234/Serial-Nr-5678, ManufacturerProductType는 placeholder FM-ABC-1234. 'HS-520S'·이 자산URL이 설비 어디에도 없음 → 모델명 매칭 불가."
+    },
+    {
+     "target": "https://www.smart-factory.kr/ids/asset/SPI/KY-8030",
+     "usedAt": "SMTProcess.SMTLines.Line_1/Line_2.SPIProcess (semanticId, asset URL; 2 occurrences)",
+     "status": "missing_everywhere",
+     "issue": "SPI 설비 nameplate는 placeholder(URIOfTheProduct domain-abc.com, ManufacturerProductType FM-ABC-1234). 'KY-8030'·자산URL 부재 → 매칭 불가."
+    },
+    {
+     "target": "https://www.smart-factory.kr/ids/asset/Mounter/M-Series",
+     "usedAt": "SMTProcess.SMTLines.Line_1/Line_2.MounterProcess (semanticId, asset URL; 2 occurrences)",
+     "status": "missing_everywhere",
+     "issue": "Mounter 설비 nameplate placeholder. 'M-Series'·자산URL 부재 → 매칭 불가."
+    },
+    {
+     "target": "https://www.smart-factory.kr/ids/asset/Reflow/GT-R8",
+     "usedAt": "SMTProcess.SMTLines.Line_1/Line_2.ReflowProcess (semanticId, asset URL; 2 occurrences)",
+     "status": "missing_everywhere",
+     "issue": "Reflow 설비 nameplate placeholder. 'GT-R8'·자산URL 부재 → 매칭 불가."
+    },
+    {
+     "target": "https://www.smart-factory.kr/ids/asset/Unloader/SUD-120",
+     "usedAt": "SMTProcess.SMTLines.Line_1/Line_2.UnloaderProcess (semanticId, asset URL; 2 occurrences)",
+     "status": "missing_everywhere",
+     "issue": "Unloader 설비 nameplate placeholder. 'SUD-120'·자산URL 부재 → 매칭 불가."
+    },
+    {
+     "target": "https://www.smart-factory.kr/ids/asset/AOI/BF-Comet-c",
+     "usedAt": "SMTProcess.SMTLines.Line_1/Line_2.AOIProcess (semanticId, asset URL; 2 occurrences)",
+     "status": "missing_everywhere",
+     "issue": "AOI 설비 nameplate placeholder. 'BF-Comet-c'·자산URL 부재 → 매칭 불가."
+    },
+    {
+     "target": "https://www.smart-factory.kr/ids/cd/CycleTime/1/0",
+     "usedAt": "각 설비공정.CycleTime — ReferenceElement.semanticId 이자 동시에 ReferenceElement.value (14 SMC × 2 = self-ref). LoaderProcess.CycleTime 등.",
+     "status": "resolves_facility",
+     "issue": "value==semanticId 인 trivial self-reference(설비의 구체 CycleTime 값을 가리키지 않고 추상 CD를 가리킴). 자동 lookup 의도(description)와 달리 설비 Property를 지목하지 않음. cd/CycleTime/1/0 CD 자체는 7개 설비 중 ScreenPrinter 1개에만 우연히 정의됨(설비 본래 버전은 cd/CycleTime/2/0). 나머지 6개 설비엔 CycleTime SME 부재. 모델/psm/psm_smt 는 CycleTimeSec/1/0 사용 → CycleTime vs CycleTimeSec 네이밍 불일치."
+    },
+    {
+     "target": "https://www.smart-factory.kr/ids/cd/RatedPowerKw/1/0",
+     "usedAt": "각 설비공정.RatedPowerKw — ReferenceElement.semanticId 이자 value (self-ref). 14개 SMC.",
+     "status": "resolves_self",
+     "issue": "value==semanticId trivial self-reference. cd/RatedPowerKw/1/0 CD는 psm_smt(중복 2회)·psm·MODEL_A·MODEL_B 에 정의(MODEL_C·설비엔 없음). 그러나 7개 설비는 전력을 cd/RatedPower/1/0(idShort RatedPower)·PowerConsumption 으로 노출 → RatedPowerKw vs RatedPower CD 불일치로 설비 값 자동 lookup 불가."
+    },
+    {
+     "target": "https://www.smart-factory.kr/ids/cd/DepPrev/1/0",
+     "usedAt": "각 설비공정.DepPrev — Property.semanticId. 14개 SMC. value는 선행공정 idShort 문자열(예 ScreenPrinterProcess→'LoaderProcess').",
+     "status": "resolves_model",
+     "issue": "CD는 MODEL_A/B/C 에 정의되어 해소. psm·psm_smt 자체엔 DepPrev CD 미정의(모델 의존). 짝 개념 DepNext(cd/DepNext/1/0)는 KnowledgeGraph(서브트리 밖)에서 쓰이나 어디에도 정의 안 됨."
+    },
+    {
+     "target": "https://www.smart-factory.kr/ids/cd/PCB/1/0",
+     "usedAt": "각 설비공정.Materials Operation 의 input/output ReferenceElement.semanticId 및 value(LoaderProcess in/out, ScreenPrinter in, Mounter input 'Chips' 의 value, SMTMaterials.<MODEL>.PCB.semanticId)",
+     "status": "missing_everywhere",
+     "issue": "cd/PCB/1/0 추상 CD가 psm_smt 포함 어디에도 정의되지 않음. SMTMaterials.<MODEL>.PCB 의 semanticId(=cd/PCB/1/0)와 각 설비 Materials의 PCB ref가 이 CD로 연결되는 설계지만 CD 미정의. 또한 Mounter input 변수 idShort='Chips' 인데 value가 cd/PCB/1/0 을 가리켜 변수명-타겟 불일치."
+    },
+    {
+     "target": "https://www.smart-factory.kr/ids/cd/SolderCream/1/0",
+     "usedAt": "ScreenPrinterProcess.Materials inputVariables 'SolderCream' ReferenceElement.semanticId/value",
+     "status": "missing_everywhere",
+     "issue": "cd/SolderCream/1/0 미정의. psm/psm_smt 의 'SolderCream' 토큰은 별개 CD인 SolderCreamParam/1/0 의 부분문자열일 뿐. SMTMaterials 에도 SolderCream 자원 항목 없음."
+    },
+    {
+     "target": "https://www.smart-factory.kr/ids/cd/SolderPastedPCB/1/0",
+     "usedAt": "ScreenPrinter output, SPI in/out, Mounter input 의 Materials ReferenceElement.semanticId/value",
+     "status": "missing_everywhere",
+     "issue": "중간 PCB 상태 CD 미정의 — psm_smt 안에서만 토큰 등장."
+    },
+    {
+     "target": "https://www.smart-factory.kr/ids/cd/ChipMountedPCB/1/0",
+     "usedAt": "Mounter output, Reflow input 의 Materials ReferenceElement.semanticId/value",
+     "status": "missing_everywhere",
+     "issue": "중간 PCB 상태 CD 미정의."
+    },
+    {
+     "target": "https://www.smart-factory.kr/ids/cd/ReflowedPCB/1/0",
+     "usedAt": "Reflow output, Unloader in/out, AOI input 의 Materials ReferenceElement.semanticId/value",
+     "status": "missing_everywhere",
+     "issue": "중간 PCB 상태 CD 미정의."
+    },
+    {
+     "target": "https://www.smart-factory.kr/ids/cd/GoodPCB/1/0",
+     "usedAt": "AOIProcess.Materials outputVariables 'GoodPCB' ReferenceElement.semanticId/value",
+     "status": "missing_everywhere",
+     "issue": "최종 양품 PCB CD 미정의."
+    },
+    {
+     "target": "https://www.smart-factory.kr/ids/cd/DefectPCB/1/0",
+     "usedAt": "AOIProcess.Materials outputVariables 'DefectPCB' ReferenceElement.semanticId/value",
+     "status": "missing_everywhere",
+     "issue": "최종 불량 PCB CD 미정의. (Chips 자원은 별도 CD 없이 cd/PCB/1/0 로 표현되어 Chips CD 자체는 등장 안 함.)"
+    },
+    {
+     "target": "https://www.smart-factory.kr/ids/cd/n_modules/1/0",
+     "usedAt": "MounterProcess.n_modules — Property.semanticId (Mounter 전용, value='8')",
+     "status": "missing_everywhere",
+     "issue": "cd/n_modules/1/0 미정의. 설비(Mounter)에도 모듈수 관련 CD/SME 매칭 없음(설비는 PlacementSpeed 등 다른 스펙 보유)."
+    },
+    {
+     "target": "https://www.smart-factory.kr/ids/cd/SMTProcess/1/0",
+     "usedAt": "SMTProcess SMC.semanticId (컨테이너)",
+     "status": "missing_everywhere",
+     "issue": "컨테이너 SMC 의 semanticId CD 미정의."
+    },
+    {
+     "target": "https://www.smart-factory.kr/ids/cd/SMTLines/1/0",
+     "usedAt": "SMTProcess.SMTLines SMC.semanticId",
+     "status": "missing_everywhere",
+     "issue": "컨테이너 SMC CD 미정의."
+    },
+    {
+     "target": "https://www.smart-factory.kr/ids/cd/Line_1/1/0",
+     "usedAt": "SMTProcess.SMTLines.Line_1 SMC.semanticId",
+     "status": "missing_everywhere",
+     "issue": "라인 SMC CD 미정의."
+    },
+    {
+     "target": "https://www.smart-factory.kr/ids/cd/Line_2/1/0",
+     "usedAt": "SMTProcess.SMTLines.Line_2 SMC.semanticId",
+     "status": "missing_everywhere",
+     "issue": "라인 SMC CD 미정의."
+    },
+    {
+     "target": "https://www.smart-factory.kr/ids/cd/SMTMaterials/1/0",
+     "usedAt": "SMTProcess.SMTMaterials SMC.semanticId",
+     "status": "missing_everywhere",
+     "issue": "컨테이너 SMC CD 미정의."
+    },
+    {
+     "target": "https://www.smart-factory.kr/ids/cd/MODEL_A/1/0",
+     "usedAt": "SMTProcess.SMTMaterials.MODEL_A SMC.semanticId",
+     "status": "missing_everywhere",
+     "issue": "cd/MODEL_A/1/0 미정의(MODEL_A.json 의 sm/asset id 와도 다른 cd 네임스페이스). MODEL_A.json 안엔 MODEL_A_VD7/1/0 등 다른 CD만 존재."
+    },
+    {
+     "target": "https://www.smart-factory.kr/ids/cd/MODEL_B/1/0",
+     "usedAt": "SMTProcess.SMTMaterials.MODEL_B SMC.semanticId",
+     "status": "missing_everywhere",
+     "issue": "cd/MODEL_B/1/0 미정의."
+    },
+    {
+     "target": "https://www.smart-factory.kr/ids/cd/MODEL_C/1/0",
+     "usedAt": "SMTProcess.SMTMaterials.MODEL_C SMC.semanticId",
+     "status": "missing_everywhere",
+     "issue": "cd/MODEL_C/1/0 미정의."
+    },
+    {
+     "target": "https://www.smart-factory.kr/ids/cd/PCB_03203204/1/0 외 PCB_* 12종(03902715,03903424 / 03203145,03902607,03902608,03902690,03902727,03902730,03902835,03903208 / 03203315,03903388,03903391)",
+     "usedAt": "SMTMaterials.MODEL_A/B/C.PCB ReferenceElement.value (GlobalReference 리스트)",
+     "status": "resolves_model",
+     "issue": "각 모델 PCB 코드 CD는 해당 MODEL_A/B/C.json 에 정의되어 해소(MODEL_A:03203204/03902715/03903424, MODEL_B:8종, MODEL_C:03203315/03903388/03903391). psm_smt 자체엔 미정의 — 모델 json 의존."
+    }
+   ],
+   "consistency_issues": [
+    "자산참조 형식 불일치: psm_smt 설비공정 SMC semanticId 는 'https://www.smart-factory.kr/ids/asset/<Fac>/<모델명>' (ExternalReference→AssetAdministrationShell) 를 쓰지만 7개 설비의 assetInformation.globalAssetId 는 'https://www.smart-factory.kr/ids/aas/<Fac>/1/0'. 형식·값 모두 다름. 모델명(SLD-120 등)은 globalAssetId 가 아니라 설비 DigitalNameplate/URIOfTheProduct value 에만 나타남.",
+    "설비 nameplate 미완성: 7개 설비 중 Loader 만 DigitalNameplate/Identification/Technical>GeneralInformation 에 실제 모델명 SLD-120 와 자산URL(/ids/asset/Loader/SLD-120) 이 채워져 있고, 나머지 6개(ScreenPrinter/SPI/Mounter/AOI/Reflow/Unloader)는 IDTA 템플릿 placeholder 그대로 — ManufacturerProductType='FM-ABC-1234', URIOfTheProduct='https://www.domain-abc.com/Model-Nr-1234/Serial-Nr-5678'. 따라서 psm_smt 가 가정한 모델명이 6개 설비에 데이터로 존재하지 않아 자산참조 6/7 이 깨짐.",
+    "CycleTime vs CycleTimeSec 네이밍 불일치: psm_smt 설비공정 CycleTime RE 는 cd/CycleTime/1/0 사용. 그러나 MODEL_A/B/C·psm·psm_smt 의 공정 사이클타임 표준 CD 는 cd/CycleTimeSec/1/0. 설비 측 CycleTime CD(cd/CycleTime/...)는 ScreenPrinter 1대에만 존재(그나마 본래 버전은 v2/0, v1/0 는 부수적). 6개 설비엔 CycleTime SME 부재. 사이클타임 자동 lookup 설계가 6/7 설비에서 성립 안 함.",
+    "RatedPowerKw vs RatedPower CD 불일치: psm_smt RatedPowerKw RE 는 cd/RatedPowerKw/1/0 (self-ref) 인데 7개 설비는 전력을 cd/RatedPower/1/0(idShort RatedPower) 및 cd/PowerConsumption/{1,2}/0 으로 노출. semanticId 가 다르므로 'catalog AAS 의 같은 semanticId Property 자동 lookup' 의도가 전혀 성립하지 않음. 또한 cd/RatedPowerKw/1/0 은 psm_smt 안에서 ×2 중복 정의(Part-1 진단과 일치).",
+    "CycleTime·RatedPowerKw ReferenceElement 가 trivial self-reference (value 의 GlobalReference 가 자신의 semanticId CD 와 동일). 설비의 구체 값(Property)을 가리키지 않으므로 ReferenceElement 가 실제 lookup 타깃을 지정하지 못함 — value 가 설비 SME 경로/구체 인스턴스를 가리키도록 재설계 필요.",
+    "SMT 물질흐름 자원 CD 전면 부재: cd/PCB/1/0, SolderPastedPCB, ChipMountedPCB, ReflowedPCB, SolderCream, GoodPCB, DefectPCB 7종이 psm_smt 외 어디에도 정의 안 됨. Materials Operation 의 input/output 가 이 CD 들로 공정간 물질흐름(직전 output==다음 input)을 표현하지만 CD 정의가 없어 round-trip 불가. (양품/불량 분기는 AOI output 의 GoodPCB/DefectPCB 두 변수로 표현.)",
+    "Mounter input 변수 idShort='Chips' 인데 ReferenceElement.value/semanticId 가 cd/PCB/1/0 을 가리킴 — 변수 이름과 타깃 CD 불일치. 별도 cd/Chips 가 없어 칩을 PCB CD 로 대용. 칩이 PCB.HasPart 로 들어간다는 description 과는 정합하나, ref CD 자체는 자원 종류를 구분하지 못함.",
+    "구조 컨테이너 CD 부재: SMTProcess, SMTLines, Line_1, Line_2, SMTMaterials, MODEL_A/B/C, n_modules 의 semanticId CD 가 psm_smt 안에서 정의 없이 참조만 됨. (KnowledgeGraph 등 다른 컬렉션은 cd/KnowledgeGraph 등 정의가 있으나 SMTProcess 계열은 통째로 누락.)",
+    "DepNext 누락(서브트리 밖이나 동일 패턴): cd/DepPrev/1/0 는 MODEL_A/B/C 에 정의되나 짝 개념 cd/DepNext/1/0 는 psm·psm_smt 의 KnowledgeGraph 노드에서 semanticId 로 사용되면서 어디에도 정의되지 않음 — SMTProcess 의 DepPrev 와 동일한 선후행 의존 표현이라 일관성 차원에서 함께 보정 필요.",
+    "버전 불일치: 설비 측 실데이터 CD 는 대부분 /2/0 버전(예 cd/CycleTime/2/0, cd/PowerConsumption/2/0)인데 psm_smt 참조는 /1/0. 설비-시뮬 간 CD 버전 정책이 어긋남."
+   ],
+   "proposals": [
+    {
+     "item": "SMT 물질흐름·구조 CD 일괄 정의",
+     "action": "add_CD",
+     "location": "ProvisionOfSimulationModel_smt.json conceptDescriptions (및 동일 템플릿 psm.json)",
+     "content": "cd/PCB/1/0, cd/SolderCream/1/0, cd/SolderPastedPCB/1/0, cd/ChipMountedPCB/1/0, cd/ReflowedPCB/1/0, cd/GoodPCB/1/0, cd/DefectPCB/1/0 (자원), cd/Materials/1/0(Operation), cd/n_modules/1/0, cd/SMTProcess/1/0, cd/SMTLines/1/0, cd/Line_1/1/0, cd/Line_2/1/0, cd/SMTMaterials/1/0, cd/MODEL_A|B|C/1/0 (구조 컨테이너) ConceptDescription 추가. 각 description 에 산출/물질흐름 규칙 명시.",
+     "rationale": "SMTProcess 서브트리 참조의 다수(34개 CD target 중 ~21개)가 missing_everywhere. CD 정의가 없으면 path_extractor round-trip 과 시뮬의 자원·공정 식별이 깨짐. CLAUDE.md 'AAS 단일 입력 contract' 상 참조 대상은 반드시 정의돼야 함."
+    },
+    {
+     "item": "CycleTime → CycleTimeSec 네이밍 정렬",
+     "action": "fix_ref",
+     "location": "psm_smt SMTProcess.*.CycleTime ReferenceElement (14개) 의 semanticId/value",
+     "content": "cd/CycleTime/1/0 → cd/CycleTimeSec/1/0 으로 변경(모델·psm 표준과 통일). 설비에서 값을 끌어올 경우엔 설비 측 CycleTime CD 버전(ScreenPrinter cd/CycleTime/2/0)과의 매핑을 별도 명시.",
+     "rationale": "모델/psm 전반은 CycleTimeSec 를 쓰는데 SMT 만 CycleTime 으로 갈라져 있고 그 CD 는 ScreenPrinter 1대에만 우연히 존재. 표준 idShort/CD 로 통일해야 6/7 설비에서도 의미가 성립."
+    },
+    {
+     "item": "RatedPowerKw → 설비 RatedPower 정렬 및 중복 제거",
+     "action": "align_asset_id",
+     "location": "psm_smt SMTProcess.*.RatedPowerKw ReferenceElement + conceptDescriptions",
+     "content": "두 가지 중 택1: (a) 설비 값을 자동 lookup 하려면 RE.semanticId 를 설비가 쓰는 cd/RatedPower/1/0 (또는 cd/PowerConsumption) 으로 맞추고 RE.value 를 해당 설비 SME 경로로 지정; (b) 시뮬 자체 파라미터로 둘 거면 self-ref 를 유지하되 설비 lookup 의도를 description 에서 삭제. 더불어 psm_smt 내 cd/RatedPowerKw/1/0 중복 정의(×2) 1개 제거.",
+     "rationale": "현재 RatedPowerKw self-ref 는 설비의 실제 전력값을 전혀 가리키지 못하면서 description 은 'catalog 자동 lookup' 이라 주장 — 의도와 데이터가 불일치. 중복 CD 는 Part-1 진단에서도 지적됨."
+    },
+    {
+     "item": "설비공정 자산참조를 globalAssetId 형식으로 정정 + 6개 설비 nameplate 채우기",
+     "action": "align_asset_id",
+     "location": "psm_smt SMTProcess.*.<설비>Process semanticId (14개) 및 SMT/{2_SPI..7_Unloader} nameplate",
+     "content": "두 트랙 동시: (1) psm_smt 자산URL 을 설비 globalAssetId 형식 'https://www.smart-factory.kr/ids/asset/<Fac>/1/0' (=설비의 /ids/aas/<Fac>/1/0 와 매칭되도록) 로 통일하거나, 모델명 키로 묶을 거면 설비 DigitalNameplate/URIOfTheProduct 를 진실의 원천으로 고정. (2) ScreenPrinter/SPI/Mounter/AOI/Reflow/Unloader 6개 설비의 DigitalNameplate(URIOfTheProduct, ManufacturerProductType, OrderCodeOfManufacturer 등) placeholder('FM-ABC-1234','domain-abc.com/...')를 실제 모델명(HS-520S, KY-8030, M-Series, BF-Comet-c, GT-R8, SUD-120)으로 교체.",
+     "rationale": "현재 7개 설비참조 중 Loader 만 해소되고 그것도 globalAssetId 가 아닌 URIOfTheProduct 경로로만 매칭. 6개 설비는 모델명 데이터 자체가 placeholder 라 어떤 형식을 써도 매칭 불가. 자산 식별 키(globalAssetId vs URIOfTheProduct) 를 하나로 못박고 설비 데이터를 실제 값으로 채워야 SMT 라인↔설비 결선이 성립."
+    },
+    {
+     "item": "Mounter 'Chips' 변수 타깃 CD 정정",
+     "action": "fix_ref",
+     "location": "psm_smt SMTProcess.*.MounterProcess.Materials inputVariables[Chips]",
+     "content": "input 변수 idShort='Chips' 의 ReferenceElement value/semanticId 를 cd/PCB/1/0 이 아니라 칩 자원을 가리키는 CD(예 신설 cd/Chips/1/0, 또는 PCB.HasPart 를 가리키는 경로참조)로 변경.",
+     "rationale": "변수명 'Chips' 와 타깃 CD 'PCB' 가 불일치. 칩을 PCB 로 대용하면 Mounter input 의 물질 종류가 SolderPastedPCB+Chips 가 아니라 SolderPastedPCB+PCB 로 잘못 해석될 수 있음."
+    },
+    {
+     "item": "DepNext CD 정의(서브트리 밖이나 동일 일관성 묶음)",
+     "action": "add_CD",
+     "location": "psm/psm_smt conceptDescriptions",
+     "content": "cd/DepNext/1/0 ConceptDescription 추가(짝인 cd/DepPrev/1/0 가 MODEL_A/B/C 에 이미 정의된 것과 대칭). 또는 DepNext 사용처를 DepPrev 만으로 표현하도록 KG 노드 정리.",
+     "rationale": "KnowledgeGraph 노드들이 cd/DepNext/1/0 를 semanticId 로 참조하나 어디에도 정의 없음. SMTProcess.DepPrev 와 동일한 선후행 표현이므로 함께 정합화."
+    }
+   ]
+  },
+  "propose": {
+   "summary": "SMTProcess(psm_smt) 일관성 분석 + 제안. 1단계 참조해소를 소스에서 전수 재검증해 정정·심화함. 핵심 정정: (1) psm_smt 자체 conceptDescriptions 에는 SMTProcess 서브트리가 쓰는 CD 가 거의 정의돼 있지 않다 — 오직 CycleTimeSec/1/0(×1)·RatedPowerKw/1/0(×2 중복)뿐. CycleTime/1/0(설비공정 14개가 CycleTime RE 의 semanticId 로 사용)은 psm_smt·models·psm 어디에도 없고 오직 ScreenPrinter 설비에만 우연히 존재 → psm_smt 안에서 dangling ref. 즉 'CycleTime vs CycleTimeSec' 는 단순 네이밍차가 아니라 dangling reference 이며, rename CycleTime→CycleTimeSec 한 번으로 dangling 해소 + 모델 ProcessNode 스키마 정렬을 동시에 달성. (2) RatedPowerKw 는 반대 — CD 는 psm_smt(중복)·models 에 정의돼 해소되나 RE 의 value 가 자기 CD 를 가리키는 self-ref placeholder. (3) [중심 설계 결정] 설비공정의 CycleTime/RatedPowerKw 는 description 상 'catalog(설비) AAS 의 같은 semanticId Property 자동 lookup' 설계(Option 1)지만, 7개 설비 전부 RatedPower value=None·CycleTime value=None(ScreenPrinter)·6/7 설비 nameplate 가 placeholder(FM-ABC-1234) 라 lookup 이 무엇도 해소하지 못함 → 현재 데이터로 시뮬 비실행. 반면 CycleTimeSec/RatedPowerKw CD 가 psm_smt 에 이미 미사용 상태로 존재하고 모델 ManufacturingProcess 노드가 동일 CD 를 value 보유 Property(CycleTimeSec=xs:int s, RatedPowerKw=xs:double kW)로 쓰는 선례가 있으므로, ReferenceElement→값 보유 Property 전환(Option 2, 신규 CD 0개) 을 권고. Option 1 채택 시엔 7개 설비파일 값 채움 + 설비 RatedPower→RatedPowerKw 네이밍/단위 정렬 + align_asset_id 가 모두 선행돼야 함. Option 2 채택 시 두 RE 의 '자동 lookup' description 은 거짓이 되므로 description 갱신이 제안의 필수 일부. (4) 자산참조 불일치: 14개 설비공정 SMC 의 semanticId=/ids/asset/<Fac>/<모델명> 인데 설비 globalAssetId=/ids/aas/<Fac>/1/0. Loader 만 nameplate URIOfTheProduct=/ids/asset/Loader/SLD-120 이라 우연 일치, 나머지 6개는 모델명 자체가 placeholder 라 현 형태로는 절대 해소 불가 → 7개 모두 존재하는 유일 타깃인 globalAssetId(/ids/aas/<Fac>/1/0)로 정렬 권고. (5) Mounter.Chips 입력: semanticId=cd/Chips/1/0 이나 ref value=cd/PCB/1/0 → 변수명-타깃 불일치 버그(1단계가 'Chips CD 미등장'이라 한 것 정정: semanticId 로는 등장). (6) 물질흐름 join-key CD(PCB/SolderCream/SolderPastedPCB/ChipMountedPCB/ReflowedPCB/GoodPCB/DefectPCB/Chips/Materials)는 어디에도 미정의 — Materials join 설계(자원 ref semanticId 가 SMTMaterials.<MODEL>.<resource> 또는 직전설비 output 과 매칭)가 성립하려면 신규 CD 필요(진짜 신설 대상). (7) 구조 컨테이너 CD(SMTProcess/SMTLines/Line_1/Line_2/SMTMaterials) 미정의 — 모델은 컨테이너 SMC 에 CD 부여가 norm(VD7SensorBoardAssembly 등 정의됨; VD7FwInput·VD7GimbalAssembly 2개만 dangling) 이므로 누락은 모델 norm 위반이나 우선순위는 join-key 보다 낮음. SMTMaterials.MODEL_A/B/C 는 cd/MODEL_X 신설 대신 이미 존재하는 모델 globalAssetId(/ids/asset/MODEL_X/1/0)를 자산참조로 재사용 권고. (8) DepType 부재: 모델 ProcessNode 는 DepType(SEQUENCE/JOIN)+DepPrev 쌍인데 SMTProcess 노드는 DepPrev 만 보유(SMT 라인은 선형이라 SEQUENCE 암시 — 갭으로 적시). (9) n_modules: lower-initial idShort → CamelCase idShort 규약 위반(audit camel_violation:1 의 정체, ×2). DepNext 는 KnowledgeGraph(서브트리 밖) 소관이라 1줄만 언급. 14개 PCB part ref(SMTMaterials.<MODEL>.PCB.value)는 전부 모델에서 해소됨.",
+   "refs": [
+    {
+     "target": "https://www.smart-factory.kr/ids/cd/CycleTime/1/0",
+     "usedAt": "SMTProcess.SMTLines.Line_1/Line_2.<7설비>Process.CycleTime — ReferenceElement.semanticId 이자 value (14 SMC, value==semanticId self-ref)",
+     "status": "missing_everywhere",
+     "issue": "psm_smt·models·psm 어디에도 cd/CycleTime/1/0 미정의 — psm_smt 내부에서 dangling ref(존재하는 건 CycleTimeSec/1/0 뿐). 7개 설비 중 ScreenPrinter 에만 우연히 cd/CycleTime/1/0(및 2/0) CD 존재. description 은 '설비 AAS 같은 semanticId Property 자동 lookup' 이라 하나 ScreenPrinter 의 CycleTime Property value 도 None. → rename CycleTime→CycleTimeSec 으로 dangling 해소+모델정렬 동시 달성."
+    },
+    {
+     "target": "https://www.smart-factory.kr/ids/cd/CycleTimeSec/1/0",
+     "usedAt": "(재사용 타깃) MODEL_A/B/C·psm·psm_smt 에 정의된 CD; 모델 ManufacturingProcess 노드가 value 보유 Property(xs:int, unit s)로 사용",
+     "status": "resolves_self",
+     "issue": "psm_smt 에 이미 정의(미사용). SMTProcess 가 CycleTime 대신 이 CD 를 idShort=CycleTimeSec Property 로 쓰면 모델 스키마와 1:1 정렬. 신규 CD 불필요."
+    },
+    {
+     "target": "https://www.smart-factory.kr/ids/cd/RatedPowerKw/1/0",
+     "usedAt": "SMTProcess.SMTLines.Line_1/Line_2.<7설비>Process.RatedPowerKw — ReferenceElement.semanticId 이자 value (14 SMC, self-ref)",
+     "status": "resolves_self",
+     "issue": "CD 자체는 psm_smt(중복 ×2)·MODEL_A·MODEL_B 에 정의돼 해소(MODEL_C·설비엔 없음). 문제는 RE 의 value 가 자기 CD 를 가리키는 placeholder 라 설비 실제값 미지목. 설비는 전력을 cd/RatedPower/1/0(value=None)·PowerConsumption 으로 노출 → RatedPowerKw vs RatedPower 불일치+설비값 부재로 자동 lookup 불가. psm_smt 의 동일 CD ×2 는 dup_cd_id:1."
+    },
+    {
+     "target": "https://www.smart-factory.kr/ids/cd/RatedPower/1/0 (설비측)",
+     "usedAt": "7개 설비 모두 conceptDescription 으로 정의(설비 nameplate/TechnicalData), 단 Property value=None",
+     "status": "resolves_facility",
+     "issue": "설비는 RatedPower 로 전력 CD 보유하나 값이 None. psm_smt 는 RatedPowerKw 사용 → CD idShort 불일치(RatedPower vs RatedPowerKw). Option 1(자동 lookup) 채택 시 설비 RatedPower→RatedPowerKw 네이밍/단위 정렬+값 채움 필요."
+    },
+    {
+     "target": "https://www.smart-factory.kr/ids/asset/Loader/SLD-120",
+     "usedAt": "Line_1/Line_2.LoaderProcess.semanticId (asset URL, 2회)",
+     "status": "resolves_facility",
+     "issue": "해소되나 의도경로 아님: Loader globalAssetId=/ids/aas/Loader/1/0. 이 URL 은 Loader nameplate URIOfTheProduct(=/ids/asset/Loader/SLD-120)·ProductArticleNumberOfManufacturer(SLD-120)와만 일치(7개 중 Loader 만 실모델명 보유)."
+    },
+    {
+     "target": "https://www.smart-factory.kr/ids/asset/ScreenPrinter/HS-520S (+SPI/KY-8030, Mounter/M-Series, Reflow/GT-R8, Unloader/SUD-120, AOI/BF-Comet-c)",
+     "usedAt": "각 Line_1/Line_2.<설비>Process.semanticId (asset URL, 각 2회)",
+     "status": "missing_everywhere",
+     "issue": "해당 6개 설비 globalAssetId=/ids/aas/<Fac>/1/0, nameplate 는 placeholder(ManufacturerProductType=FM-ABC-1234, URIOfTheProduct=domain-abc.com/Model-Nr-1234; SPI 는 nameplate 전 필드 None). 모델명(HS-520S 등)·해당 asset URL 이 설비 어디에도 없음 → 현 형태로는 절대 해소 불가. 7개 공통 존재 타깃은 globalAssetId 뿐."
+    },
+    {
+     "target": "https://www.smart-factory.kr/ids/cd/Chips/1/0",
+     "usedAt": "Mounter(Line_1/Line_2).Materials.inputVariables 'Chips' ReferenceElement.semanticId",
+     "status": "missing_everywhere",
+     "issue": "semanticId 로는 cd/Chips/1/0 등장(1단계 '미등장' 정정). 그러나 동 RE 의 value=cd/PCB/1/0 → 변수명-타깃 불일치 버그. CD cd/Chips/1/0 자체도 미정의."
+    },
+    {
+     "target": "https://www.smart-factory.kr/ids/cd/PCB/1/0",
+     "usedAt": "Loader/ScreenPrinter Materials in·out, Mounter 'Chips' value(오연결), SMTMaterials.<MODEL>.PCB.semanticId",
+     "status": "missing_everywhere",
+     "issue": "bare cd/PCB/1/0 미정의(models 엔 PCB_NNNNN part CD 만 존재). Materials join 의 PCB 자원 키이자 SMTMaterials.<MODEL>.PCB 의 semanticId 인데 CD 없음."
+    },
+    {
+     "target": "https://www.smart-factory.kr/ids/cd/SolderCream/1/0, SolderPastedPCB/1/0, ChipMountedPCB/1/0, ReflowedPCB/1/0, GoodPCB/1/0, DefectPCB/1/0, Materials/1/0",
+     "usedAt": "각 설비 Materials Operation 의 input/output ReferenceElement.semanticId/value 및 Operation.semanticId(Materials)",
+     "status": "missing_everywhere",
+     "issue": "물질흐름 join-key CD 군 전부 미정의(psm_smt 내 토큰만 등장; SolderCream 은 별개 CD SolderCreamParam 의 부분문자열일 뿐). Materials join 설계 성립의 전제라 진짜 신설 필요."
+    },
+    {
+     "target": "https://www.smart-factory.kr/ids/cd/DepPrev/1/0",
+     "usedAt": "14개 설비공정.DepPrev Property.semanticId (value=선행공정 idShort)",
+     "status": "resolves_model",
+     "issue": "CD 는 MODEL_A/B/C 정의로 해소(psm/psm_smt 자체엔 미정의, 모델 의존). 모델 노드는 DepType+DepPrev 쌍이나 SMTProcess 는 DepType 부재. 짝개념 DepNext 는 KnowledgeGraph(서브트리 밖)에서 쓰이며 어디에도 미정의 — 본 분석 범위 밖, 1줄 언급만."
+    },
+    {
+     "target": "https://www.smart-factory.kr/ids/cd/n_modules/1/0",
+     "usedAt": "MounterProcess.n_modules Property.semanticId (Line_1 value=8, Line_2 value=4)",
+     "status": "missing_everywhere",
+     "issue": "CD 미정의 + idShort 가 lower-initial snake_case → CamelCase idShort 규약 위반(audit camel_violation:1 의 정체). 설비 Mounter 에도 모듈수 CD 매칭 없음."
+    },
+    {
+     "target": "https://www.smart-factory.kr/ids/cd/SMTProcess/1/0, SMTLines/1/0, Line_1/1/0, Line_2/1/0, SMTMaterials/1/0",
+     "usedAt": "각 컨테이너 SMC.semanticId",
+     "status": "missing_everywhere",
+     "issue": "구조 컨테이너 CD 전부 미정의. 모델은 컨테이너 SMC 에 CD 부여가 norm(예 cd/VD7SensorBoardAssembly/1/0 정의됨; dangler 는 VD7FwInput·VD7GimbalAssembly 2개뿐) → 누락은 모델 norm 위반이나 join-key 보다 낮은 우선순위."
+    },
+    {
+     "target": "https://www.smart-factory.kr/ids/cd/MODEL_A/1/0, MODEL_B/1/0, MODEL_C/1/0",
+     "usedAt": "SMTMaterials.MODEL_A/B/C SMC.semanticId",
+     "status": "missing_everywhere",
+     "issue": "cd/MODEL_X/1/0 미정의. 단 모델 파일에 globalAssetId=/ids/asset/MODEL_X/1/0 이미 존재 → 신규 CD 신설 대신 자산참조 재사용 검토."
+    },
+    {
+     "target": "https://www.smart-factory.kr/ids/cd/PCB_03203204/1/0 외 13종",
+     "usedAt": "SMTMaterials.<MODEL>.PCB ReferenceElement.value (모델별 PCB part 목록, 총 14 ref)",
+     "status": "resolves_model",
+     "issue": "14개 part CD 전부 MODEL_A/B/C 에서 해소(이상 없음 — 정상 케이스로 기록)."
+    }
+   ],
+   "consistency_issues": [
+    "[중심 설계 결정] 설비공정 CycleTime/RatedPowerKw 의 ReferenceElement '자동 lookup' 설계(Option 1) vs 값 보유 Property 전환(Option 2) 의 택일이 미해결. 7개 설비 전부 RatedPower value=None, CycleTime value=None(ScreenPrinter), 6/7 설비 nameplate placeholder → Option 1 은 현 데이터로 아무것도 해소 못함(시뮬 비실행). CycleTimeSec/RatedPowerKw CD 가 psm_smt 에 이미 미사용 존재 + 모델 ProcessNode 가 동일 CD 를 값 Property 로 쓰는 선례 → Option 2 권고.",
+    "CycleTime dangling: 14개 설비공정 CycleTime RE 의 semanticId=cd/CycleTime/1/0 이 psm_smt 내부에 미정의(존재하는 건 CycleTimeSec/1/0). 단순 네이밍차가 아닌 dangling reference. 모델/psm 은 CycleTimeSec 사용 → 표기 불일치까지 겸함.",
+    "RatedPowerKw vs 설비 RatedPower: psm_smt 는 RatedPowerKw, 7개 설비는 RatedPower CD 사용 → 동일 의미 다른 idShort. 게다가 설비 RatedPower value=None 이라 어느 쪽이든 실값 부재.",
+    "ReferenceElement self-ref placeholder 패턴: CycleTime·RatedPowerKw RE 의 value 가 자기 semanticId CD 를 그대로 가리킴(설비 Property 미지목). Materials Operation 의 거의 모든 input/output RE 도 value==semanticId(자원 CD 자기참조). 실제 대상을 가리키지 않는 placeholder.",
+    "Mounter.Chips 입력 버그: semanticId=cd/Chips/1/0 이나 value=cd/PCB/1/0. 변수명(Chips)-타깃(PCB) 불일치 (Line_1·Line_2 양쪽 동일).",
+    "자산참조-globalAssetId 불일치: 14개 설비공정 SMC semanticId=/ids/asset/<Fac>/<모델명> vs 설비 globalAssetId=/ids/aas/<Fac>/1/0. Loader 만 nameplate URIOfTheProduct 우연 일치, 6개는 placeholder nameplate 라 현 형태 영구 미해소. 7개 공통 존재 타깃은 globalAssetId 뿐.",
+    "psm_smt 내 RatedPowerKw/1/0 CD 중복(동일 내용 ×2) = audit dup_cd_id:1.",
+    "물질흐름 join-key CD 전무: PCB·SolderCream·SolderPastedPCB·ChipMountedPCB·ReflowedPCB·GoodPCB·DefectPCB·Chips·Materials 가 psm_smt·models·psm·설비 어디에도 CD 미정의. Materials join 설계의 전제 불충족.",
+    "구조 컨테이너 CD 전무: SMTProcess·SMTLines·Line_1·Line_2·SMTMaterials 미정의. 모델은 컨테이너 SMC 에 CD 부여가 norm 이라 norm 위반(우선순위는 낮음).",
+    "SMTMaterials.MODEL_A/B/C semanticId=cd/MODEL_X/1/0 미정의. 모델 globalAssetId(/ids/asset/MODEL_X/1/0)가 이미 존재하므로 신설보다 재사용이 옳음.",
+    "DepType 부재: 모델 ProcessNode 는 DepType(SEQUENCE/JOIN)+DepPrev 쌍, SMTProcess 노드는 DepPrev 만. SMT 라인은 선형이라 SEQUENCE 암시 — 스키마 갭.",
+    "n_modules idShort CamelCase 규약 위반(lower-initial snake_case). audit camel_violation:1 의 실체. (Mounter 전용 Property, value 8/4).",
+    "description-구조 불일치(Option 2 채택 시 발생 예정): CycleTime/RatedPowerKw RE description 의 '설비 AAS 같은 semanticId Property 자동 lookup' 문구가 값 보유 Property 전환과 모순 → description 동반 갱신 필요.",
+    "DepNext(cd/DepNext/1/0) 는 KnowledgeGraph(SMTProcess 서브트리 밖)에서 사용되나 어디에도 미정의 — 범위 밖 1줄 기록."
+   ],
+   "proposals": [
+    {
+     "item": "CycleTime ReferenceElement → CycleTimeSec value Property (설계결정 Option 2, 권고안)",
+     "action": "rename",
+     "location": "ProvisionOfSimulationModel_smt.json: SimulationModel.value[7](SMTProcess).SMTLines.Line_1/Line_2 의 7개 설비공정 SMC × 2라인 = 14개 'CycleTime' ReferenceElement",
+     "content": "각 'CycleTime' ReferenceElement 를 idShort='CycleTimeSec', modelType=Property, valueType=xs:int, semanticId=cd/CycleTimeSec/1/0, value=해당 설비 실측 사이클타임(초) 으로 교체. 신규 CD 없음(CycleTimeSec/1/0 이미 존재). description 을 '<설비>Process 의 사이클타임(초). 모델 ManufacturingProcess 노드와 동일 스키마' 로 갱신.",
+     "rationale": "cd/CycleTime/1/0 은 psm_smt 내 dangling 이고 설비 lookup 도 값 부재로 비실행. CycleTimeSec CD 가 이미 미사용 존재하고 모델 ProcessNode 가 동일 CD 를 값 Property 로 쓰므로 rename+값주입이 dangling 해소·모델정렬·시뮬가용을 동시에 충족하며 신규 CD 0개."
+    },
+    {
+     "item": "RatedPowerKw ReferenceElement → 값 보유 Property (Option 2)",
+     "action": "fix_ref",
+     "location": "psm_smt SMTProcess 의 14개 설비공정 SMC 의 'RatedPowerKw' ReferenceElement",
+     "content": "modelType=Property, valueType=xs:double, semanticId 유지(cd/RatedPowerKw/1/0), value=해당 설비 정격전력(kW). self-ref value 제거. description 을 값 보유형으로 갱신.",
+     "rationale": "RatedPowerKw CD 는 이미 해소되나 RE value 가 self-ref placeholder. 설비 RatedPower 는 값 None 이라 lookup 불가. 모델 ProcessNode 선례대로 값 Property 화. 신규 CD 불필요."
+    },
+    {
+     "item": "RatedPowerKw CD 중복 제거",
+     "action": "other",
+     "location": "psm_smt conceptDescriptions: id=https://www.smart-factory.kr/ids/cd/RatedPowerKw/1/0 항목 2개 중 1개",
+     "content": "동일 내용 ×2 중 하나 삭제(1개만 유지).",
+     "rationale": "audit dup_cd_id:1. 동일 id CD 중복은 AAS 무결성 위반."
+    },
+    {
+     "item": "Mounter Chips 입력 ref 수정",
+     "action": "fix_ref",
+     "location": "psm_smt SMTProcess.SMTLines.Line_1/Line_2.MounterProcess.Materials.inputVariables 'Chips' ReferenceElement.value",
+     "content": "value 의 key 를 cd/PCB/1/0 → cd/Chips/1/0 로 수정(semanticId 와 일치).",
+     "rationale": "변수명 Chips·semanticId cd/Chips/1/0 인데 value 가 cd/PCB/1/0 을 가리키는 명백한 오연결. 칩 자원이 PCB 로 잘못 매칭됨."
+    },
+    {
+     "item": "물질흐름 join-key CD 신설 (진짜 신설 대상)",
+     "action": "add_CD",
+     "location": "psm_smt conceptDescriptions 에 추가",
+     "content": "cd/PCB/1/0(preferredName 'PCB', dataType STRING, definition 'SMT 라인을 흐르는 인쇄회로기판 자원(공정간 물질흐름 join key)'), cd/SolderCream/1/0(STRING,'스크린프린터 입력 솔더크림 자원'), cd/SolderPastedPCB/1/0(STRING,'솔더 도포 PCB 중간상태'), cd/ChipMountedPCB/1/0(STRING,'칩 실장 PCB 중간상태'), cd/ReflowedPCB/1/0(STRING,'리플로우 완료 PCB 중간상태'), cd/GoodPCB/1/0(STRING,'AOI 통과 양품 PCB'), cd/DefectPCB/1/0(STRING,'AOI 불량 PCB'), cd/Chips/1/0(STRING,'마운터 입력 칩 부품 자원'), cd/Materials/1/0(preferredName 'Materials', definition 'SMT 설비 1 PCB 처리 입출력 Operation'). 각 CD 1개씩.",
+     "rationale": "Materials join 설계(자원 ref semanticId 가 SMTMaterials.<MODEL>.<resource>·직전설비 output 과 매칭)가 AAS 적으로 유효하려면 이 semanticId 들이 CD 로 존재해야 함. 재사용 가능한 기존 CD 가 없어 신설 불가피."
+    },
+    {
+     "item": "설비공정 SMC 자산참조 정렬",
+     "action": "align_asset_id",
+     "location": "psm_smt SMTProcess 의 14개 설비공정 SMC.semanticId",
+     "content": "semanticId 를 /ids/asset/<Fac>/<모델명> → 설비 globalAssetId /ids/aas/<Fac>/1/0 (Loader/SPI/ScreenPrinter/Mounter/AOI/Reflow/Unloader 각각) 로 변경.",
+     "rationale": "현 /ids/asset/<Fac>/<모델명> 은 Loader 만 우연 해소, 6개는 placeholder nameplate 라 영구 미해소. globalAssetId 는 7개 설비 모두 확정 존재하는 유일 공통 타깃. (대안: 설비 nameplate 에 실모델명·URIOfTheProduct 를 채워 현 형태 유지 — 그러나 7개 설비파일 수정 필요.)"
+    },
+    {
+     "item": "SMTMaterials.MODEL_A/B/C 자산참조 재사용",
+     "action": "align_asset_id",
+     "location": "psm_smt SMTProcess.SMTMaterials.MODEL_A/B/C SMC.semanticId (현 cd/MODEL_X/1/0)",
+     "content": "semanticId 를 cd/MODEL_X/1/0 → 모델 globalAssetId /ids/asset/MODEL_X/1/0 (MODEL_A/B/C) 로 변경. 신규 CD 신설하지 않음.",
+     "rationale": "MODEL_A/B/C 모델 파일에 globalAssetId=/ids/asset/MODEL_X/1/0 이 이미 존재. 중복 CD 신설보다 기존 자산 ID 재사용이 reuse 원칙에 부합."
+    },
+    {
+     "item": "n_modules idShort CamelCase 정렬",
+     "action": "rename",
+     "location": "psm_smt MounterProcess.n_modules (Line_1·Line_2) + 신설 CD",
+     "content": "idShort n_modules → NModules (또는 ModuleCount). before: n_modules → after: NModules. 동반 신규 CD cd/NModules/1/0(preferredName 'NModules', dataType INTEGER_COUNT, definition '마운터 동시가동 모듈 수') 신설.",
+     "rationale": "lower-initial snake_case 는 CamelCase idShort 규약 위반(audit camel_violation). cd/n_modules/1/0 도 미정의라 정렬 김에 CD 신설. (대안 idShort 명은 작성자 확인 필요.)"
+    },
+    {
+     "item": "구조 컨테이너 CD 신설 (낮은 우선순위)",
+     "action": "add_CD",
+     "location": "psm_smt conceptDescriptions",
+     "content": "cd/SMTProcess/1/0, cd/SMTLines/1/0, cd/Line_1/1/0, cd/Line_2/1/0, cd/SMTMaterials/1/0 (각 preferredName=idShort, dataType 없음/컨테이너, definition 은 구조 역할 1줄). 각 1개.",
+     "rationale": "모델은 컨테이너 SMC 에 CD 부여가 norm(예 cd/VD7SensorBoardAssembly/1/0). SMT 컨테이너만 무정의는 norm 위반. 단 시뮬 동작에는 영향 없어 join-key·rename 후순위. (Line_1/Line_2 는 라인 인덱스 의미라 단일 cd/SMTLine/1/0 공용도 가능 — 작성자 결정.)"
+    },
+    {
+     "item": "DepType Property 추가 (스키마 정렬)",
+     "action": "add_property",
+     "location": "psm_smt SMTProcess 의 14개 설비공정 SMC, DepPrev 옆",
+     "content": "idShort=DepType, modelType=Property, valueType=xs:string, semanticId=cd/DepType/1/0(모델에 이미 정의·재사용), value='SEQUENCE'.",
+     "rationale": "모델 ProcessNode 는 DepType+DepPrev 쌍. SMT 라인은 선형이라 전부 SEQUENCE. 추가하면 KnowledgeGraph/모델과 동일 스키마로 path_extractor 가 라벨분기 없이 일반 처리 가능. cd/DepType/1/0 재사용(신설 0)."
+    },
+    {
+     "item": "CycleTime/RatedPowerKw description 갱신",
+     "action": "other",
+     "location": "psm_smt 14개 설비공정 SMC 의 CycleTime/RatedPowerKw SME description",
+     "content": "'catalog AAS 의 같은 semanticId Property 자동 lookup' 문구를 값 보유 Property 설명으로 교체(예: '<설비>Process 의 사이클타임(초)/정격전력(kW). 값 직접 보유, 모델 ProcessNode 와 동일 스키마').",
+     "rationale": "Option 2 채택 시 RE→Property 전환으로 자동 lookup 설계가 사라짐. description 이 구조와 모순되지 않도록 동반 갱신 필수(미갱신 시 구조-설명 불일치 잔존)."
+    }
+   ]
+  },
+  "verify": {
+   "scope": "psm_smt SMTProcess subtree (SimulationModels.submodels[0].submodelElements[0](SimulationModel).value[7]) — Part-2 3단계 적대적 검증. 모든 참조슬롯(182개) 추출 후 6개 JSON CD 인덱스 + 7개 SMT 설비 aasx XML 원본과 대조하여 각 proposal ref 의 location 실존·rename 대상 실존·status 판정을 일일이 확인함.",
+   "verdict": "confirmed",
+   "parser_bugs": [
+    "참조 개수 182(slot) vs 193(raw) 차이는 파서 버그 아님 — 다중키 reference chain 3개를 per-key 로 세면 193. 그 3개는 SMTMaterials.MODEL_A/B/C 의 PCB ReferenceElement.value 로, 단일 part CD 가 아니라 모델별 전체 PCB variant CD 체인(MODEL_A:3키, MODEL_B:8키, MODEL_C:3키 = 14키)을 나열한다. 182 slot + (14-3) extra = 193. valueId·Qualifier semanticId·RelationshipElement 는 서브트리에 0개이므로 숨은 참조 없음.",
+    "proposal 의 SMTMaterials.<MODEL>.PCB ref 기술이 부정확: '단일 PCB part CD(PCB_03903424 등)를 가리킨다'고 했으나 실제로는 모델별 전체 PCB variant 다중키 체인. 14개 part CD 전부 각 모델 파일에서 해소됨(MODEL_A 3/3, MODEL_B 8/8, MODEL_C 3/3 ALL RESOLVE) — 결론(모델에서 해소)은 맞고 단일/다중 묘사만 어긋남."
+   ],
+   "false_positives": [
+    "CycleTimeSec valueType 를 'xs:int' 라 기재 — 실제 MODEL_A/B/C 의 CycleTimeSec Property valueType 은 'xs:integer'. 단위 's' 는 정확(embeddedDataSpecification unit='s' 확인). 권고(기존 CycleTimeSec CD 재사용)에는 영향 없음 — 서술 괄호의 타입표기 오류일 뿐.",
+    "RatedPowerKw valueType 를 'xs:double' 라 기재 — 실제 'xs:float'. 단위 'kW' 는 정확(unit='kW' 확인). 권고에 영향 없는 서술 오류.",
+    "CycleTime/1/0 ref 의 status enum 을 'missing_everywhere' 로 단 것은 라벨이 느슨함: 6개 JSON 에는 전무하나 ScreenPrinter.aasx 에는 cd/CycleTime/1/0 CD 가 실존(+CycleTime/2/0 도). 단 proposal 의 issue 산문은 'ScreenPrinter 에만 우연히 존재' 라고 정확히 적었고 그 Property value 도 None 임을 명시 — 즉 판정의 실질은 옳고 enum 라벨만 산문과 불일치. (오히려 1단계 참조해소의 'resolves_facility' 가 과대주장: value=None+self-ref 라 아무것도 해소 못 함.)"
+   ],
+   "missed_findings": [
+    "[검증 통과한 최종 권고 — 전부 소스 확인됨] (A) Option 2(ReferenceElement→값보유 Property 전환, 신규 CD 0개) 권고 타당: CycleTimeSec/1/0(MODEL_A/B/C·psm·psm_smt 정의, value 보유 xs:integer unit=s) 과 RatedPowerKw/1/0(MODEL_A·B·psm×2·psm_smt×2 정의, value 보유 xs:float unit=kW) CD 가 이미 존재하고 모델 ProcessNode 가 동일 CD 를 값보유 Property 로 쓰는 선례 확인. (B) Option 1(설비 자동 lookup) 현 데이터로 실행 불가 확정: 7개 설비 RatedPower Property 전부 value=None, ScreenPrinter CycleTime(1/0·2/0) 도 value=None. CycleTime CD 는 6설비에 부재(ScreenPrinter 만). (C) 자산참조: 14개 설비공정 SMC semanticId=/ids/asset/<Fac>/<모델명> 인데 7개 설비 globalAssetId 는 전부 /ids/aas/<Fac>/1/0 으로 존재 — 정렬 타깃으로 유일하게 7개 공통 실존. Loader 만 nameplate URIOfTheProduct=/ids/asset/Loader/SLD-120 우연 일치(ManufacturerProductType=ProductArticleNumber=SLD-120 실모델). 나머지 6개 nameplate placeholder(ManufacturerProductType=FM-ABC-1234, URIOfTheProduct=domain-abc.com/Model-Nr-1234/Serial-Nr-5678) — 모델명 부재로 현형태 해소 불가. SPI 는 nameplate 전 필드 value 자체가 없음(desc/eclassref 만). (D) Chips 버그 실재: MounterProcess.Materials.inputVariables 'Chips' RE 의 semanticId=cd/Chips/1/0 이나 value=cd/PCB/1/0 — 변수명-타깃 불일치. Materials 전체에서 value!=semanticId 인 유일 슬롯. 1단계의 'Chips CD 미등장' 정정(semanticId 로 등장) 맞음. (E) 물질흐름 join-key CD(Materials·PCB·SolderCream·SolderPastedPCB·ChipMountedPCB·ReflowedPCB·GoodPCB·DefectPCB·Chips) 9종 6 JSON 전부 미정의(audit dangling 도 일치) — 진짜 신설 대상 권고 타당. (F) 구조 컨테이너 CD(SMTProcess/SMTLines/Line_1/Line_2/SMTMaterials/MODEL_A/B/C) 미정의, SMTMaterials.MODEL_X 는 모델 globalAssetId=/ids/asset/MODEL_X/1/0 실존하므로 재사용 권고 타당. (G) DepType 갭: MODEL_A/B/C 에 DepType/1/0 CD 존재하나 SMTProcess 노드는 DepPrev 만 보유(DepType 없음) — 갭 적시 정확. (H) RatedPowerKw psm_smt 중복 ×2 = audit dup_cd_id 일치. (I) DepNext/1/0 어디에도 미정의 + KnowledgeGraph(ProcessOQC/OQC/DepNext, 서브트리 밖)에서 dangling — proposal 의 '서브트리 밖, 1줄 언급' 스코핑 정확.",
+    "n_modules camel_violation 'count 1' 묘사 방어 가능: audit camel_violation.underscore 는 100개 엔트리(VD7_*·BT5_*·NVD_*·W*_*·Line_1·MODEL_A 등 전부 underscore)지만, 이 중 소문자-시작 idShort 는 n_modules(×2, 양 라인 Mounter) 가 유일 — CamelCase 첫글자 대문자 규약 위반의 핵심 케이스. proposal 산문이 'idShort 가 lower[-initial]' 라고 그 점을 정확히 짚음. SMTProcess 서브트리 내 underscore 위반은 Line_1·Line_2·MODEL_A/B/C·n_modules(×2)."
+   ],
+   "notes": "검증 결론: proposal 의 모든 실질 진단과 모든 권고가 소스에서 확인됨(confirmed). 발견된 오류는 전부 주변적 서술 부정확이며 어떤 권고나 행동가능 status 도 바꾸지 않음 — (1) valueType 표기 xs:int→실제 xs:integer, xs:double→실제 xs:float (단, '기존 CD 재사용' 권고는 CD 에서 올바른 타입을 그대로 끌어오므로 무해), (2) CycleTime ref 의 enum 라벨이 산문과 불일치(산문은 'ScreenPrinter 만 우연 존재'로 정확), (3) SMTMaterials.PCB 를 단일 part 라 했으나 실제 다중키 체인(14 CD 전부 해소). 핵심 설계 판단(Option 1 현 데이터 실행 불가, Option 2 신규 CD 0 권고, 자산참조 /ids/aas/<Fac>/1/0 정렬, Chips 버그, 물질흐름 9 CD 신설 필요, 구조 CD 미정의+모델 globalAssetId 재사용, DepType 갭) 은 모두 1차 소스(6 JSON conceptDescriptions 인덱스 + 7 설비 aasx XML Property value/nameplate + _aas_full_audit.json dangling/dup/camel) 로 직접 재확인됨. 1단계 참조해소의 과대주장(CycleTime·RatedPowerKw 를 'resolves_facility/resolves_self' 로 해소처럼 표기)을 proposal 이 self-ref placeholder·value=None 근거로 정정한 것이 옳음. 임시 검증 하니스(mod_run/_verify_smt.py)는 작업 후 삭제함."
+  }
+ },
+ "part3": {
+  "catalog": {
+   "pdf_pages_read": "Read via Read tool (pages param): pp.3-6 (Contents + Figures/Tables list), pp.15-19 (ch.2 Approach, Package Overview Table 1, Figures 2-5 structure overviews, 2.2.1 Models3D Table 2, 2.2.2 Model3D Table 3, intro to File), pp.66-76 (tail of File/ClassificationSystem, 2.2.3 Capability Tables 62-72: Capability, PosModelPurpose, NegModelPurpose, EmbeddedInfo, State, ObjectType, Origin, Simplification, Description, ReducedElements, DerivedFrom, + intro to 2.2.4 Geometry Fig.80), pp.77-86 (2.2.4 Geometry Tables 73-83: Geometry, Representation, LengthUnit, CartBoundingBox, BoundingBoxKind, box>CartRefSystem Table 78, box>CartRefSystem>CartOffsetVector + X/Y/Z, box>CartRefSystem>NormOrientationVector Table 83), pp.90-104 (Tables 87-99: CartBoundingVector + X/Y/Z, Geometry-direct CartRefSystem Table 91, its CartOffsetVector + X/Y/Z, its NormOrientationVector Table 96 + X/Y/Z, then 2.3 ValueLists Tables 100-102 ObjectType/Origin/EmbeddedInfo, Figure 108 ValueLists overview showing all value sets). PDF total = 131 pages. File [SMC] internals pp.20-65 intentionally not enumerated (out of task scope — task lists File only at Model3D level).",
+   "elements": [
+    {
+     "path": "Models3D",
+     "modelType": "Submodel [SM]",
+     "cardinality": "1 (the SM itself)",
+     "spec_ref": "Table 2 (p18), Figs 5-7; semanticId https://admin-shell.io/idta/Models3D/1/0",
+     "meaning": "Root Submodel that provides one or more 3D model files (or links to them) plus meta information about them. Attached to the AAS of the asset the 3D models describe.",
+     "usage": "Aim: support search, integration and usage of 3D models. Contains exactly one child SML 'Model3D'. Parent = the Asset Administration Shell to which the 3D models are associated."
+    },
+    {
+     "path": "Models3D > Model3D",
+     "modelType": "SubmodelElementList [SML] of SMC",
+     "cardinality": "1",
+     "spec_ref": "Table 3 (p19), Figs 6-8; semanticId .../Models3D/Model3D/1/0",
+     "meaning": "Ordered list whose entries (each an SMC) are individual 3D model entities. Each entry groups one model's File / Capability / Geometry info.",
+     "usage": "One [nn] SMC per 3D model variant/file. Each SMC entry contains File [1], Capability [0..1], Geometry [0..1]."
+    },
+    {
+     "path": "Models3D > Model3D > [nn] (entry SMC) > File",
+     "modelType": "SubmodelElementCollection [SMC]",
+     "cardinality": "1 (per Model3D entry)",
+     "spec_ref": "Table 3 (p19), §2.2.2 intro (p19); semanticId .../Models3D/Model3D/File/1/0",
+     "meaning": "Information about the model file entity itself: the 3D model file (or an external link to it), plus source/consuming-application meta, versions, preview, classification. Adapts SMT IDTA 02004-1-2 Handover Documentation structure, extended for 3D.",
+     "usage": "Mandatory in every Model3D entry. Its rich internal tree (FileId, FileVersion holding DigitalFile/PreviewFile/ExternalFile, FileClassification, ConsumingApplication, SourceApplication, Api, HostOrganization, ProvidingOrganisation, VendorOrganisation, FileFormat, etc., pp.20-65) is out of scope for this Capability/Geometry-focused catalog; treated here as a single entry."
+    },
+    {
+     "path": "Models3D > Model3D > [nn] > Capability",
+     "modelType": "SubmodelElementCollection [SMC]",
+     "cardinality": "0..1",
+     "spec_ref": "Table 62 (p67), Fig 69; semanticId .../Models3D/Model3D/Capability/1/0",
+     "meaning": "Describes what can and what should NOT be done with the model: how 'trustworthy' it is, whether elements were removed (IP/computation), whether geometry is measured vs designed, and the model's lifecycle/maturity state.",
+     "usage": "Optional collection. Children: PosModelPurpose[1], NegModelPurpose[0..1], EmbeddedInfo[0..1], State[0..1], ObjectType[0..1], Origin[1], Simplification[0..1]."
+    },
+    {
+     "path": "Capability > PosModelPurpose",
+     "modelType": "SubmodelElementList [SML] of Property[String]",
+     "cardinality": "1",
+     "spec_ref": "Table 63 (p68), Fig 70, summary Table 62/Fig 69; semanticId .../Capability/PosModelPurpose/1/0",
+     "meaning": "List of purposes for which the model IS explicitly suitable (e.g. 'FDM Simulation').",
+     "usage": "Mandatory within Capability. Each list entry is a Property[String] taken from ValueList ModelPurpose (Logistics / SimuMesh / VirtualCommissioning / 3DPrintingSlicer / Rendering)."
+    },
+    {
+     "path": "Capability > NegModelPurpose",
+     "modelType": "SubmodelElementList [SML] of Property[String]",
+     "cardinality": "0..1",
+     "spec_ref": "Table 64 (p69), Fig 71; semanticId .../Capability/NegModelPurpose/1/0",
+     "meaning": "List of purposes for which the model is explicitly NOT suitable (e.g. 'Rendering').",
+     "usage": "Optional. Entries are Property[String] from ValueList ModelPurpose. Counterpart to PosModelPurpose."
+    },
+    {
+     "path": "Capability > EmbeddedInfo",
+     "modelType": "SubmodelElementList [SML] of Property[String]",
+     "cardinality": "0..1",
+     "spec_ref": "Table 65 (p70), Fig 72, summary Table 62; semanticId .../Capability/EmbeddedInfo/1/0",
+     "meaning": "List of further information embedded inside the 3D model file itself (e.g. 'Reference Points').",
+     "usage": "Optional. Entries are Property[String] from ValueList EmbeddedInfo (PMI / ReferencePoints / Kinematics / Parametrization). NOTE: Table 65 idShort cell prints 'Embedded Info' with a space, but the semanticId and summary use 'EmbeddedInfo' (no space) — canonical idShort is EmbeddedInfo; the space is a spec typo."
+    },
+    {
+     "path": "Capability > State",
+     "modelType": "SubmodelElementList [SML] of Property[String]",
+     "cardinality": "0..1",
+     "spec_ref": "summary Table 62 / Fig 69 (State : SML [0..1]); Table 66 (p71), Fig 73; semanticId .../Capability/State/1/0",
+     "meaning": "List of states / maturity in the product lifecycle that the model represents (e.g. 'Manufacturing in...').",
+     "usage": "Optional. Entries are Property[String] from ValueList State (Prototype / PreRun / InSeries / InterIn / InterOut). DISCREPANCY: Table 66's Class row says 'Property [Prop] [String]', but the Capability summary (Table 62 / Fig 69) and the SML/Prop pattern of its siblings show it is an [SML] of Property — use [SML][String], cardinality 0..1."
+    },
+    {
+     "path": "Capability > ObjectType",
+     "modelType": "Property [Prop] [String]",
+     "cardinality": "0..1",
+     "spec_ref": "Table 67 (p72), Fig 74, summary Table 62; semanticId .../Capability/ObjectType/1/0",
+     "meaning": "Object type in terms of CAD structure: whether the file is a single component or an assembly.",
+     "usage": "Optional single Property. Value from ValueList ObjectType (Component / Assembly). Single value (not a list), unlike the purpose elements."
+    },
+    {
+     "path": "Capability > Origin",
+     "modelType": "Property [Prop] [String]",
+     "cardinality": "1",
+     "spec_ref": "Table 68 (p73), Fig 75, summary Table 62; semanticId .../Capability/Origin/1/0",
+     "meaning": "Origin on which the model is based — how the geometry came to be (measured vs designed).",
+     "usage": "Mandatory single Property within Capability. Value from ValueList Origin (MeasureOptical / MeasureMechanical / DesignEngineering / DesignGenerative)."
+    },
+    {
+     "path": "Capability > Simplification",
+     "modelType": "SubmodelElementCollection [SMC]",
+     "cardinality": "0..1",
+     "spec_ref": "Table 69 (p74), Fig 76; semanticId .../Capability/Simplification/1/0",
+     "meaning": "Information about what was simplified in THIS Model3D compared to a reference Model3D (pointed to by DerivedFrom).",
+     "usage": "Optional collection. Children: Description[0..1] (Prop[String], free text of what was simplified), ReducedElements[0..1] (SML of Prop[String], from ValueList ReducedElements: ScrewJoints / InnerParts / Graphics), DerivedFrom[0..1] (Reference [Ref] pointing to the reference Model3D)."
+    },
+    {
+     "path": "Capability > Simplification > Description",
+     "modelType": "Property [Prop] [String]",
+     "cardinality": "0..1",
+     "spec_ref": "Table 70 (p75), Fig 77; semanticId .../Capability/Simplification/Description/1/0",
+     "meaning": "Textual description of what was simplified.",
+     "usage": "Optional free-text Property inside Simplification."
+    },
+    {
+     "path": "Capability > Simplification > ReducedElements",
+     "modelType": "SubmodelElementList [SML] of Property[String]",
+     "cardinality": "0..1",
+     "spec_ref": "Table 71 (p75), Fig 78; semanticId .../Capability/Simplification/ReducedElements/1/0",
+     "meaning": "List of information about which elements were reduced compared to the model this one was derived from.",
+     "usage": "Optional. Entries are Property[String] from ValueList ReducedElements (ScrewJoints / InnerParts / Graphics)."
+    },
+    {
+     "path": "Capability > Simplification > DerivedFrom",
+     "modelType": "Reference [Ref] (ReferenceElement)",
+     "cardinality": "0..1",
+     "spec_ref": "Table 72 (p76), Fig 79; semanticId .../Capability/Simplification/DerivedFrom/1/0",
+     "meaning": "Reference pointing to the (more detailed) Model3D on which this simplified Model3D is based.",
+     "usage": "Optional reference. Establishes the lineage that gives Description/ReducedElements their meaning."
+    },
+    {
+     "path": "Models3D > Model3D > [nn] > Geometry",
+     "modelType": "SubmodelElementCollection [SMC]",
+     "cardinality": "0..1",
+     "spec_ref": "Table 73 (p77), Figs 80-81; semanticId .../Models3D/Model3D/Geometry/1/0",
+     "meaning": "Basic set of geometric information (representation kind, length unit, bounding box(es), reference system(s)) describing the model. Explicitly complements but must NOT redefine the 3D model files (§2.2.4 intro, p76).",
+     "usage": "Optional collection. Direct children are exactly 4: Representation[1], LengthUnit[1], CartBoundingBox[0..1], CartRefSystem[0..1]. (CartOffsetVector / NormOrientationVector are NOT direct children of Geometry — they appear under each CartRefSystem; CartBoundingVector appears only under CartBoundingBox.)"
+    },
+    {
+     "path": "Geometry > Representation",
+     "modelType": "Property [Prop] [String]",
+     "cardinality": "1",
+     "spec_ref": "Table 74 (p78), Fig 82; semanticId .../Geometry/Representation/1/0",
+     "meaning": "Geometric representation kind of the asset (e.g. 'Wire Frame').",
+     "usage": "Mandatory single Property. Value from ValueList Representation (SolidBody / WireFrame / Surface / Mesh / PointCloud — per Fig 108)."
+    },
+    {
+     "path": "Geometry > LengthUnit",
+     "modelType": "Property [Prop] [String]",
+     "cardinality": "1",
+     "spec_ref": "Table 75 (p78), Fig 83; semanticId .../Geometry/LengthUnit/1/0",
+     "meaning": "Measurement unit (e.g. 'mm') of all length properties within the subordinate Properties of this Geometry SMC (i.e. the unit for the X/Y/Z values of the vectors).",
+     "usage": "Mandatory single Property. Governs the unit of the CartOffsetVector / CartBoundingVector / NormOrientationVector X/Y/Z Double values (whose tables say 'Always state the unit')."
+    },
+    {
+     "path": "Geometry > CartBoundingBox",
+     "modelType": "SubmodelElementList [SML] of SMC",
+     "cardinality": "0..1",
+     "spec_ref": "Table 76 (p79), Fig 84; semanticId .../Geometry/CartBoundingBox/1/0",
+     "meaning": "List of cartesian bounding box(es) of the asset. Each [nn] SMC entry describes one bounding box.",
+     "usage": "Optional list (0..* entries when present). Each entry SMC contains: BoundingBoxKind[1], CartRefSystem[0..1] (the box's own reference frame), CartBoundingVector[1] (the box extent)."
+    },
+    {
+     "path": "Geometry > CartBoundingBox > [nn] > BoundingBoxKind",
+     "modelType": "Property [Prop] [String]",
+     "cardinality": "1",
+     "spec_ref": "Table 77 (p80), Fig 85; semanticId .../Geometry/CartBoundingBox/BoundingBoxKind/1/0",
+     "meaning": "Kind of bounding box (e.g. 'MaxEnvelope').",
+     "usage": "Mandatory single Property per box entry. Value from ValueList BoundingBoxKind (MinEnvelope / MaxEnvelope — per Fig 108)."
+    },
+    {
+     "path": "Geometry > CartBoundingBox > [nn] > CartRefSystem  (BOX reference system)",
+     "modelType": "SubmodelElementCollection [SMC]",
+     "cardinality": "0..1",
+     "spec_ref": "Table 78 (p81), Fig 86; semanticId .../Geometry/CartBoundingBox/CartRefSystem/1/0",
+     "meaning": "The single cartesian reference system (origin + orientation) IN WHICH THIS BOUNDING BOX is defined. CartBoundingVector's expansion is measured from this frame (Table 87 explanation).",
+     "usage": "Optional, at most one per box. modelType is SMC (a SINGLE frame), NOT an SML — this is the key distinction from the Geometry-direct CartRefSystem. Children: CartOffsetVector[0..1], NormOrientationVector[3-as-listed-in-Table78 / canonically 1 SML of 3 SMCs]."
+    },
+    {
+     "path": "Geometry > CartBoundingBox > [nn] > CartRefSystem > CartOffsetVector",
+     "modelType": "SubmodelElementCollection [SMC]",
+     "cardinality": "0..1",
+     "spec_ref": "Table 79 (p82); semanticId .../Geometry/CartBoundingBox/CartRefSystem/CartOffsetVector/1/0",
+     "meaning": "Cartesian offset vector (origin position) of the box reference system.",
+     "usage": "Optional. Children X[1], Y[1], Z[1], each Property[Double] (component of the offset vector; always state the unit)."
+    },
+    {
+     "path": "Geometry > CartBoundingBox > [nn] > CartRefSystem > NormOrientationVector",
+     "modelType": "SubmodelElementList [SML] of SMC",
+     "cardinality": "1 (list contains 3 SMC entries)",
+     "spec_ref": "Table 83 (p86), Fig 91; semanticId .../Geometry/CartBoundingBox/CartRefSystem/NormOrientationVector/1/0",
+     "meaning": "The three cartesian norm (orientation) vectors of the box reference system (one SMC per axis, each with X/Y/Z Property[Double]).",
+     "usage": "Mandatory when the box CartRefSystem is present. DISCREPANCY: the parent Table 78 lists it as '[SMC]' card '3'; Table 83 + Fig 91 clarify it is one [SML] containing 3 SMCs (card 1 in parent, the '3' = inner SMC count). Use [SML][SMC]."
+    },
+    {
+     "path": "Geometry > CartBoundingBox > [nn] > CartBoundingVector",
+     "modelType": "SubmodelElementCollection [SMC]",
+     "cardinality": "1",
+     "spec_ref": "Table 87 (p90), Fig 95; semanticId .../Geometry/CartBoundingBox/CartBoundingVector/1/0",
+     "meaning": "Cartesian vector describing the EXPANSION (extent) of the bounding box, measured FROM the box's cartesian reference system (CartRefSystem). This is the direct evidence that the box CartRefSystem defines the box's origin/orientation.",
+     "usage": "Mandatory per box entry. Children X[1], Y[1], Z[1], each Property[Double] (component of the bounding vector; always state the unit). Exists ONLY under CartBoundingBox — has no counterpart under the Geometry-direct CartRefSystem."
+    },
+    {
+     "path": "Geometry > CartRefSystem  (MODEL/asset reference system)",
+     "modelType": "SubmodelElementList [SML] of SMC",
+     "cardinality": "0..1",
+     "spec_ref": "Table 91 (p94), Fig 99; semanticId .../Geometry/CartRefSystem/1/0",
+     "meaning": "List of cartesian reference system(s) of the asset/model ITSELF (independent of any bounding box). Each [nn] SMC entry is one reference frame.",
+     "usage": "Optional. modelType is SML (a LIST of frames), NOT SMC — key distinction from the box CartRefSystem. Each entry SMC contains: CartOffsetVector[0..1], NormOrientationVector[1 (SML of 3)]."
+    },
+    {
+     "path": "Geometry > CartRefSystem > [nn] > CartOffsetVector",
+     "modelType": "SubmodelElementCollection [SMC]",
+     "cardinality": "0..1",
+     "spec_ref": "Table 92 (p95); semanticId .../Geometry/CartRefSystem/CartOffsetVector/1/0",
+     "meaning": "Cartesian offset vector (origin position) of a model/asset reference system. Distinct from the box CartOffsetVector (different semanticId/parent).",
+     "usage": "Optional. Children X[1], Y[1], Z[1], each Property[Double] (component of the reference vector; always state the unit)."
+    },
+    {
+     "path": "Geometry > CartRefSystem > [nn] > NormOrientationVector",
+     "modelType": "SubmodelElementList [SML] of SMC",
+     "cardinality": "1 (list contains 3 SMC entries)",
+     "spec_ref": "Table 96 (p98), Fig 104; semanticId .../Geometry/CartRefSystem/NormOrientationVector/1/0",
+     "meaning": "The three norm (orientation) vectors of a model/asset reference system (one SMC per axis, each X/Y/Z Property[Double]). Distinct from the box NormOrientationVector (different semanticId/parent).",
+     "usage": "Mandatory when the model CartRefSystem entry is present. Each of the 3 SMC entries holds X[1],Y[1],Z[1] Property[Double]."
+    },
+    {
+     "path": "(ValueLists, non-modeled) ModelPurpose / ObjectType / Origin / State / EmbeddedInfo / Representation / BoundingBoxKind / ReducedElements",
+     "modelType": "ValueList (predefined values, NOT part of the SM instance)",
+     "cardinality": "n/a",
+     "spec_ref": "§2.3 (pp.101-104), Fig 108, Tables 100-102; e.g. .../Capability/ObjectType/1/0",
+     "meaning": "Predefined enumerated value sets the corresponding Properties should draw from. ModelPurpose=Logistics/SimuMesh/VirtualCommissioning/3DPrintingSlicer/Rendering; ObjectType=Component/Assembly; Origin=MeasureOptical/MeasureMechanical/DesignEngineering/DesignGenerative; State=Prototype/PreRun/InSeries/InterIn/InterOut; EmbeddedInfo=PMI/ReferencePoints/Kinematics/Parametrization; Representation=SolidBody/WireFrame/Surface/Mesh/PointCloud; BoundingBoxKind=MinEnvelope/MaxEnvelope; ReducedElements=ScrewJoints/InnerParts/Graphics.",
+     "usage": "Reusability aid only — these are not modeled elements in Models3D; they constrain the allowed string values of the Properties listed above (Table 1: 'Part of SM = no')."
+    }
+   ],
+   "cartRefSystem_explained": "CartRefSystem appears in TWO distinct locations with DIFFERENT semanticIds, parents, modelTypes and roles — they are NOT redundant.\n\n(i) GEOMETRY-DIRECT CartRefSystem — Table 91 (p94), Figure 99.\n  semanticId: https://admin-shell.io/idta/Models3D/Model3D/Geometry/CartRefSystem/1/0\n  Parent: Geometry. modelType: SubmodelElementList [SML] of SMC. Cardinality in Geometry: 0..1.\n  Explanation text: 'List of cartesian reference system.' (Table 73 calls it 'List of three cartesian reference systems of the asset.')\n  ROLE: defines reference frame(s) OF THE MODEL / ASSET ITSELF — the coordinate system(s) in which the 3D model is expressed, independent of any bounding box. Because it is an SML it can hold MULTIPLE reference frames (each entry an SMC with CartOffsetVector[0..1] + NormOrientationVector).\n\n(ii) BOUNDING-BOX CartRefSystem — Table 78 (p81), Figure 86.\n  semanticId: https://admin-shell.io/idta/Models3D/Model3D/Geometry/CartBoundingBox/CartRefSystem/1/0\n  Parent: CartBoundingBox (one entry of the CartBoundingBox SML). modelType: SubmodelElementCollection [SMC]. Cardinality in the box: 0..1.\n  Explanation text: 'Cartesian reference system of the cart bounding box of the Asset.'\n  ROLE: defines the SINGLE coordinate frame IN WHICH THAT BOUNDING BOX IS DEFINED. It is an SMC (exactly one frame), with the same internal shape (CartOffsetVector[0..1] + NormOrientationVector).\n\nWHY THEY ARE DIFFERENT (decisive evidence):\n1. Different semanticId — .../Geometry/CartRefSystem/1/0 vs .../Geometry/CartBoundingBox/CartRefSystem/1/0. In AAS these are different concepts.\n2. Different parent — Geometry vs CartBoundingBox.\n3. Different modelType — SML (a LIST of model/asset frames, Table 91 Class = 'SubmodelElementList [SML] that contains SubmodelElementCollections') vs SMC (a SINGLE box frame, Table 78 Class = 'SubmodelElementCollection [SMC]'). This list-vs-single asymmetry is visible in the UML too: Figure 81 shows 'CartRefSystem : SML [0..1]' directly under Geometry, while Figure 84 shows 'CartRefSystem : SMC [0..1]' inside the CartBoundingBox SMC.\n4. Different role — (i) is the model's/asset's own coordinate system(s); (ii) is the frame that a particular bounding box is expressed in.\n\nRELATIONSHIP (not a duplicate, a deliberate layering):\nThe box CartRefSystem gives the box its own origin and orientation; CartBoundingVector (Table 87) 'describes the expansion of the bounding box FROM a cartesian reference system (CartRefSystem)' — i.e. the box extent is measured from the box's CartRefSystem. The Geometry-direct CartRefSystem instead anchors the whole model/asset. A consumer can therefore place a bounding box in its own local frame (ii) and separately know the model's global frame(s) (i); the two frames may coincide or differ, but the spec models them separately so a box never has to be re-expressed in the model frame, and the model can declare reference frames even when no bounding box is provided. This matches §2.2.4's stated intent that Geometry complements (never redefines) the 3D model. Both reference systems share an identical inner structure (CartOffsetVector with X/Y/Z [Double], and NormOrientationVector as an SML of three axis SMCs each with X/Y/Z [Double]); only their semanticId, parent and SML-vs-SMC multiplicity differ."
+  },
+  "proposal": {
+   "keep": [
+    "Models3D (SM) — root, attaches the 3D-model provision to the psm_smt AAS",
+    "Models3D > Model3D (SML) — the ordered list; one entry per SMT equipment (7 entries)",
+    "Model3D > [entry] (SMC, semanticId = <Fac>Model3D/1/0) — keep the 7 entries AND their semanticId, since the semanticId is the only link mapping each 3D model to its equipment (Loader/SPI/ScreenPrinter/Mounter/Reflow/Unloader/AOI)",
+    "Model3D > [entry] > File (SMC) — mandatory [1] container; keep but strip to the file-pointer subset below",
+    "File > FileVersion (SML→SMC) — keep only as the container for DigitalFile/PreviewFile",
+    "File > FileVersion > DigitalFile (File) — THE element a viewer needs: value = file pointer, contentType = format. NOTE: template ships contentType=image/png placeholder — must be corrected to a real 3D MIME (model/gltf-binary, model/step, etc.) when populated",
+    "File > FileVersion > PreviewFile (File) — optional thumbnail for the viewer UI; image/png is correct here. Keep if a 2D preview/thumbnail is wanted, else droppable"
+   ],
+   "remove": [
+    {
+     "path": "Model3D > [entry] > Capability (SMC, [0..1])",
+     "reason": "Whole subtree removable. Capability describes model trustworthiness/purpose/lifecycle/origin/simplification (PosModelPurpose[1], NegModelPurpose, EmbeddedInfo, State, ObjectType, Origin[1], Simplification). None is consumed by a viewer that just loads a mesh. IDTA-safe except it contains two [1] children (PosModelPurpose, Origin) — removing the whole [0..1] Capability is conformance-safe; you only break strict conformance if you keep Capability but drop its mandatory children."
+    },
+    {
+     "path": "Model3D > [entry] > Geometry (SMC, [0..1])",
+     "reason": "Whole subtree removable for pure viewer loading. Geometry holds Representation[1], LengthUnit[1], CartBoundingBox[0..1], CartRefSystem[0..1] — bounding-box extents, length units and reference frames exist for collision/extent/space-planning and precise placement, i.e. exactly the 기하 연산(충돌·정밀좌표) the task excludes. A glTF/STEP file already carries its own units and geometry, so the viewer reads them from the file, not from these SMEs. Removing the [0..1] Geometry is IDTA-conformance-safe."
+    },
+    {
+     "path": "Model3D > [entry] > Geometry > CartBoundingBox (SML, [0..1])",
+     "reason": "If Geometry were kept, CartBoundingBox (BoundingBoxKind + nested CartRefSystem + CartBoundingVector) is the bounding-box / collision-extent data — purpose-excluded. Remove with its nested CartRefSystem (see cartRefSystem_resolution)."
+    },
+    {
+     "path": "Model3D > [entry] > File > FileId (SML)",
+     "reason": "Internal file-domain identifiers (FileDomainId/ValueId/IsPrimary) for document-management round-trip. Not needed to locate/render a single model file."
+    },
+    {
+     "path": "Model3D > [entry] > File > FileClassification (SML)",
+     "reason": "ClassId/ClassName/ClassificationSystem (ECLASS-style classification of the file). Irrelevant to viewer loading."
+    },
+    {
+     "path": "Model3D > [entry] > File > ConsumingApplication (SML)",
+     "reason": "Which application consumes the file (name/version/vendor/Api). Viewer is the consumer; this metadata is not read to render."
+    },
+    {
+     "path": "Model3D > [entry] > File > FileVersion > SourceApplication (SMC)",
+     "reason": "Authoring CAD app (name/version/Api/VendorOrganization). Provenance metadata, unused by a viewer."
+    },
+    {
+     "path": "Model3D > [entry] > File > FileVersion > ProvidingOrganization (SMC)",
+     "reason": "Org that provided the file. Provenance metadata, unused."
+    },
+    {
+     "path": "Model3D > [entry] > File > FileVersion > ExternalFile (SML, incl. ExternalUrl/FileIdentifier/HostOrganization/Api)",
+     "reason": "Alternative to DigitalFile for externally-hosted files behind an Api. The psm_smt assets are local SMT-equipment files; pick the DigitalFile (embedded pointer) path and drop the ExternalFile/Api/HostOrganization branch entirely."
+    },
+    {
+     "path": "Model3D > [entry] > File > FileVersion > FileFormat (SMC)",
+     "reason": "FormatName/FormatVersion/FormatQualifier — redundant with DigitalFile.contentType (the MIME type), which the viewer already uses to dispatch the loader."
+    },
+    {
+     "path": "Model3D > [entry] > File > FileVersion > BasedOn (SML) and RefersTo (SML)",
+     "reason": "Version-lineage / cross-references between file versions. No versioning workflow in the sim; not needed to render the current model."
+    },
+    {
+     "path": "Model3D > [entry] > File > FileVersion > Title, FileName, FileVersionId, StatusValue, SetDate",
+     "reason": "Version metadata. Title/FileName are redundant with DigitalFile.value (the file pointer); StatusValue/SetDate/FileVersionId are document-lifecycle fields a viewer ignores."
+    },
+    {
+     "path": "psm_smt conceptDescriptions: the 98 Models3D-namespaced CDs",
+     "reason": "These admin-shell.io/idta/Models3D/... conceptDescriptions were copy-pasted whole by _apply_3dmodels_smt.py. When the SMEs above are removed, their CDs are orphaned and must be pruned in lockstep, or they become the same dead weight in CD form (psm_smt currently carries 284 CDs, 98 of them for Models3D)."
+    }
+   ],
+   "cartRefSystem_resolution": "Not a duplication — the two CartRefSystems are semantically distinct, and BOTH are removable for the current visualization purpose. (1) Geometry > CartRefSystem (SML [0..1], one or more SMC entries each with CartOffsetVector + NormOrientationVector X/Y/Z) = the MODEL's reference frame: where/how the whole model is placed (origin offset + orientation) in a parent coordinate system. (2) Geometry > CartBoundingBox > CartRefSystem (SMC, single, same CartOffsetVector + NormOrientationVector children) = the BOUNDING BOX's own frame: where that extent box sits. They describe different objects (the model vs. its bounding box), so neither is a redundant copy of the other. Resolution: the box-nested CartRefSystem is removed together with its parent CartBoundingBox as collision/extent data (purpose-excluded — task excludes 충돌·정밀좌표). The Geometry-direct CartRefSystem is the only KEEP candidate, and only if the viewer needs to position the 7 machines into a shared SMT-line layout from AAS-supplied offsets/orientations. For the face-value reading the task gives ('3D 모델은 뷰어 로딩에만, 기하 연산 안 함' → single-model loading), there is no precise-placement need, so drop the Geometry-direct CartRefSystem too — and with no vectors retained, LengthUnit (which only governs those X/Y/Z values) and Representation lose their consumers, so the entire Geometry SMC is removed. Net: remove both CartRefSystems (whole Geometry). Keep the Geometry-direct one ONLY if shared multi-machine placement is later required; the box-nested one is removed in all cases.",
+   "minimal_structure": "A viewer needs almost nothing beyond a file pointer + format. Minimal structure:\n\nModels3D (SM)\n└ Model3D (SML)\n   └ [entry SMC]  (×7, semanticId = .../cd/<Fac>Model3D/1/0  ← the only model→equipment link)\n      └ File (SMC)\n         └ FileVersion (SML→SMC)\n            ├ DigitalFile (File)   ← value = file pointer (path/URL in the .aasx package), contentType = real 3D MIME (model/gltf-binary | model/step | ...). MUST replace the copied image/png placeholder when populated.\n            └ PreviewFile (File)   ← OPTIONAL: image/png thumbnail for the viewer UI; drop if no thumbnail wanted.\n\nThat is the whole tree. DigitalFile alone (a File element carrying both pointer and format) covers 'load and render'; the entry's semanticId already says which of the 7 machines it is. Everything else in the IDTA template is removed: the entire Capability and Geometry SMCs, and within File — FileId, FileClassification, ConsumingApplication, SourceApplication, ProvidingOrganization, ExternalFile/Api/HostOrganization, FileFormat (redundant with contentType), BasedOn/RefersTo, and the Title/FileName/FileVersionId/StatusValue/SetDate version metadata. Node count drops from 116 → ~5 per entry (Model3D entry / File / FileVersion / DigitalFile / PreviewFile). The 98 Models3D-namespaced conceptDescriptions should be pruned to only those backing the retained semanticIds.\n\nStrict-IDTA caveat: this minimal form drops several IDTA-mandatory [1] elements (Capability.PosModelPurpose[1], Capability.Origin[1], Geometry.Representation[1], Geometry.LengthUnit[1], and File-internal mandatory fields). It is therefore a project-specific reduction, not an IDTA-conformant ProvisionOf3DModels submodel. If conformance must be retained, keep the [1] elements with placeholder values and remove only the [0..1] subtrees (NegModelPurpose, EmbeddedInfo, State, ObjectType, Simplification, CartBoundingBox, CartRefSystem, ExternalFile, etc.).",
+   "summary": "Source-verified findings (psm_smt = aas_data/ProvisionOfSimulationModel_smt.json):\n\nSTRUCTURE: Models3D is the 2nd submodel (id .../SubmodelTemplate/ProvisionOf3DModels/1/0). It contains one SML 'Model3D' with 7 entry SMCs — one per SMT facility, idShort=None (SML order convention), distinguished only by semanticId (LoaderModel3D, SPIModel3D, ScreenPrinterModel3D, MounterModel3D, ReflowModel3D, UnloaderModel3D, AOIModel3D). Each entry = 116 SME nodes → 813 nodes total, plus 98 dedicated conceptDescriptions.\n\nORIGIN: mod_run/_apply_3dmodels_smt.py copied the IDTA 02026 template verbatim, cloned its single template SMC 7× changing only semanticId, and copy-pasted all 98 template CDs. It is a pure empty skeleton.\n\nEMPTINESS: 0 populated Property/MultiLanguageProperty values anywhere. All 14 File elements (DigitalFile/PreviewFile ×7) have value=None. DigitalFile.contentType=image/png is a verbatim template placeholder (I confirmed the template itself ships DigitalFile with contentType=image/png, value=None) — it is NOT evidence of '2D image' purpose; it must be corrected to a real 3D MIME when populated. The visualization-not-geometry framing rests on the task premise, not on contentType.\n\nCONSUMPTION: grep across the package shows NO sim/viz core code (simulation_ver1.py, path_extractor.py, cpro_ver1_viz.py) reads Models3D/Model3D/Geometry/CartRefSystem — only mod_run audit/apply tooling references it. So removal is safe TODAY; the minimal structure is what a FUTURE viewer would need.\n\n(A) REMOVE: entire Capability SMC; entire Geometry SMC; and within File keep only FileVersion>DigitalFile (+optional PreviewFile), dropping FileId, FileClassification, ConsumingApplication, SourceApplication, ProvidingOrganization, ExternalFile/Api/HostOrganization, FileFormat, BasedOn/RefersTo, and Title/FileName/FileVersionId/StatusValue/SetDate. Prune the 98 orphaned CDs in lockstep.\n\n(B) CARTREFSYSTEM: the two CartRefSystems are NOT duplicate copies — Geometry-direct = the model's placement frame, CartBoundingBox-nested = the bounding box's own frame. The box-nested one is removed with its parent CartBoundingBox (collision/extent = excluded). The Geometry-direct one is the only keep candidate and only if shared multi-machine line placement is wanted; for face-value single-model viewer loading, drop it too (and thus all of Geometry).\n\n(C) MINIMAL: Models3D > Model3D > [entry SMC w/ semanticId] > File > FileVersion > DigitalFile (+ optional PreviewFile). ~5 nodes/entry vs 116. Caveat: this drops IDTA-mandatory [1] elements, so it is a project-specific reduction, not IDTA-conformant; if conformance is required, keep the [1] elements and remove only [0..1] subtrees."
+  },
+  "verify": {
+   "scope": "Part-3 step-3: adversarial PDF cross-check of the Models3D analysis/removal proposal against IDTA_02026-1-0 Submodel ProvisionOf3DModels spec (verified pp.17-22, 66-70, 76-83, 90-97 via Read + pypdf text layer; structure cross-checked against ProvisionOfSimulationModel_smt.json).",
+   "verdict": "partly_wrong",
+   "parser_bugs": [],
+   "false_positives": [
+    "NOT an error — CartRefSystem duplication resolution is CORRECT and spec-consistent. Table 78 (p.81) defines Geometry>CartBoundingBox>CartRefSystem as 'Cartesian reference system of the cart bounding box of the Asset', while Table 73/91 (p.77/p.94) define Geometry>CartRefSystem as 'List of cartesian reference system' of the asset (the model frame). They are semantically distinct objects, so neither is a redundant copy. Both sit inside the [0..1] Geometry subtree, so wholesale removal of both is conformance-safe. The proposal's conclusion is sound.",
+    "NOT an error — wholesale removal of Capability (SMC [0..1]) and Geometry (SMC [0..1]) is conformance-safe. Table 3 (p.19) confirms both are 0..1 under each Model3D entry; removing an optional container with all its descendants does not break conformance even though those containers have mandatory [1] children internally (PosModelPurpose[1], Origin[1] for Capability; Representation[1], LengthUnit[1] for Geometry). The proposal states this rule correctly for Capability.",
+    "NOT a false claim — 'DigitalFile is THE element a viewer needs' is functionally true and the contentType=image/png placeholder note is VINDICATED by the spec: PDF p.20 Figure 9 text layer shows 'DigitalFile : FILE [0..1] MIME-TYPE = model/...'. So correcting image/png to a real 3D MIME (model/gltf-binary etc.) is exactly what the spec intends. The JSON confirms all 7 entries currently carry DigitalFile contentType=image/png with value=None.",
+    "NOT an error — confirmed factual claims: psm_smt JSON carries exactly 284 conceptDescriptions, of which 98 are Models3D-namespaced; the Models3D submodel has semanticId https://admin-shell.io/idta/Models3D/1/0 (matches Table 2 p.18); Model3D SML has exactly 7 entries, each with per-equipment semanticId (LoaderModel3D/SPIModel3D/ScreenPrinterModel3D/MounterModel3D/ReflowModel3D/UnloaderModel3D/AOIModel3D) and File/Capability/Geometry children."
+   ],
+   "missed_findings": [
+    "CRITICAL — the proposal violates its own conformance rule. It explicitly KEEPS the File SMC and KEEPS FileVersion ('File > FileVersion (SML->SMC) — keep only as the container for DigitalFile/PreviewFile'), then schedules ~10 MANDATORY [1] elements for removal. By the proposal's own stated principle (Capability entry: 'you only break strict conformance if you keep the parent but drop its mandatory children'), every one of these is a conformance break. Same rule applied correctly to Capability, broken for File/FileVersion.",
+    "MANDATORY child removed while parent kept — File > FileId : SML [1] (Table 4 p.21, Figure 9/10 p.20-21). Proposal's remove list deletes FileId; File is kept. VIOLATION.",
+    "MANDATORY child removed while parent kept — File > FileClassification : SML [1] (Table 4 p.21, Figure 10 p.21). Proposal removes it; File is kept. VIOLATION.",
+    "MANDATORY child removed while parent (FileVersion) kept — FileVersion > PreviewFile : FILE [1] (PDF p.20 Figure 9 text layer: 'PreviewFile : FILE [1] MIME-TYPE = image/...'). The proposal INVERTS the spec: it treats DigitalFile as mandatory/central and PreviewFile as 'droppable', but the spec makes PreviewFile the mandatory [1] one and DigitalFile the optional [0..1] one. If FileVersion is kept, PreviewFile cannot be dropped without breaking conformance.",
+    "MANDATORY child removed while parent (FileVersion) kept — FileVersion > ProvidingOrganization : SMC [1] (PDF p.20 text layer). Proposal removes it as 'provenance metadata'. VIOLATION (parent kept).",
+    "MANDATORY child removed while parent (FileVersion) kept — FileVersion > FileFormat : SMC [1] (PDF p.20 text layer). Proposal removes it as 'redundant with DigitalFile.contentType'. VIOLATION (parent kept).",
+    "MANDATORY children removed while parent (FileVersion) kept — FileVersion > Title : MLP [1], FileName : PROP [1], FileVersionId : PROP [1], StatusValue : PROP [1], SetDate : PROP [1] (all [1] per PDF p.20 text layer). Proposal's entry 'Title, FileName, FileVersionId, StatusValue, SetDate' removes all five. VIOLATION (parent kept).",
+    "OVERSTATED claim — '98 Models3D CDs orphaned, prune in lockstep'. Because FileId [1], FileClassification [1], and FileVersion's mandatory children (PreviewFile, ProvidingOrganization, FileFormat, Title, FileName, FileVersionId, StatusValue, SetDate) must be retained for conformance if File/FileVersion are kept, their conceptDescriptions must also be retained. The actually-prunable CD count is materially lower than 98; pruning all 98 would orphan kept SMEs."
+   ],
+   "notes": "CORE FINDING: The removal proposal is conformance-unsafe for the File subtree because it keeps File and FileVersion as DigitalFile containers while deleting ~10 of their mandatory [1] children. The cleanest fix is consistency with the proposal's own approach for Capability/Geometry: do NOT keep File+FileVersion as a stripped shell. If only the file pointer is wanted, the conformance-safe minimum is File[1]{FileId[1], FileClassification[1], FileVersion[0..1]{PreviewFile[1], FileFormat[1], ProvidingOrganization[1], Title[1], FileName[1], FileVersionId[1], StatusValue[1], SetDate[1], DigitalFile[0..1]}} — i.e. DigitalFile is the optional one, PreviewFile is mandatory, and FileId/FileClassification are mandatory siblings of FileVersion. A viewer-only minimization cannot be made strictly IDTA-conformant by sub-element pruning while keeping File; it can only be done by dropping whole optional containers.\n\nSPEC CARDINALITIES verified from PDF text layer (p.20 Figure 9, Table 4 p.21):\n- File SMC: FileId SML[1], FileVersion SML[0..1], ConsumingApplication SML[0..1], FileClassification SML[1].\n- FileVersion entry SMC: Title MLP[1], FileName PROP[1], FileVersionId PROP[1], StatusValue PROP[1], SetDate PROP[1], ProvidingOrganization SMC[1], SourceApplication SMC[0..1], DigitalFile FILE[0..1] (model/...), PreviewFile FILE[1] (image/...), FileFormat SMC[1], RefersTo SML[0..1], BasedOn SML[0..1], ExternalFile SML[0..1].\n- Model3D entry SMC: File SMC[1], Capability SMC[0..1], Geometry SMC[0..1] (Table 3 p.19).\n- Capability SMC: PosModelPurpose SML[1], NegModelPurpose SML[0..1], EmbeddedInfo SML[0..1], State SML[0..1], ObjectType PROP[0..1], Origin PROP[1], Simplification SMC[0..1] (Table 62 p.67).\n- Geometry SMC: Representation PROP[1], LengthUnit PROP[1], CartBoundingBox SML[0..1], CartRefSystem SML[0..1] (Table 73 p.77).\n\nWHAT THE PROPOSAL GOT RIGHT (do not regress): Capability/Geometry wholesale [0..1] removal; CartRefSystem-is-not-duplication resolution; DigitalFile MIME-placeholder correction; the 7-entry / per-equipment-semanticId / 284-CD-98-Models3D structural facts (all confirmed against the JSON).\n\nFOOTNOTE (tangential, not blocking): the 7 Model3D SML entries carry per-equipment semanticIds (LoaderModel3D etc.) rather than a single homogeneous element semanticId. AAS SML semantics generally expect homogeneous entries; the proposal RELIES on these distinct semanticIds for its equipment-mapping rationale. Whether this is a strict SML-homogeneity deviation is out of scope for the removal review and was not adjudicated against the metamodel here.",
+   "corrected_counts": "Mandatory [1] elements the proposal schedules for removal while keeping their parent (conformance violations): 10 — File>FileId, File>FileClassification, FileVersion>PreviewFile, FileVersion>ProvidingOrganization, FileVersion>FileFormat, FileVersion>Title, FileVersion>FileName, FileVersion>FileVersionId, FileVersion>StatusValue, FileVersion>SetDate. Proposal explicitly flagged only ~2 of these (acknowledged Capability's PosModelPurpose[1]/Origin[1] but those are inside a removed optional parent, so not violations). Models3D CDs: 98 confirmed present, but prunable count is < 98 once mandatory File/FileVersion children are retained. Model3D SML entries: 7 confirmed. Total psm_smt CDs: 284 confirmed."
+  }
+ }
+}

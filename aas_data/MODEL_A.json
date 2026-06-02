@@ -7133,7 +7133,7 @@
                     "keys": [
                       {
                         "type": "GlobalReference",
-                        "value": "PCB+03903424"
+                        "value": "PCB_03903424"
                       }
                     ]
                   },
@@ -16945,7 +16945,7 @@
                     "keys": [
                       {
                         "type": "GlobalReference",
-                        "value": " https://admin-shell.io/SubmodelTemplates/Cardinality/1/0"
+                        "value": "https://admin-shell.io/SubmodelTemplates/Cardinality/1/0"
                       }
                     ]
                   },
@@ -22736,7 +22736,7 @@
               "keys": [
                 {
                   "type": "GlobalReference",
-                  "value": " https://www.smart-factory.kr/ids/cd/WORKER_FW/1/0"
+                  "value": "https://www.smart-factory.kr/ids/cd/WORKER_FW/1/0"
                 },
                 {
                   "type": "GlobalReference",
@@ -30497,7 +30497,7 @@
                         "keys": [
                           {
                             "type": "GlobalReference",
-                            "value": " https://www.smart-factory.kr/ids/cd/P30500003/1/0"
+                            "value": "https://www.smart-factory.kr/ids/cd/P30500003/1/0"
                           }
                         ]
                       },
@@ -38618,7 +38618,7 @@
           "text": "Gimbal Assembly Process Group"
         }
       ],
-      "id": "https://www.smart-factory.kr/ids/cd/WORKER_SET/1/0",
+      "id": "https://www.smart-factory.kr/ids/cd/VD7GimbalAssembly/1/0",
       "embeddedDataSpecifications": [
         {
           "dataSpecification": {
@@ -42796,6 +42796,74 @@
               }
             ],
             "modelType": "DataSpecificationIec61360"
+          }
+        }
+      ],
+      "modelType": "ConceptDescription"
+    },
+    {
+      "idShort": "VD7FwInput",
+      "id": "https://www.smart-factory.kr/ids/cd/VD7FwInput/1/0",
+      "embeddedDataSpecifications": [
+        {
+          "dataSpecification": {
+            "type": "ExternalReference",
+            "keys": [
+              {
+                "type": "GlobalReference",
+                "value": "https://admin-shell.io/DataSpecificationTemplates/DataSpecificationIec61360/3/0"
+              }
+            ]
+          },
+          "dataSpecificationContent": {
+            "preferredName": [
+              {
+                "language": "en",
+                "text": "VD7FwInput"
+              }
+            ],
+            "definition": [
+              {
+                "language": "en",
+                "text": "A manufacturing process group for the firmware/front-end input stage of the VD7 camera model."
+              }
+            ],
+            "modelType": "DataSpecificationIec61360",
+            "dataType": "STRING"
+          }
+        }
+      ],
+      "modelType": "ConceptDescription"
+    },
+    {
+      "idShort": "WORKER_FW",
+      "id": "https://www.smart-factory.kr/ids/cd/WORKER_FW/1/0",
+      "embeddedDataSpecifications": [
+        {
+          "dataSpecification": {
+            "type": "ExternalReference",
+            "keys": [
+              {
+                "type": "GlobalReference",
+                "value": "https://admin-shell.io/DataSpecificationTemplates/DataSpecificationIec61360/3/0"
+              }
+            ]
+          },
+          "dataSpecificationContent": {
+            "preferredName": [
+              {
+                "language": "en",
+                "text": "WORKER_FW"
+              }
+            ],
+            "definition": [
+              {
+                "language": "en",
+                "text": "Worker group identifier for the firmware-input stage."
+              }
+            ],
+            "modelType": "DataSpecificationIec61360",
+            "dataType": "STRING"
           }
         }
       ],
