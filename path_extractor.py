@@ -246,6 +246,36 @@ class ProcessNode(SubmodelElementCollection):
 
 
 @dataclass(kw_only=True)
+class SMTEquipmentProcess(SubmodelElementCollection):
+    """SMT 라인 설비 공정 노드 (LoaderProcess/ScreenPrinterProcess/SPIProcess/MounterProcess/
+    ReflowProcess/UnloaderProcess/AOIProcess). 위치: SMTProcess.SMTLines.<Line_N>.<설비>Process.
+    자식: DepPrev/DepType (inline Property), CycleTimeSec/RatedPowerKw (ReferenceElement →
+          설비 카탈로그 AAS 조회), Materials (Operation, PCB IO — chunk 2 에서 사용).
+    cycle/power 는 본 노드 semanticId(=설비 카탈로그 AAS ref, 예 /ids/aas/Loader/1/0) 로
+    카탈로그 Submodel 을 찾고, 자식 ref 의 CD semanticId 로 Property lookup
+    (WWMPropertyRef 와 동일한 cross-AAS deref 패턴)."""
+    _positions: ClassVar[List[Tuple[str, ...]]] = [
+        ('SimulationModels', 'SimulationModel', 'SMTProcess', 'SMTLines', '*', '*'),
+    ]
+
+    def _catalog_property(self, child_idShort: str) -> 'Property | None':
+        reference = self.value[child_idShort]                      # ReferenceElement (CycleTimeSec/RatedPowerKw)
+        catalog   = _find_submodel_by_id(self.semanticId)          # 설비 카탈로그 Submodel (id = 설비 AAS ref).
+        #   ★ Submodel.id 매칭만 — 설비노드 자신(같은 semanticId 의 SMC)은 매칭 안 됨(self-match 회피).
+        #   카탈로그 미로드면 None → cycle/power None → factory 가 SMT 비활성(stub fallback).
+        return _walk_for_match(catalog, reference.semanticId) if catalog is not None else None
+
+    @property
+    def CycleTimeSec(self) -> 'Property | None':  return self._catalog_property('CycleTimeSec')
+    @property
+    def RatedPowerKw(self) -> 'Property | None':  return self._catalog_property('RatedPowerKw')
+    @property
+    def DepPrev(self) -> 'Property':              return self.value['DepPrev']
+    @property
+    def DepType(self) -> 'Property':              return self.value['DepType']
+
+
+@dataclass(kw_only=True)
 class BOMCategory(SubmodelElementCollection):
     """BOMCategory 컨테이너 — `value: Dict[Category_idShort, BOMCategoryEntry]`."""
     _positions: ClassVar[List[Tuple[str, ...]]] = [('HierarchicalStructures', 'BOMCategory')]

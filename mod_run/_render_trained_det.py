@@ -16,26 +16,9 @@ SM  = PSM.SimulationModels.SimulationModel
 GNN = SM.ModelArchitecture.GNN
 TC  = SM.ModelArchitecture.PPO.TrainingConfig
 
-ag = svm.PPOAgent(
-    NodeFeatureDim   = int(GNN.NodeFeatureDim.value),
-    HiddenDim        = int(GNN.HiddenDim.value),
-    OutputDim        = int(GNN.OutputDim.value),
-    NumLayers        = int(GNN.NumLayers.value),
-    GNNEmbeddingDim  = int(GNN.OutputDim.value),
-    LearningRate     = float(TC.LearningRate.value),
-    ClipEpsilon      = float(TC.ClipEpsilon.value),
-    Gamma            = float(TC.Gamma.value),
-    GaeLambda        = float(TC.GaeLambda.value),
-    EntropyCoef      = float(TC.EntropyCoef.value),
-    ValueLossCoef    = float(TC.ValueLossCoef.value),
-    UpdateEpochs     = TC.UpdateEpochs.value,
-    BatchSize        = int(TC.BatchSize.value),
-    RuntimeVariables = SM.RuntimeVariables,
-    StateDim         = 0,                                # ← 체크포인트 학습 당시 arch
-)
+import cpro_factory as cf                             # agent wiring 단일 구현
 CKPT = os.path.join(_DIR,'result','runs','b2_horizon_60ep_orig_05-19_StateDim0','agent_horizon_qty100_baseline.pt')
-ag.load_state_dict(torch.load(CKPT))
-ag.eval(); ag.reset_buffer()
+ag   = cf.build_agent(StateDim=0, checkpoint=CKPT)    # ← 체크포인트 학습 당시 arch (StateDim=0)
 print(f'[{time.strftime("%H:%M:%S")}] agent eval(deterministic argmax) 로드 (StateDim=0)')
 
 envs = viz.make_envs()

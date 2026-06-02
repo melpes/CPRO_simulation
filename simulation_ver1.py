@@ -34,6 +34,9 @@ class GraphNode:
                             # cycle 후 후속 ready 까지 추가 대기 (워커 비점유). 본드 경화·AGING 등.
     SamplingRate : float | None = None   #← ProcessNode.SamplingRate.value (자식 SME 없으면 None).
                             # None = 항상 실행. 0.05 = 5% 만 실행, 95% 는 ready 됐을 때 즉시 done 마킹.
+    OutputBOM    : dict | None = None    #← ProcessNode.Materials.outputVariables (A안: 완료 시 창고 적재 {item_code: Quantity}).
+                            # None = 산출물 없음(일반 조립노드). SMT 등 자체생산 노드만 보유.
+                            # AAS 연동(SMTProcess→OutputBOM 추출)은 SMT 노드 파서 도입 시 — 현재는 메커니즘만.
 # DepPrev/DepType 는 노드에 캐싱하지 않는다. 의존 관계의 단일 표현은 edges
 # (이전 공정 → 다음 공정 + type). 이전 공정이 필요하면 _predecessors 로 검색.
 
@@ -222,6 +225,14 @@ class Warehouse:
                     ordered.append(item)
         return ordered
 
+    def produce(self, OutputBOM: dict) -> None:
+        # 노드 완료 시 산출물을 창고에 적재 (A안: SMT 등 자체생산 하위조립체). consume 의 역연산.
+        for item_code, Quantity in OutputBOM.items():
+            for Category in self.inventory:
+                if item_code in self.inventory[Category]:
+                    self.inventory[Category][item_code].present_stock += Quantity
+                    break
+
     def replenish(self, env, ReplenishLeadDay, items, notify=None) -> None:
         # 발주된 품목만 lead time 후 발주량(MaxStock·OrderRatio) 입고 + 발주 해제.
         # ★ 입고 직후 발주점 재검사 (deadlock 방지): 누적 부족분이 1회 발주량보다 클 때,
@@ -264,6 +275,15 @@ class _StockRouter:
         if pcb_bom:
             self.pcb.consume(pcb_bom)                      # PCB 보충은 cpro_smt 코루틴 담당
         return ordered
+
+    def produce(self, OutputBOM: dict) -> None:           # 산출물 적재 (A안). PCB→pcb 창고, 그 외→메인 (consume 과 동일 라우팅)
+        main_bom, pcb_bom = {}, {}
+        for code, qty in OutputBOM.items():
+            (pcb_bom if code in self._pcb_items else main_bom)[code] = qty
+        if main_bom:
+            self.main.produce(main_bom)
+        if pcb_bom:
+            self.pcb.produce(pcb_bom)
 
     def replenish(self, env, ReplenishLeadDay, items, notify=None):    # 메인만 (PCB 는 일정증가 별도)
         return self.main.replenish(env, ReplenishLeadDay, items, notify)
@@ -455,7 +475,8 @@ class CproSimEnv:
                  WarehouseManagedBOM, BOMCategory,
                  WorkStartTime, WorkEndTime, break_start_sec, break_end_sec,
                  IdleWorkerThreshold, RuntimeVariables,
-                 IdleProcessRatedPowerKw, IdlePowerRatio=0.10, SelfManagedBOM=None):
+                 IdleProcessRatedPowerKw, IdlePowerRatio=0.10, SelfManagedBOM=None,
+                 SMTLines=None, SmtArrayPcb=6, SmtBatchArrays=40):
         self.KnowledgeGraph       = KnowledgeGraph
         self.warehouse            = warehouse
         self.workers              = workers
@@ -477,6 +498,9 @@ class CproSimEnv:
         self.IdleProcessRatedPowerKw = IdleProcessRatedPowerKw  #← DefaultParameters.IdleProcessRatedPowerKw
         self.IdlePowerRatio       = IdlePowerRatio    # AAS 미반영 정책상수(=0.10) — 호출부 주입
         self.RuntimeVariables     = RuntimeVariables  #← path_extractor RuntimeVariables (AAS 명시 연산)
+        self.SMTLines             = SMTLines          # {line_id: [(idShort, CycleTimeSec, RatedPowerKw)...]} ← SMTProcess. None=구 stub
+        self.SmtArrayPcb          = SmtArrayPcb        # 1 어레이 = N PCB (§7-4 어레이=6 PCB) — 정책상수 주입
+        self.SmtBatchArrays       = SmtBatchArrays     # 1 배치 = N 어레이 (§7-3-A 매거진=40 어레이) — 정책상수 주입
 
     def reset(self):
         self.env                  = simpy.Environment()
@@ -486,6 +510,7 @@ class CproSimEnv:
         self.CycleCompleted       = False   #← .CycleCompleted
         self.Throughput           = {model_id: 0 for model_id in self.target_qty}  #← .Throughput (모델별)
         self.EpisodeEnergyKwh     = 0.0     #← .EpisodeEnergyKwh
+        self.SMTEnergyKwh         = 0.0     # SMT 라인 활성에너지 — 별도 누적(보상 비결합). total_energy_kwh 에만 합산
         self.StockShortageCount   = 0       #← .StockShortageCount
         self.StockOverflowCount   = 0       #← .StockOverflowCount
         self.IdleViolationCount   = 0       #← .IdleViolationCount
@@ -499,10 +524,17 @@ class CproSimEnv:
                                       self.BOMCategory
                                     )
         if self.SelfManagedBOM:                          # PCB(SelfManaged) 별도 창고
-            import cpro_smt
             self._pcb_warehouse   = Warehouse.build(self.SelfManagedBOM, self.BOMCategory)
             self.warehouse        = _StockRouter(self.warehouse, self._pcb_warehouse)
-            self.env.process(cpro_smt.pcb_supply(self.env, self._pcb_warehouse))
+            pcb_codes = [code for items in self._pcb_warehouse.inventory.values() for code in items]
+            if self.SMTLines:                            # AAS SMTProcess 설비 라인 — 실제 SMT 생산(GoodPCB → pcb 창고)
+                n_lines = len(self.SMTLines)
+                for line_index, (line_id, equipment) in enumerate(self.SMTLines.items()):
+                    line_codes = pcb_codes[line_index::n_lines]   # PCB 코드 라인 분배(2라인 = 두개씩 라운드로빈)
+                    self.env.process(self.smt_line(line_id, equipment, line_codes))
+            else:                                        # SMTLines 미주입 → 구 stub 일정증가(fallback)
+                import cpro_smt
+                self.env.process(cpro_smt.pcb_supply(self.env, self._pcb_warehouse))
         self.worker_resources     = {                       # 라인별 동시 작업 한도 = 워커수 × 1워커당 동시 처리수
             WorkstationId: simpy.Resource(self.env,          # AGING 은 UnitsPerWorker=10 → 6×10=60 동시. 그 외 라인은 ×1.
                                           capacity=info['worker_count'] * info['UnitsPerWorker'])
@@ -560,6 +592,8 @@ class CproSimEnv:
             if ordered:
                 self.env.process(self.warehouse.replenish(
                     self.env, self.ReplenishLeadDay, ordered))
+        if node.OutputBOM:                                           # A안: 완료 시 산출물 창고 적재
+            self.warehouse.produce(node.OutputBOM)
         done_set.add(ProcessCode)                                    # (4) self.completed → done_set
         self.in_progress[WorkstationId] -= 1
         if self.in_progress[WorkstationId] == 0:                     # ws fully idle 진입 — duration 기준점
@@ -637,6 +671,8 @@ class CproSimEnv:
             if ordered:
                 self.env.process(self.warehouse.replenish(
                     self.env, self.ReplenishLeadDay, ordered, self._wake_stock))   # 입고 시 BOM 대기 unit 깨움
+        if node.OutputBOM:                                  # A안: 완료 시 산출물 창고 적재 (SMT PCB 등). 일반 조립노드는 None → no-op
+            self.warehouse.produce(node.OutputBOM)
         self.in_progress[ws] -= 1                           # ★ 워커 즉시 자유 — DepWait 중 다른 job 가능
         if self.in_progress[ws] == 0:                       # ws fully idle 진입 — duration 기준점 갱신
             self.last_active[ws] = self.env.now
@@ -689,6 +725,26 @@ class CproSimEnv:
             yield simpy.AnyOf(self.env, outstanding)                  # 하나라도 끝나면 재평가
             outstanding = [e for e in outstanding if not e.triggered]
 
+    def smt_line(self, line_id, equipment, pcb_codes):
+        # AAS SMTProcess 설비 라인 1줄(env.process 로 등록). 배정 PCB 코드를 라운드로빈으로 배치 생산.
+        # equipment: [(idShort, CycleTimeSec, RatedPowerKw), ...] 라인 설비 순서(SMTEquipmentProcess → factory 주입).
+        # 1 array = SmtArrayPcb(6) PCB, 라인 통과시간 = Σ설비 cycle (직렬 — §7-4 "어레이 1장 처리시간 ≈620s").
+        # 1 batch = SmtBatchArrays(40) array(=240 PCB 매거진). PCB 전환 = 현 배치 전량 완료 후(라인 클리어).
+        # ★ open-loop 라운드로빈 — 수요 무관이라 특정 코드 starvation 가능(측정·보고 대상). 수요기반은 후속.
+        if not pcb_codes or not equipment:
+            return
+        array_cycle  = sum(cycle for _, cycle, _ in equipment)        # 어레이 1장 라인 통과시간(s)
+        array_energy = sum(power * cycle for _, cycle, power in equipment) / 3600   # 어레이 1장 SMT 활성에너지(kWh)
+        while True:
+            for code in pcb_codes:                                    # 라운드로빈 PCB 전환(라인 클리어 후)
+                for _ in range(self.SmtBatchArrays):                  # 1 배치
+                    while not self._is_work_time():                   # 비근무면 재개까지 점프(조립과 동일 게이트)
+                        yield self.env.timeout(self._off_hours_delta())
+                    yield self.env.timeout(array_cycle)
+                    self.SMTEnergyKwh += array_energy
+                    self.warehouse.produce({code: self.SmtArrayPcb})  # GoodPCB 어레이(6) → pcb 창고
+                    self._wake_stock()                                # PCB 입고 → BOM 대기 produce_unit 깨움
+
     def run(self, agent=None, max_sec: float = 60 * 86400):
         # 주문수량만큼 produce_unit 을 동시에 띄우고 한 번 진행. agent=None → greedy.
         self.reset()
@@ -730,7 +786,7 @@ class CproSimEnv:
         idle_base = self.RuntimeVariables.IdleBaselineKwh(
             self.KnowledgeGraph, self.env.now,
             self.IdleProcessRatedPowerKw, self.IdlePowerRatio)
-        return idle_base + self.EpisodeEnergyKwh
+        return idle_base + self.EpisodeEnergyKwh + self.SMTEnergyKwh   # SMT 라인 활성에너지 합산(보상엔 비결합)
 
     @property
     def state_dim(self) -> int:
@@ -845,89 +901,21 @@ def train(env, agent, MaxEpisodes, run_name=None, episode_max_sec=EPISODE_DURATI
 if __name__ == '__main__':
     import os
 
-    _ROOT = os.path.dirname(os.path.abspath(__file__))                 # 패키지 루트 (이 파일 위치) — AAS JSON · path_extractor
     import path_extractor
-    from path_extractor import ProvisionofSimulationModelsAAS
+    import cpro_factory as cf
 
+    _ROOT = os.path.dirname(os.path.abspath(__file__))                 # 패키지 루트 (이 파일 위치) — AAS JSON
     for _f in ['ProvisionOfSimulationModel.json', 'WorkstationWorkerMatchingDataAAS.json',
                'MODEL_A.json', 'MODEL_B.json', 'MODEL_C.json']:
         path_extractor.load(os.path.join(_ROOT, 'aas_data', _f))
 
-    PSM                  = ProvisionofSimulationModelsAAS
-    SimulationModel      = PSM.SimulationModels.SimulationModel
-    Action               = SimulationModel.KnowledgeGraph.Action
-    PSM_Warehouse        = SimulationModel.Warehouse
-    DefaultParameters    = SimulationModel.DefaultParameters
-    RewardWeightsSME     = SimulationModel.RewardWeights
-    GNN_arch             = SimulationModel.ModelArchitecture.GNN                          #← ModelArchitecture.GNN
-    TrainingConfig       = SimulationModel.ModelArchitecture.PPO.TrainingConfig           #← ModelArchitecture.PPO.TrainingConfig
+    # wiring 은 cpro_factory 단일 구현. 여기선 입력(목표 수량) → build → 학습(train) (기존 동작 유지).
+    SimulationModel = path_extractor.ProvisionofSimulationModelsAAS.SimulationModels.SimulationModel
+    MaxEpisodes     = int(SimulationModel.SimulationConfig.MaxEpisodes.value)
+    target_qty      = {mp.model_id: int(input(f'{mp.model_id} 목표 생산 수량을 입력하세요: '))
+                       for mp in SimulationModel.Warehouse.InputBOM.target}            #← Warehouse.InputBOM
 
-    ManufacturingProcesses = {mp.model_id: mp for mp in PSM_Warehouse.InputBOM.target}    #← Warehouse.InputBOM
-    workers              = PSM.workers                                                    #← WWM
-    WarehouseManagedBOM  = PSM.CoManagedBOM                                               #← ProductAAS HS (PCB 제외)
-    BOMCategory          = PSM_Warehouse.MinStock.target                                  #← Warehouse.MinStock
-    RuntimeVariables     = SimulationModel.RuntimeVariables                               #← SimulationModel.RuntimeVariables (AAS 명시 연산 단일 구현처)
-    MaxEpisodes          = int(SimulationModel.SimulationConfig.MaxEpisodes.value)
-    # PSM 의 모델 공용 노드들 — model_id='ALL' 흐름 (공용 설비). 현재 ProcessOQC 만 반영.
-    # ProcessRMA 는 자식 SME (DepType/DepPrev/DefectRate) 미정의 상태 — 후속 작업 (E) 에서 본격 처리.
-    shared_groups        = {name: g for name, g in SimulationModel.KnowledgeGraph.Node.value.items()
-                            if name in ('ProcessOQC',)}
-
-    target_qty = {
-        model_id: int(input(f'{model_id} 목표 생산 수량을 입력하세요: '))
-        for model_id in ManufacturingProcesses
-    }
-
-    KnowledgeGraph  = KnowledgeGraph.build(ManufacturingProcesses, workers, shared_groups)
-    warehouse       = Warehouse.build(WarehouseManagedBOM, BOMCategory)
-
-    env = CproSimEnv(
-        KnowledgeGraph       = KnowledgeGraph,
-        warehouse            = warehouse,
-        workers              = workers,
-        IndependentSequence  = [node.idShort for ref in Action.IndependentSequence for node in ref.target],
-        DependentSequence    = [node.idShort for ref in Action.DependentSequence   for node in ref.target],
-        DependentJoin        = [node.idShort for ref in Action.DependentJoin       for node in ref.target],
-        RewardWeights        = {
-            'W1_TimeElapsed'   : float(RewardWeightsSME.W1_TimeElapsed.value),
-            'W2_Energy'        : float(RewardWeightsSME.W2_Energy.value),
-            'W3_StockOverflow' : float(RewardWeightsSME.W3_StockOverflow.value),
-            'W4_StockShortage' : float(RewardWeightsSME.W4_StockShortage.value),
-            'W5_Throughput'    : float(RewardWeightsSME.W5_Throughput.value),
-            'W6_IdleWorker'    : float(RewardWeightsSME.W6_IdleWorker.value),
-        },
-        ReplenishLeadDay     = int(DefaultParameters.ReplenishLeadDay.value) * 3600,
-        target_qty           = target_qty,
-        MaxEpisodes          = MaxEpisodes,
-        WarehouseManagedBOM  = WarehouseManagedBOM,
-        BOMCategory          = BOMCategory,
-        WorkStartTime        = DefaultParameters.WorkStartTime.target.value,
-        WorkEndTime          = DefaultParameters.WorkEndTime.target.value,
-        break_start_sec      = DefaultParameters.BreakDurationMin.target.min,
-        break_end_sec        = DefaultParameters.BreakDurationMin.target.max,
-        IdleWorkerThreshold  = int(DefaultParameters.IdleWorkerThreshold.value),
-        RuntimeVariables     = RuntimeVariables,
-        IdleProcessRatedPowerKw = float(DefaultParameters.IdleProcessRatedPowerKw.value),
-        IdlePowerRatio       = 0.10,
-        SelfManagedBOM       = PSM.SelfManagedBOM,                                        #← PCB(SMT_PCB) 별도 창고
-    )
-
-    agent = PPOAgent(
-        NodeFeatureDim   = int(GNN_arch.NodeFeatureDim.value),
-        HiddenDim        = int(GNN_arch.HiddenDim.value),
-        OutputDim        = int(GNN_arch.OutputDim.value),
-        NumLayers        = int(GNN_arch.NumLayers.value),
-        GNNEmbeddingDim  = int(GNN_arch.OutputDim.value),                                 #← PPO.Actor.GNNEmbeddingDim → OutputDim
-        LearningRate     = float(TrainingConfig.LearningRate.value),
-        ClipEpsilon      = float(TrainingConfig.ClipEpsilon.value),
-        Gamma            = float(TrainingConfig.Gamma.value),
-        GaeLambda        = float(TrainingConfig.GaeLambda.value),
-        EntropyCoef      = float(TrainingConfig.EntropyCoef.value),
-        ValueLossCoef    = float(TrainingConfig.ValueLossCoef.value),
-        UpdateEpochs     = TrainingConfig.UpdateEpochs.value,
-        BatchSize        = int(TrainingConfig.BatchSize.value),
-        RuntimeVariables = RuntimeVariables,
-        StateDim         = env.state_dim,                                                 #← 동적 관측 차원 주입
-    )
+    env   = cf.build_simulation(target_qty=target_qty, MaxEpisodes=MaxEpisodes)
+    agent = cf.build_agent(env)
 
     train(env, agent, MaxEpisodes)

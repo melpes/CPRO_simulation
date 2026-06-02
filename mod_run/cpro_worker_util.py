@@ -73,28 +73,8 @@ class UtilEnv(svm.CproSimEnv):
 
 
 def build():
-    KG = svm.KnowledgeGraph.build(
-        {mp.model_id: mp for mp in SM.Warehouse.InputBOM.target}, PSM.workers,
-        {name: g for name, g in SM.KnowledgeGraph.Node.value.items() if name in ('ProcessOQC',)})
-    WH = svm.Warehouse.build(PSM.CoManagedBOM, SM.Warehouse.MinStock.target)
-    return UtilEnv(
-        KnowledgeGraph=KG, warehouse=WH, workers=PSM.workers,
-        IndependentSequence=[n.idShort for r in A.IndependentSequence for n in r.target],
-        DependentSequence=[n.idShort for r in A.DependentSequence for n in r.target],
-        DependentJoin=[n.idShort for r in A.DependentJoin for n in r.target],
-        RewardWeights={k: float(RW[k].value) for k in
-                       ['W1_TimeElapsed', 'W2_Energy', 'W3_StockOverflow',
-                        'W4_StockShortage', 'W5_Throughput', 'W6_IdleWorker']},
-        ReplenishLeadDay=int(DP.ReplenishLeadDay.value) * 3600,
-        target_qty=dict(TARGET_PER_MODEL), MaxEpisodes=1,
-        WarehouseManagedBOM=PSM.CoManagedBOM, BOMCategory=SM.Warehouse.MinStock.target,
-        WorkStartTime=DP.WorkStartTime.target.value, WorkEndTime=DP.WorkEndTime.target.value,
-        break_start_sec=DP.BreakDurationMin.target.min,
-        break_end_sec=DP.BreakDurationMin.target.max,
-        IdleWorkerThreshold=int(DP.IdleWorkerThreshold.value),
-        RuntimeVariables=SM.RuntimeVariables,
-        IdleProcessRatedPowerKw=float(DP.IdleProcessRatedPowerKw.value), IdlePowerRatio=0.10,
-        SelfManagedBOM=PSM.SelfManagedBOM)
+    import cpro_factory as cf                       # wiring 단일 구현 — env_cls 로 UtilEnv 주입
+    return cf.build_simulation(env_cls=UtilEnv, target_qty=dict(TARGET_PER_MODEL), MaxEpisodes=1)
 
 
 _R_LABEL = ['ACTIVE', 'OFF', 'STOCK', 'PREC', 'DONE']

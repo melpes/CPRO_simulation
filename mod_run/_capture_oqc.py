@@ -66,49 +66,14 @@ class RecEnv(sv.CproSimEnv):
 
 
 def make_env(seed=42):
+    import cpro_factory as cf                       # wiring 단일 구현 — env_cls 로 RecEnv 주입
     random.seed(seed)
-    MPs = {mp.model_id: mp for mp in SM.Warehouse.InputBOM.target}
-    shared = {name: g for name, g in SM.KnowledgeGraph.Node.value.items() if name in ('ProcessOQC',)}
-    KG  = sv.KnowledgeGraph.build(MPs, PSM.workers, shared)
-    WH  = sv.Warehouse.build(PSM.CoManagedBOM, SM.Warehouse.MinStock.target)
-    rw  = {k: float(RW[k].value) for k in
-           ['W1_TimeElapsed', 'W2_Energy', 'W3_StockOverflow',
-            'W4_StockShortage', 'W5_Throughput', 'W6_IdleWorker']}
-    return RecEnv(
-        KnowledgeGraph=KG, warehouse=WH, workers=PSM.workers,
-        IndependentSequence=[n.idShort for r in A.IndependentSequence for n in r.target if n is not None],
-        DependentSequence=[n.idShort for r in A.DependentSequence for n in r.target if n is not None],
-        DependentJoin=[n.idShort for r in A.DependentJoin for n in r.target if n is not None],
-        RewardWeights=rw,
-        ReplenishLeadDay=int(DP.ReplenishLeadDay.value) * 3600,
-        target_qty=dict(TARGET), MaxEpisodes=1,
-        WarehouseManagedBOM=PSM.CoManagedBOM,
-        BOMCategory=SM.Warehouse.MinStock.target,
-        WorkStartTime=DP.WorkStartTime.target.value,
-        WorkEndTime=DP.WorkEndTime.target.value,
-        break_start_sec=DP.BreakDurationMin.target.min,
-        break_end_sec=DP.BreakDurationMin.target.max,
-        IdleWorkerThreshold=int(DP.IdleWorkerThreshold.value),
-        RuntimeVariables=SM.RuntimeVariables,
-        IdleProcessRatedPowerKw=float(DP.IdleProcessRatedPowerKw.value),
-        IdlePowerRatio=0.10,
-        SelfManagedBOM=PSM.SelfManagedBOM,
-    )
+    return cf.build_simulation(env_cls=RecEnv, target_qty=dict(TARGET), MaxEpisodes=1)
 
 
 def build_agent_StateDim0():
-    ag = sv.PPOAgent(
-        NodeFeatureDim=int(GNN.NodeFeatureDim.value), HiddenDim=int(GNN.HiddenDim.value),
-        OutputDim=int(GNN.OutputDim.value), NumLayers=int(GNN.NumLayers.value),
-        GNNEmbeddingDim=int(GNN.OutputDim.value),
-        LearningRate=float(TC.LearningRate.value), ClipEpsilon=float(TC.ClipEpsilon.value),
-        Gamma=float(TC.Gamma.value), GaeLambda=float(TC.GaeLambda.value),
-        EntropyCoef=float(TC.EntropyCoef.value), ValueLossCoef=float(TC.ValueLossCoef.value),
-        UpdateEpochs=TC.UpdateEpochs.value, BatchSize=int(TC.BatchSize.value),
-        RuntimeVariables=SM.RuntimeVariables, StateDim=0)
-    ag.load_state_dict(torch.load(CKPT))
-    ag.eval(); ag.reset_buffer()
-    return ag
+    import cpro_factory as cf                       # StateDim=0 구 체크포인트 로드 (결정형 평가)
+    return cf.build_agent(StateDim=0, checkpoint=CKPT)
 
 
 def capture(label, agent, max_sec):

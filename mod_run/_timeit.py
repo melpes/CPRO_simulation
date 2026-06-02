@@ -25,43 +25,10 @@ TC  = PPO.TrainingConfig
 
 
 def build(modname, qty, ep):
-    sv = importlib.import_module(modname)                     # 'simulation_ver1'
-    MPs = {mp.model_id: mp for mp in SM.Warehouse.InputBOM.target}
-    KG  = sv.KnowledgeGraph.build(MPs, PSM.workers,
-            {name: g for name, g in SM.KnowledgeGraph.Node.value.items() if name in ('ProcessOQC',)})
-    WH  = sv.Warehouse.build(PSM.CoManagedBOM, SM.Warehouse.MinStock.target)
-    rw = {k: float(RW[k].value) for k in
-          ['W1_TimeElapsed', 'W2_Energy', 'W3_StockOverflow',
-           'W4_StockShortage', 'W5_Throughput', 'W6_IdleWorker']}
-    kw = dict(
-        KnowledgeGraph=KG, warehouse=WH, workers=PSM.workers,
-        IndependentSequence=[n.idShort for r in A.IndependentSequence for n in r.target if n is not None],
-        DependentSequence=[n.idShort for r in A.DependentSequence for n in r.target if n is not None],
-        DependentJoin=[n.idShort for r in A.DependentJoin for n in r.target if n is not None],
-        RewardWeights=rw, ReplenishLeadDay=int(DP.ReplenishLeadDay.value) * 3600,
-        target_qty={'MODEL_A': qty, 'MODEL_B': qty, 'MODEL_C': qty}, MaxEpisodes=ep,
-        WarehouseManagedBOM=PSM.CoManagedBOM, BOMCategory=SM.Warehouse.MinStock.target,
-        WorkStartTime=DP.WorkStartTime.target.value, WorkEndTime=DP.WorkEndTime.target.value,
-        break_start_sec=DP.BreakDurationMin.target.min,
-        break_end_sec=DP.BreakDurationMin.target.max,
-        IdleWorkerThreshold=int(DP.IdleWorkerThreshold.value),
-        RuntimeVariables=SM.RuntimeVariables,
-        IdleProcessRatedPowerKw=float(DP.IdleProcessRatedPowerKw.value),
-        IdlePowerRatio=0.10,
-        SelfManagedBOM=PSM.SelfManagedBOM)
-    env = sv.CproSimEnv(**kw)
-    agent_kw = dict(
-        NodeFeatureDim=int(GNN.NodeFeatureDim.value), HiddenDim=int(GNN.HiddenDim.value),
-        OutputDim=int(GNN.OutputDim.value), NumLayers=int(GNN.NumLayers.value),
-        GNNEmbeddingDim=int(GNN.OutputDim.value),
-        LearningRate=float(TC.LearningRate.value), ClipEpsilon=float(TC.ClipEpsilon.value),
-        Gamma=float(TC.Gamma.value), GaeLambda=float(TC.GaeLambda.value),
-        EntropyCoef=float(TC.EntropyCoef.value), ValueLossCoef=float(TC.ValueLossCoef.value),
-        UpdateEpochs=TC.UpdateEpochs.value, BatchSize=int(TC.BatchSize.value),
-        RuntimeVariables=SM.RuntimeVariables)
-    if hasattr(env, 'state_dim'):                             # ver1: 동적 관측 state_vec 주입
-        agent_kw['StateDim'] = env.state_dim
-    agent = sv.PPOAgent(**agent_kw)
+    import cpro_factory as cf                                  # wiring 단일 구현
+    sv = importlib.import_module(modname)                     # 'simulation_ver1' — measure() 의 sv.train 용
+    env   = cf.build_simulation(target_qty={'MODEL_A': qty, 'MODEL_B': qty, 'MODEL_C': qty}, MaxEpisodes=ep)
+    agent = cf.build_agent(env)
     return sv, env, agent
 
 

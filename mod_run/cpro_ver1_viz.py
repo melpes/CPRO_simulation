@@ -75,8 +75,9 @@ class _Rec:
 
 
 def make_envs():
-    """ver1 기록용 env 생성 (워커 디스패처 _run_job 경로). 인자 구성은 _capture_oqc 템플릿과 동일."""
+    """ver1 기록용 env 생성 (워커 디스패처 _run_job 경로). wiring 은 cpro_factory 단일 구현."""
     import simulation_ver1 as sv1
+    import cpro_factory as cf
 
     class RecMod(_Rec, sv1.CproSimEnv):             # ver1: _run_job 가 실제 실행 — 여기서 이벤트 기록
         def reset(self):
@@ -87,32 +88,7 @@ def make_envs():
             yield from super()._run_job(ws, job, req)
             self._record(pc, t0)
 
-    KG = sv1.KnowledgeGraph.build(
-        {mp.model_id: mp for mp in SM.Warehouse.InputBOM.target},
-        PSM.workers,
-        {name: g for name, g in SM.KnowledgeGraph.Node.value.items() if name in ('ProcessOQC',)})
-    WH = sv1.Warehouse.build(PSM.CoManagedBOM, SM.Warehouse.MinStock.target)
-    env = RecMod(
-        KnowledgeGraph=KG, warehouse=WH, workers=PSM.workers,
-        IndependentSequence=[n.idShort for r in A.IndependentSequence for n in r.target if n is not None],
-        DependentSequence=[n.idShort for r in A.DependentSequence for n in r.target if n is not None],
-        DependentJoin=[n.idShort for r in A.DependentJoin for n in r.target if n is not None],
-        RewardWeights={k: float(RW[k].value) for k in
-                       ['W1_TimeElapsed', 'W2_Energy', 'W3_StockOverflow',
-                        'W4_StockShortage', 'W5_Throughput', 'W6_IdleWorker']},
-        ReplenishLeadDay=int(DP.ReplenishLeadDay.value) * 3600,
-        target_qty=dict(TARGET_PER_MODEL), MaxEpisodes=1,
-        WarehouseManagedBOM=PSM.CoManagedBOM,
-        BOMCategory=SM.Warehouse.MinStock.target,
-        WorkStartTime=DP.WorkStartTime.target.value,
-        WorkEndTime=DP.WorkEndTime.target.value,
-        break_start_sec=DP.BreakDurationMin.target.min,
-        break_end_sec=DP.BreakDurationMin.target.max,
-        IdleWorkerThreshold=int(DP.IdleWorkerThreshold.value),
-        RuntimeVariables=SM.RuntimeVariables,
-        IdleProcessRatedPowerKw=float(DP.IdleProcessRatedPowerKw.value),
-        IdlePowerRatio=0.10,
-        SelfManagedBOM=PSM.SelfManagedBOM)
+    env = cf.build_simulation(env_cls=RecMod, target_qty=dict(TARGET_PER_MODEL), MaxEpisodes=1)
     return [('ver1', env, 'run')]
 
 

@@ -7,15 +7,22 @@
 
 - **기존(solid)** — 현재 코드에 이미 있는 것.
 - **신규-코드** — 추가할 코드. **AAS 변경 없음** (factory, 외피).
-- **⚠ AAS변경-합의필요** — A안(SMT→창고 적재) 때문에 AAS 템플릿에 새 필드가 필요한 것.
-  → AAS 구조 변경은 단독 진행 금지, 합의 대상.
+- **⚠ AAS변경-합의필요** — 당초 A안에 AAS 새 필드(`OutputBOM`)가 필요하다 보았으나, 조사(2026-06-02)
+  결과 **이미 `SMTProcess…Materials.outputVariables`(PCB) 로 존재** → AAS 구조 변경 불필요. 아래 참조.
 
-### A안이 요구하는 AAS 변경 (합의 항목 — 이것 하나)
+### A안 실제 현황 (2026-06-02 조사·구현 갱신)
 
-SMT 공정 노드가 "무엇을 몇 개 창고에 적재하는지" 알아야 하므로, **SMT 산출 노드에 `OutputBOM`**
-(item_code → Quantity) 을 추가해야 함. 이 한 가지 외에는 전부 코드 변경:
-- `Warehouse.produce(OutputBOM)` — 노드 완료 시 산출물 적재 (현재 `Warehouse`는 consume 전용).
-- SMT→AAS 노드화가 끝나면 `cpro_smt.py` stub + `_StockRouter` 특수경로는 폐기.
+**`OutputBOM` 은 AAS 에 추가할 새 필드가 아니다 — 이미 `SMTProcess…Materials.outputVariables`(PCB) 로 존재.**
+A안은 이 `outputVariables` 를 읽어 노드 완료 시 창고에 적재하는 것. AAS 구조 변경(합의)은 불필요.
+
+- ✅ **구현 완료(코드)**: `Warehouse.produce(OutputBOM)` + `_StockRouter.produce`(PCB→pcb 창고 라우팅)
+  + `GraphNode.OutputBOM` 필드 + `_run_job`/`process_job` 완료 훅. golden 회귀(조립 무변경) +
+  produce 단위·통합 검증됨.
+- ❌ **블록(데이터)**: SMT 노드의 `CycleTimeSec`/`RatedPowerKw` 가 **부재하는 설비 카탈로그 AAS**
+  (`/ids/aas/Loader/1/0` 등) 를 가리켜 resolve 불가 + `path_extractor` 가 SMTProcess 트리
+  (SMTLines→Line_N→7설비, SMTMaterials)를 아직 파싱 안 함. → 설비 cycle/power 데이터가 채워져야
+  SMT 노드가 실제로 돌며 PCB 를 produce. **이 데이터 출처가 사용자 결정 사항.**
+- SMT→AAS 노드화 완료 시 `cpro_smt.py` stub + `_StockRouter` 특수경로 폐기.
 
 ---
 
@@ -144,8 +151,8 @@ classDiagram
   SimulationShell ..> build_simulation
   SimulationShell ..> build_agent
 
-  note for GraphNode "OutputBOM: A안 신규 — SMT 노드 산출물. ⚠AAS변경(합의)"
-  note for Warehouse "produce(): A안 신규 — 완료 시 창고 적재. 현재 consume 전용"
+  note for GraphNode "OutputBOM 필드 구현완료. 값=Materials.outputVariables(기존 AAS, 변경불필요)"
+  note for Warehouse "produce() 구현완료 — 완료 시 창고 적재 (consume 역연산)"
   note for _StockRouter "현 PCB 분리경로. SMT→AAS 노드(A안) 후 폐기 대상"
   note for build_simulation "신규 factory — 중복 wiring 통합. 코드만(AAS 무관)"
   note for SimulationShell "신규 외피(exe/API). OUT dict 위 어댑터. 통합방식 무관"
@@ -205,7 +212,7 @@ sequenceDiagram
     opt A안 · SMT 산출 노드
       J->>WH: produce(OutputBOM)
     end
-    Note over J,WH: produce()는 A안 신규 — ⚠AAS OutputBOM 합의 필요
+    Note over J,WH: produce() 구현완료. OutputBOM=Materials.outputVariables(기존 AAS). SMT cycle 데이터만 미정
     J->>E: Throughput 증가 후 dispatcher wake
   end
   E-->>C: {Throughput, makespan_sec, EpisodeEnergyKwh, events}

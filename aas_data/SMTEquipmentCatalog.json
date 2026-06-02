@@ -1,0 +1,97 @@
+{
+  "assetAdministrationShells": [
+    {
+      "idShort": "SMTEquipmentCatalogAAS",
+      "id": "https://www.smart-factory.kr/ids/aas/SMTEquipmentCatalog/1/0",
+      "description": [
+        {
+          "language": "ko",
+          "text": "SMT 설비 카탈로그 (임시). SMTProcess 설비 노드의 CycleTimeSec/RatedPowerKw ReferenceElement 가 설비별 semanticId(/ids/aas/<설비>/1/0)로 본 카탈로그 Submodel 을 찾아 값 lookup. 출처: docs/시뮬레이션_입력자료_통합본.md §3-4(cycle)/§6-3(power, 라인1 기준). 주의: (1) 라인2 전력 차이(Reflow 47.7, ScreenPrinter 1.72 등)는 generic ref 한계로 미반영 — 양 라인 라인1 값 공용. (2) Mounter 는 AAS 단일 노드인데 실물은 ChipMounter(80s/9.80kW)+MultiMounter(45s/4.31kW) 2대 → cycle=125(합), power=7.82(에너지가중평균 (9.80·80+4.31·45)/125)로 집약. 실제 설비 카탈로그 AAS 도착 시 교체."
+        }
+      ],
+      "assetInformation": { "assetKind": "Type" },
+      "submodels": [
+        { "type": "ModelReference", "keys": [ { "type": "Submodel", "value": "https://www.smart-factory.kr/ids/aas/Loader/1/0" } ] },
+        { "type": "ModelReference", "keys": [ { "type": "Submodel", "value": "https://www.smart-factory.kr/ids/aas/ScreenPrinter/1/0" } ] },
+        { "type": "ModelReference", "keys": [ { "type": "Submodel", "value": "https://www.smart-factory.kr/ids/aas/SPI/1/0" } ] },
+        { "type": "ModelReference", "keys": [ { "type": "Submodel", "value": "https://www.smart-factory.kr/ids/aas/Mounter/1/0" } ] },
+        { "type": "ModelReference", "keys": [ { "type": "Submodel", "value": "https://www.smart-factory.kr/ids/aas/Reflow/1/0" } ] },
+        { "type": "ModelReference", "keys": [ { "type": "Submodel", "value": "https://www.smart-factory.kr/ids/aas/Unloader/1/0" } ] },
+        { "type": "ModelReference", "keys": [ { "type": "Submodel", "value": "https://www.smart-factory.kr/ids/aas/AOI/1/0" } ] }
+      ],
+      "modelType": "AssetAdministrationShell"
+    }
+  ],
+  "submodels": [
+    {
+      "idShort": "LoaderCatalog",
+      "id": "https://www.smart-factory.kr/ids/aas/Loader/1/0",
+      "semanticId": { "type": "ExternalReference", "keys": [ { "type": "GlobalReference", "value": "https://www.smart-factory.kr/ids/aas/Loader/1/0" } ] },
+      "submodelElements": [
+        { "idShort": "CycleTimeSec", "semanticId": { "type": "ModelReference", "keys": [ { "type": "ConceptDescription", "value": "https://www.smart-factory.kr/ids/cd/CycleTimeSec/1/0" } ] }, "valueType": "xs:int", "value": "2", "modelType": "Property" },
+        { "idShort": "RatedPowerKw", "semanticId": { "type": "ModelReference", "keys": [ { "type": "ConceptDescription", "value": "https://www.smart-factory.kr/ids/cd/RatedPowerKw/1/0" } ] }, "valueType": "xs:double", "value": "0.33", "modelType": "Property" }
+      ],
+      "modelType": "Submodel"
+    },
+    {
+      "idShort": "ScreenPrinterCatalog",
+      "id": "https://www.smart-factory.kr/ids/aas/ScreenPrinter/1/0",
+      "semanticId": { "type": "ExternalReference", "keys": [ { "type": "GlobalReference", "value": "https://www.smart-factory.kr/ids/aas/ScreenPrinter/1/0" } ] },
+      "submodelElements": [
+        { "idShort": "CycleTimeSec", "semanticId": { "type": "ModelReference", "keys": [ { "type": "ConceptDescription", "value": "https://www.smart-factory.kr/ids/cd/CycleTimeSec/1/0" } ] }, "valueType": "xs:int", "value": "43", "modelType": "Property" },
+        { "idShort": "RatedPowerKw", "semanticId": { "type": "ModelReference", "keys": [ { "type": "ConceptDescription", "value": "https://www.smart-factory.kr/ids/cd/RatedPowerKw/1/0" } ] }, "valueType": "xs:double", "value": "0.84", "modelType": "Property" }
+      ],
+      "modelType": "Submodel"
+    },
+    {
+      "idShort": "SPICatalog",
+      "id": "https://www.smart-factory.kr/ids/aas/SPI/1/0",
+      "semanticId": { "type": "ExternalReference", "keys": [ { "type": "GlobalReference", "value": "https://www.smart-factory.kr/ids/aas/SPI/1/0" } ] },
+      "submodelElements": [
+        { "idShort": "CycleTimeSec", "semanticId": { "type": "ModelReference", "keys": [ { "type": "ConceptDescription", "value": "https://www.smart-factory.kr/ids/cd/CycleTimeSec/1/0" } ] }, "valueType": "xs:int", "value": "15", "modelType": "Property" },
+        { "idShort": "RatedPowerKw", "semanticId": { "type": "ModelReference", "keys": [ { "type": "ConceptDescription", "value": "https://www.smart-factory.kr/ids/cd/RatedPowerKw/1/0" } ] }, "valueType": "xs:double", "value": "2.20", "modelType": "Property" }
+      ],
+      "modelType": "Submodel"
+    },
+    {
+      "idShort": "MounterCatalog",
+      "id": "https://www.smart-factory.kr/ids/aas/Mounter/1/0",
+      "semanticId": { "type": "ExternalReference", "keys": [ { "type": "GlobalReference", "value": "https://www.smart-factory.kr/ids/aas/Mounter/1/0" } ] },
+      "submodelElements": [
+        { "idShort": "CycleTimeSec", "semanticId": { "type": "ModelReference", "keys": [ { "type": "ConceptDescription", "value": "https://www.smart-factory.kr/ids/cd/CycleTimeSec/1/0" } ] }, "valueType": "xs:int", "value": "125", "modelType": "Property" },
+        { "idShort": "RatedPowerKw", "semanticId": { "type": "ModelReference", "keys": [ { "type": "ConceptDescription", "value": "https://www.smart-factory.kr/ids/cd/RatedPowerKw/1/0" } ] }, "valueType": "xs:double", "value": "7.82", "modelType": "Property" }
+      ],
+      "modelType": "Submodel"
+    },
+    {
+      "idShort": "ReflowCatalog",
+      "id": "https://www.smart-factory.kr/ids/aas/Reflow/1/0",
+      "semanticId": { "type": "ExternalReference", "keys": [ { "type": "GlobalReference", "value": "https://www.smart-factory.kr/ids/aas/Reflow/1/0" } ] },
+      "submodelElements": [
+        { "idShort": "CycleTimeSec", "semanticId": { "type": "ModelReference", "keys": [ { "type": "ConceptDescription", "value": "https://www.smart-factory.kr/ids/cd/CycleTimeSec/1/0" } ] }, "valueType": "xs:int", "value": "410", "modelType": "Property" },
+        { "idShort": "RatedPowerKw", "semanticId": { "type": "ModelReference", "keys": [ { "type": "ConceptDescription", "value": "https://www.smart-factory.kr/ids/cd/RatedPowerKw/1/0" } ] }, "valueType": "xs:double", "value": "62.60", "modelType": "Property" }
+      ],
+      "modelType": "Submodel"
+    },
+    {
+      "idShort": "UnloaderCatalog",
+      "id": "https://www.smart-factory.kr/ids/aas/Unloader/1/0",
+      "semanticId": { "type": "ExternalReference", "keys": [ { "type": "GlobalReference", "value": "https://www.smart-factory.kr/ids/aas/Unloader/1/0" } ] },
+      "submodelElements": [
+        { "idShort": "CycleTimeSec", "semanticId": { "type": "ModelReference", "keys": [ { "type": "ConceptDescription", "value": "https://www.smart-factory.kr/ids/cd/CycleTimeSec/1/0" } ] }, "valueType": "xs:int", "value": "5", "modelType": "Property" },
+        { "idShort": "RatedPowerKw", "semanticId": { "type": "ModelReference", "keys": [ { "type": "ConceptDescription", "value": "https://www.smart-factory.kr/ids/cd/RatedPowerKw/1/0" } ] }, "valueType": "xs:double", "value": "0.33", "modelType": "Property" }
+      ],
+      "modelType": "Submodel"
+    },
+    {
+      "idShort": "AOICatalog",
+      "id": "https://www.smart-factory.kr/ids/aas/AOI/1/0",
+      "semanticId": { "type": "ExternalReference", "keys": [ { "type": "GlobalReference", "value": "https://www.smart-factory.kr/ids/aas/AOI/1/0" } ] },
+      "submodelElements": [
+        { "idShort": "CycleTimeSec", "semanticId": { "type": "ModelReference", "keys": [ { "type": "ConceptDescription", "value": "https://www.smart-factory.kr/ids/cd/CycleTimeSec/1/0" } ] }, "valueType": "xs:int", "value": "30", "modelType": "Property" },
+        { "idShort": "RatedPowerKw", "semanticId": { "type": "ModelReference", "keys": [ { "type": "ConceptDescription", "value": "https://www.smart-factory.kr/ids/cd/RatedPowerKw/1/0" } ] }, "valueType": "xs:double", "value": "0.29", "modelType": "Property" }
+      ],
+      "modelType": "Submodel"
+    }
+  ]
+}

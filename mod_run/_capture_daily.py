@@ -32,18 +32,8 @@ os.makedirs(OUT, exist_ok=True)
 
 
 def build_smoke_agent(state_dim):
-    ag = sv.PPOAgent(
-        NodeFeatureDim=int(GNN.NodeFeatureDim.value), HiddenDim=int(GNN.HiddenDim.value),
-        OutputDim=int(GNN.OutputDim.value), NumLayers=int(GNN.NumLayers.value),
-        GNNEmbeddingDim=int(GNN.OutputDim.value),
-        LearningRate=float(TC.LearningRate.value), ClipEpsilon=float(TC.ClipEpsilon.value),
-        Gamma=float(TC.Gamma.value), GaeLambda=float(TC.GaeLambda.value),
-        EntropyCoef=float(TC.EntropyCoef.value), ValueLossCoef=float(TC.ValueLossCoef.value),
-        UpdateEpochs=TC.UpdateEpochs.value, BatchSize=int(TC.BatchSize.value),
-        RuntimeVariables=SM.RuntimeVariables, StateDim=state_dim)
-    ag.load_state_dict(torch.load(SMOKE_CKPT))
-    ag.eval(); ag.reset_buffer()
-    return ag
+    import cpro_factory as cf                       # agent wiring 단일 구현
+    return cf.build_agent(StateDim=state_dim, checkpoint=SMOKE_CKPT)
 
 
 def capture(label, agent):
