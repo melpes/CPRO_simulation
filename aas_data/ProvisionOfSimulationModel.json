@@ -14805,119 +14805,148 @@
                     {
                       "category": "PARAMETER",
                       "idShort": "Actor",
-                      "semanticId": {
-                        "type": "ModelReference",
-                        "keys": [
-                          {
-                            "type": "ConceptDescription",
-                            "value": "https://www.smart-factory.kr/ids/cd/Actor/1/0"
-                          }
-                        ]
-                      },
+                      "description": [ { "language": "ko", "text": "Actor 계산그래프. ready 노드 임베딩+state(op_concat_state)→MLP(Linear/relu ×3)→score(Linear→1)→squeeze→softmax. Op=실제 import 경로/태스크 primitive. Linear in_features 는 wiring 으로 resolve. 입력=ready_emb,state / 출력=ready 위 행동분포." } ],
                       "value": [
-                        {
-                          "category": "PARAMETER",
-                          "idShort": "GNNEmbeddingDim",
-                          "semanticId": {
-                            "type": "ModelReference",
-                            "keys": [
-                              {
-                                "type": "ConceptDescription",
-                                "value": "https://www.smart-factory.kr/ids/cd/GNNEmbeddingDim/1/0"
-                              }
-                            ]
-                          },
-                          "value": {
-                            "type": "ExternalReference",
-                            "keys": [
-                              {
-                                "type": "GlobalReference",
-                                "value": "https://www.smart-factory.kr/ids/cd/OutputDim/1/0"
-                              }
-                            ]
-                          },
-                          "modelType": "ReferenceElement"
-                        }
+                        { "idShort": "ConcatenateState", "value": [
+                            { "idShort": "Operation", "valueType": "xs:string", "value": "simulation_ver1.op_concat_state", "modelType": "Property" },
+                            { "idShort": "Inputs", "value": [
+                                { "idShort": "x",     "valueType": "xs:string", "value": "ReadyNodeEmbeddings", "modelType": "Property" },
+                                { "idShort": "state", "valueType": "xs:string", "value": "StateVector",     "modelType": "Property" }
+                              ], "modelType": "SubmodelElementCollection" }
+                          ], "modelType": "SubmodelElementCollection" },
+                        { "idShort": "LinearLayer1", "value": [
+                            { "idShort": "Operation", "valueType": "xs:string", "value": "torch.nn.Linear", "modelType": "Property" },
+                            { "idShort": "Arguments", "value": [ { "idShort": "out_features", "valueType": "xs:int", "value": "64", "modelType": "Property" } ], "modelType": "SubmodelElementCollection" },
+                            { "idShort": "Inputs", "value": [ { "idShort": "input", "valueType": "xs:string", "value": "ConcatenateState", "modelType": "Property" } ], "modelType": "SubmodelElementCollection" }
+                          ], "modelType": "SubmodelElementCollection" },
+                        { "idShort": "Activation1", "value": [ { "idShort": "Operation", "valueType": "xs:string", "value": "torch.nn.functional.relu", "modelType": "Property" }, { "idShort": "Inputs", "value": [ { "idShort": "input", "valueType": "xs:string", "value": "LinearLayer1", "modelType": "Property" } ], "modelType": "SubmodelElementCollection" } ], "modelType": "SubmodelElementCollection" },
+                        { "idShort": "LinearLayer2", "value": [
+                            { "idShort": "Operation", "valueType": "xs:string", "value": "torch.nn.Linear", "modelType": "Property" },
+                            { "idShort": "Arguments", "value": [ { "idShort": "out_features", "valueType": "xs:int", "value": "64", "modelType": "Property" } ], "modelType": "SubmodelElementCollection" },
+                            { "idShort": "Inputs", "value": [ { "idShort": "input", "valueType": "xs:string", "value": "Activation1", "modelType": "Property" } ], "modelType": "SubmodelElementCollection" }
+                          ], "modelType": "SubmodelElementCollection" },
+                        { "idShort": "Activation2", "value": [ { "idShort": "Operation", "valueType": "xs:string", "value": "torch.nn.functional.relu", "modelType": "Property" }, { "idShort": "Inputs", "value": [ { "idShort": "input", "valueType": "xs:string", "value": "LinearLayer2", "modelType": "Property" } ], "modelType": "SubmodelElementCollection" } ], "modelType": "SubmodelElementCollection" },
+                        { "idShort": "LinearLayer3", "value": [
+                            { "idShort": "Operation", "valueType": "xs:string", "value": "torch.nn.Linear", "modelType": "Property" },
+                            { "idShort": "Arguments", "value": [ { "idShort": "out_features", "valueType": "xs:int", "value": "64", "modelType": "Property" } ], "modelType": "SubmodelElementCollection" },
+                            { "idShort": "Inputs", "value": [ { "idShort": "input", "valueType": "xs:string", "value": "Activation2", "modelType": "Property" } ], "modelType": "SubmodelElementCollection" }
+                          ], "modelType": "SubmodelElementCollection" },
+                        { "idShort": "Activation3", "value": [ { "idShort": "Operation", "valueType": "xs:string", "value": "torch.nn.functional.relu", "modelType": "Property" }, { "idShort": "Inputs", "value": [ { "idShort": "input", "valueType": "xs:string", "value": "LinearLayer3", "modelType": "Property" } ], "modelType": "SubmodelElementCollection" } ], "modelType": "SubmodelElementCollection" },
+                        { "idShort": "ScoreHead", "value": [
+                            { "idShort": "Operation", "valueType": "xs:string", "value": "torch.nn.Linear", "modelType": "Property" },
+                            { "idShort": "Arguments", "value": [ { "idShort": "out_features", "valueType": "xs:int", "value": "1", "modelType": "Property" } ], "modelType": "SubmodelElementCollection" },
+                            { "idShort": "Inputs", "value": [ { "idShort": "input", "valueType": "xs:string", "value": "Activation3", "modelType": "Property" } ], "modelType": "SubmodelElementCollection" }
+                          ], "modelType": "SubmodelElementCollection" },
+                        { "idShort": "SqueezeLast", "value": [ { "idShort": "Operation", "valueType": "xs:string", "value": "simulation_ver1.op_squeeze_last", "modelType": "Property" }, { "idShort": "Inputs", "value": [ { "idShort": "input", "valueType": "xs:string", "value": "ScoreHead", "modelType": "Property" } ], "modelType": "SubmodelElementCollection" } ], "modelType": "SubmodelElementCollection" },
+                        { "idShort": "Softmax", "value": [ { "idShort": "Operation", "valueType": "xs:string", "value": "torch.nn.functional.softmax", "modelType": "Property" }, { "idShort": "Arguments", "value": [ { "idShort": "dim", "valueType": "xs:int", "value": "-1", "modelType": "Property" } ], "modelType": "SubmodelElementCollection" }, { "idShort": "Inputs", "value": [ { "idShort": "input", "valueType": "xs:string", "value": "SqueezeLast", "modelType": "Property" } ], "modelType": "SubmodelElementCollection" } ], "modelType": "SubmodelElementCollection" }
                       ],
                       "modelType": "SubmodelElementCollection"
                     },
                     {
                       "category": "PARAMETER",
                       "idShort": "Critic",
-                      "semanticId": {
-                        "type": "ModelReference",
-                        "keys": [
-                          {
-                            "type": "ConceptDescription",
-                            "value": "https://www.smart-factory.kr/ids/cd/Critic/1/0"
-                          }
-                        ]
-                      },
+                      "description": [ { "language": "ko", "text": "Critic 계산그래프. pooled 임베딩+state(op_concat_state)→MLP(Linear/relu ×3)→value(Linear→1). 입력=pooled_emb,state / 출력=스칼라 V(s)." } ],
                       "value": [
-                        {
-                          "category": "PARAMETER",
-                          "idShort": "GNNEmbeddingDim",
-                          "semanticId": {
-                            "type": "ModelReference",
-                            "keys": [
-                              {
-                                "type": "ConceptDescription",
-                                "value": "https://www.smart-factory.kr/ids/cd/GNNEmbeddingDim/1/0"
-                              }
-                            ]
-                          },
-                          "value": {
-                            "type": "ExternalReference",
-                            "keys": [
-                              {
-                                "type": "GlobalReference",
-                                "value": "https://www.smart-factory.kr/ids/cd/OutputDim/1/0"
-                              }
-                            ]
-                          },
-                          "modelType": "ReferenceElement"
-                        }
+                        { "idShort": "ConcatenateState", "value": [
+                            { "idShort": "Operation", "valueType": "xs:string", "value": "simulation_ver1.op_concat_state", "modelType": "Property" },
+                            { "idShort": "Inputs", "value": [
+                                { "idShort": "x",     "valueType": "xs:string", "value": "PooledNodeEmbedding", "modelType": "Property" },
+                                { "idShort": "state", "valueType": "xs:string", "value": "StateVector",      "modelType": "Property" }
+                              ], "modelType": "SubmodelElementCollection" }
+                          ], "modelType": "SubmodelElementCollection" },
+                        { "idShort": "LinearLayer1", "value": [
+                            { "idShort": "Operation", "valueType": "xs:string", "value": "torch.nn.Linear", "modelType": "Property" },
+                            { "idShort": "Arguments", "value": [ { "idShort": "out_features", "valueType": "xs:int", "value": "64", "modelType": "Property" } ], "modelType": "SubmodelElementCollection" },
+                            { "idShort": "Inputs", "value": [ { "idShort": "input", "valueType": "xs:string", "value": "ConcatenateState", "modelType": "Property" } ], "modelType": "SubmodelElementCollection" }
+                          ], "modelType": "SubmodelElementCollection" },
+                        { "idShort": "Activation1", "value": [ { "idShort": "Operation", "valueType": "xs:string", "value": "torch.nn.functional.relu", "modelType": "Property" }, { "idShort": "Inputs", "value": [ { "idShort": "input", "valueType": "xs:string", "value": "LinearLayer1", "modelType": "Property" } ], "modelType": "SubmodelElementCollection" } ], "modelType": "SubmodelElementCollection" },
+                        { "idShort": "LinearLayer2", "value": [
+                            { "idShort": "Operation", "valueType": "xs:string", "value": "torch.nn.Linear", "modelType": "Property" },
+                            { "idShort": "Arguments", "value": [ { "idShort": "out_features", "valueType": "xs:int", "value": "64", "modelType": "Property" } ], "modelType": "SubmodelElementCollection" },
+                            { "idShort": "Inputs", "value": [ { "idShort": "input", "valueType": "xs:string", "value": "Activation1", "modelType": "Property" } ], "modelType": "SubmodelElementCollection" }
+                          ], "modelType": "SubmodelElementCollection" },
+                        { "idShort": "Activation2", "value": [ { "idShort": "Operation", "valueType": "xs:string", "value": "torch.nn.functional.relu", "modelType": "Property" }, { "idShort": "Inputs", "value": [ { "idShort": "input", "valueType": "xs:string", "value": "LinearLayer2", "modelType": "Property" } ], "modelType": "SubmodelElementCollection" } ], "modelType": "SubmodelElementCollection" },
+                        { "idShort": "LinearLayer3", "value": [
+                            { "idShort": "Operation", "valueType": "xs:string", "value": "torch.nn.Linear", "modelType": "Property" },
+                            { "idShort": "Arguments", "value": [ { "idShort": "out_features", "valueType": "xs:int", "value": "64", "modelType": "Property" } ], "modelType": "SubmodelElementCollection" },
+                            { "idShort": "Inputs", "value": [ { "idShort": "input", "valueType": "xs:string", "value": "Activation2", "modelType": "Property" } ], "modelType": "SubmodelElementCollection" }
+                          ], "modelType": "SubmodelElementCollection" },
+                        { "idShort": "Activation3", "value": [ { "idShort": "Operation", "valueType": "xs:string", "value": "torch.nn.functional.relu", "modelType": "Property" }, { "idShort": "Inputs", "value": [ { "idShort": "input", "valueType": "xs:string", "value": "LinearLayer3", "modelType": "Property" } ], "modelType": "SubmodelElementCollection" } ], "modelType": "SubmodelElementCollection" },
+                        { "idShort": "ValueHead", "value": [
+                            { "idShort": "Operation", "valueType": "xs:string", "value": "torch.nn.Linear", "modelType": "Property" },
+                            { "idShort": "Arguments", "value": [ { "idShort": "out_features", "valueType": "xs:int", "value": "1", "modelType": "Property" } ], "modelType": "SubmodelElementCollection" },
+                            { "idShort": "Inputs", "value": [ { "idShort": "input", "valueType": "xs:string", "value": "Activation3", "modelType": "Property" } ], "modelType": "SubmodelElementCollection" }
+                          ], "modelType": "SubmodelElementCollection" }
                       ],
                       "modelType": "SubmodelElementCollection"
-                    },
-                    {
-                      "category": "PARAMETER",
-                      "idShort": "NumLayers",
-                      "description": [
-                        {
-                          "language": "en",
-                          "text": "PPO 내부 Actor, Critic이 공유"
-                        }
-                      ],
-                      "semanticId": {
-                        "type": "ModelReference",
-                        "keys": [
-                          {
-                            "type": "ConceptDescription",
-                            "value": "https://www.smart-factory.kr/ids/cd/NumLayers/1/0"
-                          }
-                        ]
-                      },
-                      "valueType": "xs:int",
-                      "value": "2",
-                      "modelType": "Property"
-                    },
-                    {
-                      "category": "PARAMETER",
-                      "idShort": "HiddenDim",
-                      "semanticId": {
-                        "type": "ModelReference",
-                        "keys": [
-                          {
-                            "type": "ConceptDescription",
-                            "value": "https://www.smart-factory.kr/ids/cd/HiddenDim/1/0"
-                          }
-                        ]
-                      },
-                      "valueType": "xs:int",
-                      "value": "64",
-                      "modelType": "Property"
                     }
+                  ],
+                  "modelType": "SubmodelElementCollection"
+                },
+                {
+                  "category": "PARAMETER",
+                  "idShort": "Observation",
+                  "description": [ { "language": "ko", "text": "RL 외부 입력 구성. ObservationNodeFeatures = GNN 노드 피처를 이루는 ProcessNode 속성들의 CD ref(순서=피처 벡터 순서). to_pyg_data 가 노드마다 이 CD들의 값을 모아 입력 행렬 생성 → NodeFeatureDim=ref 개수. 피처 변경=본 리스트 편집(코드 무수정)." } ],
+                  "value": [
+                    {
+                      "idShort": "ObservationNodeFeatures",
+                      "typeValueListElement": "ReferenceElement",
+                      "orderRelevant": true,
+                      "value": [
+                        { "idShort": "", "modelType": "ReferenceElement", "value": { "type": "ExternalReference", "keys": [ { "type": "GlobalReference", "value": "https://www.smart-factory.kr/ids/cd/CycleTimeSec/1/0" } ] } },
+                        { "idShort": "", "modelType": "ReferenceElement", "value": { "type": "ExternalReference", "keys": [ { "type": "GlobalReference", "value": "https://www.smart-factory.kr/ids/cd/DefectRate/1/0" } ] } },
+                        { "idShort": "", "modelType": "ReferenceElement", "value": { "type": "ExternalReference", "keys": [ { "type": "GlobalReference", "value": "https://www.smart-factory.kr/ids/cd/RatedPowerKw/1/0" } ] } }
+                      ],
+                      "modelType": "SubmodelElementList"
+                    }
+                  ],
+                  "modelType": "SubmodelElementCollection"
+                },
+                {
+                  "category": "PARAMETER",
+                  "idShort": "Encoder",
+                  "description": [
+                    { "language": "ko", "text": "인코더 계산그래프. 각 노드: Op=실제 import 경로(라이브러리 클래스/함수), Args=생성자 인자, In={forward 파라미터: 소스(obs.x/obs.edge_index 또는 다른 노드 id)}. build_agent 제네릭 해석기가 importlib 로 가져와 wiring — 공정 노드 생성처럼 구조는 AAS, 코드는 해석만. 아키텍처 변경=본 SME 편집(코드 무수정). 출력=마지막 노드." }
+                  ],
+                  "value": [
+                    { "idShort": "GraphConvolution1", "value": [
+                        { "idShort": "Operation", "valueType": "xs:string", "value": "torch_geometric.nn.GCNConv", "modelType": "Property" },
+                        { "idShort": "Arguments", "value": [
+                            { "idShort": "out_channels", "valueType": "xs:int", "value": "64", "modelType": "Property" }
+                          ], "modelType": "SubmodelElementCollection" },
+                        { "idShort": "Inputs", "value": [
+                            { "idShort": "x",          "valueType": "xs:string", "value": "ObservationNodeFeatures",          "modelType": "Property" },
+                            { "idShort": "edge_index", "valueType": "xs:string", "value": "ObservationEdgeIndex", "modelType": "Property" }
+                          ], "modelType": "SubmodelElementCollection" }
+                      ], "modelType": "SubmodelElementCollection" },
+                    { "idShort": "Activation1", "value": [
+                        { "idShort": "Operation", "valueType": "xs:string", "value": "torch.nn.functional.relu", "modelType": "Property" },
+                        { "idShort": "Inputs", "value": [ { "idShort": "input", "valueType": "xs:string", "value": "GraphConvolution1", "modelType": "Property" } ], "modelType": "SubmodelElementCollection" }
+                      ], "modelType": "SubmodelElementCollection" },
+                    { "idShort": "GraphConvolution2", "value": [
+                        { "idShort": "Operation", "valueType": "xs:string", "value": "torch_geometric.nn.GCNConv", "modelType": "Property" },
+                        { "idShort": "Arguments", "value": [
+                            { "idShort": "out_channels", "valueType": "xs:int", "value": "64", "modelType": "Property" }
+                          ], "modelType": "SubmodelElementCollection" },
+                        { "idShort": "Inputs", "value": [
+                            { "idShort": "x",          "valueType": "xs:string", "value": "Activation1",             "modelType": "Property" },
+                            { "idShort": "edge_index", "valueType": "xs:string", "value": "ObservationEdgeIndex", "modelType": "Property" }
+                          ], "modelType": "SubmodelElementCollection" }
+                      ], "modelType": "SubmodelElementCollection" },
+                    { "idShort": "Activation2", "value": [
+                        { "idShort": "Operation", "valueType": "xs:string", "value": "torch.nn.functional.relu", "modelType": "Property" },
+                        { "idShort": "Inputs", "value": [ { "idShort": "input", "valueType": "xs:string", "value": "GraphConvolution2", "modelType": "Property" } ], "modelType": "SubmodelElementCollection" }
+                      ], "modelType": "SubmodelElementCollection" },
+                    { "idShort": "GraphConvolution3", "value": [
+                        { "idShort": "Operation", "valueType": "xs:string", "value": "torch_geometric.nn.GCNConv", "modelType": "Property" },
+                        { "idShort": "Arguments", "value": [
+                            { "idShort": "out_channels", "valueType": "xs:int", "value": "32", "modelType": "Property" }
+                          ], "modelType": "SubmodelElementCollection" },
+                        { "idShort": "Inputs", "value": [
+                            { "idShort": "x",          "valueType": "xs:string", "value": "Activation2",             "modelType": "Property" },
+                            { "idShort": "edge_index", "valueType": "xs:string", "value": "ObservationEdgeIndex", "modelType": "Property" }
+                          ], "modelType": "SubmodelElementCollection" }
+                      ], "modelType": "SubmodelElementCollection" }
                   ],
                   "modelType": "SubmodelElementCollection"
                 }

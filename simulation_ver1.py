@@ -58,9 +58,10 @@ class KnowledgeGraph:
 #        'worker_count': 2,
 #        'ProcessCode' : ['VD7_10', 'VD7_10_1', 'VD7_10_2', 'VD7_10_3',
 #                         'BT5_10', 'BT5_11', ...]
+    NodeFeatureAttrs : list | None = None  #← ModelArchitecture.Observation.ObservationNodeFeatures.attrs() — GNN 노드 피처 속성명(순서=벡터 순서). to_pyg_data 가 노드별 getattr. None=RL 미사용(예 gantt).
 
     @classmethod
-    def build(cls, ManufacturingProcesses, workers, shared_groups=None) -> 'KnowledgeGraph':
+    def build(cls, ManufacturingProcesses, workers, shared_groups=None, node_feature_attrs=None) -> 'KnowledgeGraph':
         # ManufacturingProcesses: {model_id: ManufacturingProcess submodel}  ← 모델별 MP
         # shared_groups: {GroupIdShort: ProcessGroup SMC}  ← PSM 의 ProcessOQC/ProcessRMA. model_id='ALL' 노드 — 공용 설비.
         nodes = {}
@@ -106,7 +107,7 @@ class KnowledgeGraph:
             for GroupIdShort, group in shared_groups.items():
                 for ProcessCode, ProcessNode in group.value.items():
                     _add_node('ALL', GroupIdShort, ProcessCode, ProcessNode)
-        return cls(nodes, edges, workers)
+        return cls(nodes, edges, workers, node_feature_attrs)
     
     def _bom_satisfied(self, ProcessCode: str, warehouse: Warehouse) -> bool:
         InputBOM = self.nodes[ProcessCode].InputBOM
@@ -161,12 +162,14 @@ class KnowledgeGraph:
         node_list     = list(self.nodes.keys())
         node_index    = {ProcessCode: i for i, ProcessCode in enumerate(node_list)}
 
+        if self.NodeFeatureAttrs is None:                              # AAS ObservationNodeFeatures 미주입 (fallback 금지)
+            raise RuntimeError('KnowledgeGraph.NodeFeatureAttrs 미설정 — to_pyg_data 는 ModelArchitecture.Observation.ObservationNodeFeatures 필요')
+        sample  = next(iter(self.nodes.values()))
+        missing = [attr for attr in self.NodeFeatureAttrs if not hasattr(sample, attr)]
+        if missing:                                                    # CD tail 이 GraphNode flatten 필드가 아님 — loud
+            raise RuntimeError(f'ObservationNodeFeatures 항목이 GraphNode 속성이 아님: {missing}')
         x = torch.tensor([
-            [
-                self.nodes[ProcessCode].CycleTimeSec,
-                self.nodes[ProcessCode].DefectRate,
-                self.nodes[ProcessCode].RatedPowerKw,
-            ]
+            [getattr(self.nodes[ProcessCode], attr) for attr in self.NodeFeatureAttrs]
             for ProcessCode in node_list
         ], dtype=torch.float)
         edge_src = []
@@ -350,15 +353,17 @@ class Critic(torch.nn.Module):
         return value
     
 class PPOAgent(torch.nn.Module):
-    def __init__(self, NodeFeatureDim, HiddenDim, OutputDim, NumLayers,
-                 GNNEmbeddingDim, LearningRate, ClipEpsilon, Gamma,
-                 GaeLambda, EntropyCoef, ValueLossCoef, UpdateEpochs, BatchSize,
-                 RuntimeVariables, StateDim=0):
+    def __init__(self, *, encoder, actor, critic, StateDim,
+                 LearningRate, ClipEpsilon, Gamma, GaeLambda,
+                 EntropyCoef, ValueLossCoef, UpdateEpochs, BatchSize, RuntimeVariables):
+        # 아키텍처(encoder/actor/critic)는 해석기(cf.build_agent)가 BLOCK_REGISTRY 로 빌드해 주입.
+        # AAS ModelArchitecture.Network 가 조립을 기술하고 코드 팔레트가 빌더를 보유 — 여기선 받기만.
+        # submodule 속성명(GNNEncoder/Actor/Critic)은 state_dict 호환 위해 고정.
         super().__init__()
         self.StateDim        = StateDim
-        self.GNNEncoder      = GNNEncoder(NodeFeatureDim, HiddenDim, OutputDim, NumLayers)
-        self.Actor           = Actor(GNNEmbeddingDim, HiddenDim, NumLayers, StateDim=StateDim)
-        self.Critic          = Critic(GNNEmbeddingDim, HiddenDim, NumLayers, StateDim=StateDim)
+        self.GNNEncoder      = encoder
+        self.Actor           = actor
+        self.Critic          = critic
         self.ClipEpsilon     = ClipEpsilon
         self.Gamma           = Gamma
         self.GaeLambda       = GaeLambda
@@ -378,12 +383,12 @@ class PPOAgent(torch.nn.Module):
         # ready_pcs 는 distinct 공정 코드 리스트(디스패처가 중복 압축해 전달) — 큐 깊이가 아니라
         # 공정 타입 위 분포를 학습. 저장값은 전부 스칼라/snapshot 텐서라 grad 불요. buf 는 학습·평가 양쪽 다.
         data, node_list  = env.KnowledgeGraph.to_pyg_data()
-        embeddings       = self.GNNEncoder(data)
+        embeddings       = self.GNNEncoder(**{'ObservationNodeFeatures': data.x, 'ObservationEdgeIndex': data.edge_index})
         ready_emb        = torch.stack([embeddings[node_list.index(pc)] for pc in ready_pcs])
         state            = env.state_vec() if self.StateDim > 0 else None    # 결정점 동적 관측
-        dist             = torch.distributions.Categorical(self.Actor(ready_emb, state))
+        dist             = torch.distributions.Categorical(self.Actor(ReadyNodeEmbeddings=ready_emb, StateVector=state))
         idx              = dist.sample() if self.training else dist.probs.argmax()
-        value            = self.Critic(ready_emb.mean(dim=0, keepdim=True), state).squeeze()
+        value            = self.Critic(PooledNodeEmbedding=ready_emb.mean(dim=0, keepdim=True), StateVector=state).squeeze()
         self.buf.append({'ready': list(ready_pcs), 'idx': int(idx.item()),
                          'logp': dist.log_prob(idx),                          # no_grad 컨텍스트 — grad_fn 없음
                          'value': value,
@@ -423,13 +428,13 @@ class PPOAgent(torch.nn.Module):
             new_logp, entropy, value_preds = [], [], []
             data, node_list = KnowledgeGraph.to_pyg_data()
             for b in self.buf:
-                embeddings = self.GNNEncoder(data)
+                embeddings = self.GNNEncoder(**{'ObservationNodeFeatures': data.x, 'ObservationEdgeIndex': data.edge_index})
                 ready_emb  = torch.stack([embeddings[node_list.index(pc)] for pc in b['ready']])
                 state      = b['state']                                          # 결정점 시점 snapshot 재사용
-                dist       = torch.distributions.Categorical(self.Actor(ready_emb, state))
+                dist       = torch.distributions.Categorical(self.Actor(ReadyNodeEmbeddings=ready_emb, StateVector=state))
                 new_logp.append(dist.log_prob(torch.tensor(b['idx'])))
                 entropy.append(dist.entropy())
-                value_preds.append(self.Critic(ready_emb.mean(dim=0, keepdim=True), state).squeeze())
+                value_preds.append(self.Critic(PooledNodeEmbedding=ready_emb.mean(dim=0, keepdim=True), StateVector=state).squeeze())
             new_logp    = torch.stack(new_logp)
             entropy     = torch.stack(entropy)
             value_preds = torch.stack(value_preds)
@@ -466,6 +471,70 @@ class PPOAgent(torch.nn.Module):
                 'exploration/entropy'      : float(entropy.mean()),
                 'actor/loss'               : float(actor_loss),
             }
+
+#========RL 계산그래프 해석기 (코드 = import + wire, 아키텍처 = AAS)========
+# AAS ModelArchitecture 의 계산그래프(op 노드: Op=import 경로 / Args=생성자 인자 / In=named 입력)를
+# 제네릭하게 조립한다. 코드는 아키텍처를 '표현'하지 않는다 — importlib 로 실제 클래스/함수를 가져와
+# named 텐서로 wiring 할 뿐. (공정 노드 생성과 동일: 구조는 AAS, 코드는 해석.)
+# 새 모델/레이어 = AAS 에 Op 경로만 — 코드 무수정(import 가능한 무엇이든).
+import importlib
+
+def import_callable(path: str):
+    """'torch_geometric.nn.GCNConv' → 클래스/함수 객체. AAS Op 가 가리키는 실제 라이브러리/primitive."""
+    module, name = path.rsplit('.', 1)
+    return getattr(importlib.import_module(module), name)
+
+# 태스크 primitive (라이브러리 레이어가 아닌 RL 태스크 op — AAS Op 가 경로로 참조). 최소 코드.
+def op_concat_state(x, state=None):
+    """노드 임베딩 x 에 state 벡터를 행 broadcast 해 concat. state=None(StateDim=0) 이면 x 그대로."""
+    if state is None:
+        return x
+    return torch.cat([x, state.unsqueeze(0).expand(x.size(0), -1)], dim=-1)
+
+def op_squeeze_last(input):
+    return input.squeeze(-1)
+
+
+class GraphModule(torch.nn.Module):
+    """계산그래프 spec 으로 net 조립. spec=[{'id','Op','Args','In'}], In={forward param: source}.
+    source = 다른 노드 id 또는 외부 입력 이름(예 obs.x/edge_index/ready_emb/pooled_emb/state).
+    파라미터 보유 모듈만 등록·학습; 함수(relu/softmax/primitive)는 매 forward 호출(Args 는 호출 인자).
+    Linear in_features 처럼 런타임 의존 차원은 wiring 으로 resolve — source_dims(외부 입력 차원)로 추론.
+    코드는 아키텍처를 표현하지 않는다 (import + wire + 최소 dim 추론)."""
+    def __init__(self, spec, source_dims=None):
+        super().__init__()
+        self.spec = spec
+        self.mods = torch.nn.ModuleDict()
+        dim = dict(source_dims or {})                                  # node id/입력 → 출력 feature dim
+        for node in spec:
+            operation = node['Operation']
+            arguments = dict(node.get('Arguments', {}))
+            in_dim    = {param: dim.get(src) for param, src in node['Inputs'].items()}
+            callable_ = import_callable(operation)
+            if isinstance(callable_, type) and issubclass(callable_, torch.nn.Module):
+                if operation.endswith('Linear') and 'in_features' not in arguments:
+                    arguments['in_features'] = in_dim['input']         # wiring resolve (입력 노드 출력차원)
+                elif operation.endswith('GCNConv') and 'in_channels' not in arguments:
+                    arguments['in_channels'] = in_dim['x']             # wiring resolve (x 소스 = ObservationNodeFeatures 개수/이전 conv out)
+                self.mods[node['id']] = callable_(**arguments)
+                out_dim = arguments.get('out_features', arguments.get('out_channels'))
+            elif operation.endswith('op_concat_state'):
+                out_dim = (in_dim.get('x') or 0) + (in_dim.get('state') or 0)   # 입력 노드 차원 합 (state=StateVector source)
+            else:                                                      # relu/softmax/squeeze 등 passthrough
+                out_dim = next((d for d in in_dim.values() if d is not None), None)
+            dim[node['id']] = out_dim
+
+    def forward(self, **sources):
+        vals = dict(sources)
+        out = None
+        for node in self.spec:
+            bound = {param: vals[src] for param, src in node['Inputs'].items()}
+            if node['id'] in self.mods:
+                out = self.mods[node['id']](**bound)                   # 모듈: Arguments 는 생성 때 소비
+            else:
+                out = import_callable(node['Operation'])(**bound, **node.get('Arguments', {}))   # 함수: Arguments 를 호출 인자로
+            vals[node['id']] = out
+        return out
 
 #========시뮬레이션 환경========-
 class CproSimEnv:

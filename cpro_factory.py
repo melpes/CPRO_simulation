@@ -64,7 +64,8 @@ def build_simulation(aas_dir: Optional[str] = None, *,
     shared_groups          = {name: group
                               for name, group in SimulationModel.KnowledgeGraph.Node.value.items()
                               if name in shared_group_names}
-    KnowledgeGraph = sv.KnowledgeGraph.build(ManufacturingProcesses, PSM.workers, shared_groups)
+    NodeFeatureAttrs = SimulationModel.ModelArchitecture.Observation.ObservationNodeFeatures.attrs()  #← GNN 노드 피처 구성(CD ref → 속성명)
+    KnowledgeGraph   = sv.KnowledgeGraph.build(ManufacturingProcesses, PSM.workers, shared_groups, node_feature_attrs=NodeFeatureAttrs)
     warehouse      = sv.Warehouse.build(PSM.CoManagedBOM, SimulationModel.Warehouse.MinStock.target)
 
     if MaxEpisodes is None:
@@ -124,19 +125,36 @@ def build_agent(env=None, *, StateDim: Optional[int] = None, checkpoint: Optiona
     import torch
     import simulation_ver1 as sv
 
-    SimulationModel = ProvisionofSimulationModelsAAS.SimulationModels.SimulationModel
-    GNN             = SimulationModel.ModelArchitecture.GNN                            #← ModelArchitecture.GNN
-    TrainingConfig  = SimulationModel.ModelArchitecture.PPO.TrainingConfig             #← ModelArchitecture.PPO.TrainingConfig
+    SimulationModel   = ProvisionofSimulationModelsAAS.SimulationModels.SimulationModel
+    ModelArchitecture = SimulationModel.ModelArchitecture
+    PPO               = ModelArchitecture.PPO                                          #← Actor/Critic 계산그래프 + TrainingConfig
+    TrainingConfig    = PPO.TrainingConfig                                             #← PPO 하이퍼파라미터
 
     if StateDim is None:
         StateDim = env.state_dim if env is not None else 0
 
+    # 전 네트워크(encoder/actor/critic) = AAS 계산그래프(op 노드) → 제네릭 해석기(GraphModule). 코드는 import+wire.
+    # 각 노드: Op=실제 import 경로/태스크 primitive, Args=생성자 인자, In={forward param: source}.
+    def _graph_spec(graph_smc):
+        spec = []
+        for node_id, node in graph_smc.value.items():
+            operation = node.Operation.value
+            arguments = {name: child.value for name, child in node.value['Arguments'].value.items()} if 'Arguments' in node.value else {}
+            inputs    = {name: child.value for name, child in node.value['Inputs'].value.items()}      if 'Inputs'    in node.value else {}
+            spec.append({'id': node_id, 'Operation': operation, 'Arguments': arguments, 'Inputs': inputs})
+        return spec
+
+    NodeFeatureDim = len(ModelArchitecture.Observation.ObservationNodeFeatures)          #← 노드 피처 개수 = GNN 입력차원
+    encoder = sv.GraphModule(_graph_spec(ModelArchitecture.Encoder),
+                             source_dims={'ObservationNodeFeatures': NodeFeatureDim, 'ObservationEdgeIndex': None})
+    embedding_dim = next(node['Arguments']['out_channels'] for node in reversed(encoder.spec)
+                         if 'out_channels' in node.get('Arguments', {}))                # 인코더 출력차원 = 마지막 conv out
+    # actor/critic 도 계산그래프. source_dims 로 Linear in_features(=embedding+state) 를 wiring resolve.
+    actor   = sv.GraphModule(_graph_spec(PPO.Actor),  source_dims={'ReadyNodeEmbeddings':  embedding_dim, 'StateVector': StateDim})
+    critic  = sv.GraphModule(_graph_spec(PPO.Critic), source_dims={'PooledNodeEmbedding': embedding_dim, 'StateVector': StateDim})
+
     agent = sv.PPOAgent(
-        NodeFeatureDim   = int(GNN.NodeFeatureDim.value),
-        HiddenDim        = int(GNN.HiddenDim.value),
-        OutputDim        = int(GNN.OutputDim.value),
-        NumLayers        = int(GNN.NumLayers.value),
-        GNNEmbeddingDim  = int(GNN.OutputDim.value),                                   #← PPO.Actor.GNNEmbeddingDim → OutputDim
+        encoder=encoder, actor=actor, critic=critic, StateDim=StateDim,
         LearningRate     = float(TrainingConfig.LearningRate.value),
         ClipEpsilon      = float(TrainingConfig.ClipEpsilon.value),
         Gamma            = float(TrainingConfig.Gamma.value),
@@ -146,7 +164,6 @@ def build_agent(env=None, *, StateDim: Optional[int] = None, checkpoint: Optiona
         UpdateEpochs     = TrainingConfig.UpdateEpochs.value,
         BatchSize        = int(TrainingConfig.BatchSize.value),
         RuntimeVariables = SimulationModel.RuntimeVariables,
-        StateDim         = StateDim,
     )
     if checkpoint is not None:
         agent.load_state_dict(torch.load(checkpoint))
