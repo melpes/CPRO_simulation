@@ -481,7 +481,7 @@ class InputBOM(SubmodelElementList):
 @dataclass(kw_only=True)
 class ObservationNodeFeatures(SubmodelElementList):
     """GNN 노드 피처 구성 — 각 ReferenceElement 가 ProcessNode 속성의 CD 를 가리킴(순서=피처 벡터 순서).
-    attrs() = 그 CD 들의 idShort 리스트 = to_pyg_data 가 노드마다 getattr 할 속성명. NodeFeatureDim=len."""
+    attrs() = 그 CD 들의 idShort 리스트 = obs_node_features 가 노드마다 getattr 할 속성명. NodeFeatureDim=len."""
     _positions: ClassVar[List[Tuple[str, ...]]] = [
         ('SimulationModels', 'SimulationModel', 'ModelArchitecture', 'Observation', 'ObservationNodeFeatures')]
 

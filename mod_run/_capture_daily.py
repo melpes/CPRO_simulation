@@ -16,7 +16,7 @@ _DIR  = os.path.dirname(os.path.abspath(__file__))
 _ROOT = os.path.dirname(_DIR)
 sys.path.insert(0, _DIR); sys.path.insert(0, _ROOT)
 
-import _capture_oqc as cap        # AAS load + RecEnv + make_env + GNN/TC 상수 재사용
+import _capture_oqc as cap        # AAS load + RecEnv + make_env 재사용
 import simulation_ver1 as sv
 
 SM  = cap.SM
