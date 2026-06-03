@@ -13,8 +13,6 @@ import cpro_ver1_viz as viz          # AAS load 트리거(path_extractor 캐시 
 import path_extractor as pe
 PSM = pe.ProvisionofSimulationModelsAAS
 SM  = PSM.SimulationModels.SimulationModel
-GNN = SM.ModelArchitecture.GNN
-TC  = SM.ModelArchitecture.PPO.TrainingConfig
 
 import cpro_factory as cf                             # agent wiring 단일 구현
 CKPT = os.path.join(_DIR,'result','runs','b2_horizon_60ep_orig_05-19_StateDim0','agent_horizon_qty100_baseline.pt')

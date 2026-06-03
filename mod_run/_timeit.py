@@ -19,9 +19,6 @@ SM  = PSM.SimulationModels.SimulationModel
 A   = SM.KnowledgeGraph.Action
 DP  = SM.DefaultParameters
 RW  = SM.RewardWeights
-GNN = SM.ModelArchitecture.GNN
-PPO = SM.ModelArchitecture.PPO
-TC  = PPO.TrainingConfig
 
 
 def build(modname, qty, ep):

@@ -18,7 +18,7 @@ sys.path.insert(0, _DIR); sys.path.insert(0, _ROOT)
 import _capture_oqc as cap        # AAS load + RecEnv + make_env + GNN/TC 상수
 import simulation_ver1 as sv
 
-SM, GNN, TC = cap.SM, cap.GNN, cap.TC
+SM = cap.SM
 
 RUN_NAME = time.strftime('%m%d%H%M') + '_eval_compare'
 OUT      = os.path.join(_DIR, 'result', 'runs', RUN_NAME)

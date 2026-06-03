@@ -25,8 +25,6 @@ SM  = PSM.SimulationModels.SimulationModel
 A   = SM.KnowledgeGraph.Action
 DP  = SM.DefaultParameters
 RW  = SM.RewardWeights
-GNN = SM.ModelArchitecture.GNN
-TC  = SM.ModelArchitecture.PPO.TrainingConfig
 
 # 현재 시각 기반 폴더명 (MMDDHHMM)
 RUN_NAME = time.strftime('%m%d%H%M') + '_aging_cycle'

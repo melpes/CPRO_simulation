@@ -14567,100 +14567,18 @@
               },
               "value": [
                 {
-                  "category": "PARAMETER",
-                  "idShort": "GNN",
-                  "semanticId": {
-                    "type": "ModelReference",
-                    "keys": [
-                      {
-                        "type": "ConceptDescription",
-                        "value": "https://www.smart-factory.kr/ids/cd/GNN/1/0"
-                      }
-                    ]
-                  },
+                  "idShort": "Algorithm",
+                  "description": [ { "language": "ko", "text": "RL 알고리즘 selector. Operation=import 경로(절차 클래스 — forward 없음, choose/learn). Arguments=하이퍼파라미터. 네트워크(Encoder/Actor/Critic forward 그래프)는 build_architecture 가 빌드해 주입. 알고리즘 교체=Operation 변경." } ],
                   "value": [
                     {
-                      "category": "PARAMETER",
-                      "idShort": "NodeFeatureDim",
-                      "semanticId": {
-                        "type": "ModelReference",
-                        "keys": [
-                          {
-                            "type": "ConceptDescription",
-                            "value": "https://www.smart-factory.kr/ids/cd/NodeFeatureDim/1/0"
-                          }
-                        ]
-                      },
-                      "valueType": "xs:int",
-                      "value": "3",
+                      "idShort": "Operation",
+                      "valueType": "xs:string",
+                      "value": "simulation_ver1.PPOAgent",
                       "modelType": "Property"
                     },
                     {
                       "category": "PARAMETER",
-                      "idShort": "OutputDim",
-                      "semanticId": {
-                        "type": "ModelReference",
-                        "keys": [
-                          {
-                            "type": "ConceptDescription",
-                            "value": "https://www.smart-factory.kr/ids/cd/OutputDim/1/0"
-                          }
-                        ]
-                      },
-                      "valueType": "xs:int",
-                      "value": "32",
-                      "modelType": "Property"
-                    },
-                    {
-                      "category": "PARAMETER",
-                      "idShort": "NumLayers",
-                      "semanticId": {
-                        "type": "ModelReference",
-                        "keys": [
-                          {
-                            "type": "ConceptDescription",
-                            "value": "https://www.smart-factory.kr/ids/cd/NumLayers/1/0"
-                          }
-                        ]
-                      },
-                      "valueType": "xs:int",
-                      "value": "3",
-                      "modelType": "Property"
-                    },
-                    {
-                      "category": "PARAMETER",
-                      "idShort": "HiddenDim",
-                      "semanticId": {
-                        "type": "ModelReference",
-                        "keys": [
-                          {
-                            "type": "ConceptDescription",
-                            "value": "https://www.smart-factory.kr/ids/cd/HiddenDim/1/0"
-                          }
-                        ]
-                      },
-                      "valueType": "xs:int",
-                      "value": "64",
-                      "modelType": "Property"
-                    }
-                  ],
-                  "modelType": "SubmodelElementCollection"
-                },
-                {
-                  "idShort": "PPO",
-                  "semanticId": {
-                    "type": "ModelReference",
-                    "keys": [
-                      {
-                        "type": "ConceptDescription",
-                        "value": "https://www.smart-factory.kr/ids/cd/PPO/1/0"
-                      }
-                    ]
-                  },
-                  "value": [
-                    {
-                      "category": "PARAMETER",
-                      "idShort": "TrainingConfig",
+                      "idShort": "Arguments",
                       "semanticId": {
                         "type": "ModelReference",
                         "keys": [

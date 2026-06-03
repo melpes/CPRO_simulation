@@ -20,8 +20,6 @@ import _capture_oqc as cap        # AAS load + RecEnv + make_env + GNN/TC 상수
 import simulation_ver1 as sv
 
 SM  = cap.SM
-GNN = cap.GNN
-TC  = cap.TC
 
 RUN_NAME   = time.strftime('%m%d%H%M') + '_daily_smoke'
 OUT        = os.path.join(_DIR, 'result', 'runs', RUN_NAME)

@@ -127,8 +127,8 @@ def build_agent(env=None, *, StateDim: Optional[int] = None, checkpoint: Optiona
 
     SimulationModel   = ProvisionofSimulationModelsAAS.SimulationModels.SimulationModel
     ModelArchitecture = SimulationModel.ModelArchitecture
-    PPO               = ModelArchitecture.PPO                                          #← Actor/Critic 계산그래프 + TrainingConfig
-    TrainingConfig    = PPO.TrainingConfig                                             #← PPO 하이퍼파라미터
+    Algorithm         = ModelArchitecture.Algorithm                                   #← 알고리즘 selector (Operation + Arguments + 네트워크 Actor/Critic)
+    Arguments         = Algorithm.Arguments                                            #← 하이퍼파라미터 (형 TrainingConfig)
 
     if StateDim is None:
         StateDim = env.state_dim if env is not None else 0
@@ -150,19 +150,21 @@ def build_agent(env=None, *, StateDim: Optional[int] = None, checkpoint: Optiona
     embedding_dim = next(node['Arguments']['out_channels'] for node in reversed(encoder.spec)
                          if 'out_channels' in node.get('Arguments', {}))                # 인코더 출력차원 = 마지막 conv out
     # actor/critic 도 계산그래프. source_dims 로 Linear in_features(=embedding+state) 를 wiring resolve.
-    actor   = sv.GraphModule(_graph_spec(PPO.Actor),  source_dims={'ReadyNodeEmbeddings':  embedding_dim, 'StateVector': StateDim})
-    critic  = sv.GraphModule(_graph_spec(PPO.Critic), source_dims={'PooledNodeEmbedding': embedding_dim, 'StateVector': StateDim})
+    actor   = sv.GraphModule(_graph_spec(Algorithm.Actor),  source_dims={'ReadyNodeEmbeddings':  embedding_dim, 'StateVector': StateDim})
+    critic  = sv.GraphModule(_graph_spec(Algorithm.Critic), source_dims={'PooledNodeEmbedding': embedding_dim, 'StateVector': StateDim})
 
-    agent = sv.PPOAgent(
+    # 알고리즘 = Operation 으로 선택 (PPO 고정 아님). networks(encoder/actor/critic) + Arguments(하이퍼) + env-주입(StateDim/RuntimeVariables).
+    algo_cls = sv.import_callable(Algorithm.Operation.value)                           #← "simulation_ver1.PPOAgent"
+    agent = algo_cls(
         encoder=encoder, actor=actor, critic=critic, StateDim=StateDim,
-        LearningRate     = float(TrainingConfig.LearningRate.value),
-        ClipEpsilon      = float(TrainingConfig.ClipEpsilon.value),
-        Gamma            = float(TrainingConfig.Gamma.value),
-        GaeLambda        = float(TrainingConfig.GaeLambda.value),
-        EntropyCoef      = float(TrainingConfig.EntropyCoef.value),
-        ValueLossCoef    = float(TrainingConfig.ValueLossCoef.value),
-        UpdateEpochs     = TrainingConfig.UpdateEpochs.value,
-        BatchSize        = int(TrainingConfig.BatchSize.value),
+        LearningRate     = float(Arguments.LearningRate.value),
+        ClipEpsilon      = float(Arguments.ClipEpsilon.value),
+        Gamma            = float(Arguments.Gamma.value),
+        GaeLambda        = float(Arguments.GaeLambda.value),
+        EntropyCoef      = float(Arguments.EntropyCoef.value),
+        ValueLossCoef    = float(Arguments.ValueLossCoef.value),
+        UpdateEpochs     = Arguments.UpdateEpochs.value,
+        BatchSize        = int(Arguments.BatchSize.value),
         RuntimeVariables = SimulationModel.RuntimeVariables,
     )
     if checkpoint is not None:
