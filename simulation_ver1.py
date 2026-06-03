@@ -491,7 +491,7 @@ class PPOAgent(torch.nn.Module):
 # 제네릭하게 조립한다. 코드는 아키텍처를 '표현'하지 않는다 — importlib 로 실제 클래스/함수를 가져와
 # named 텐서로 wiring 할 뿐. (공정 노드 생성과 동일: 구조는 AAS, 코드는 해석.)
 # 새 모델/레이어 = AAS 에 Op 경로만 — 코드 무수정(import 가능한 무엇이든).
-import importlib
+import importlib, inspect
 
 def import_callable(path: str):
     """'torch_geometric.nn.GCNConv' → 클래스/함수 객체. AAS Op 가 가리키는 실제 라이브러리/primitive."""
@@ -526,10 +526,11 @@ class GraphModule(torch.nn.Module):
             in_dim    = {param: dim.get(src) for param, src in node['Inputs'].items()}
             callable_ = import_callable(operation)
             if isinstance(callable_, type) and issubclass(callable_, torch.nn.Module):
-                if operation.endswith('Linear') and 'in_features' not in arguments:
-                    arguments['in_features'] = in_dim['input']         # wiring resolve (입력 노드 출력차원)
-                elif operation.endswith('GCNConv') and 'in_channels' not in arguments:
-                    arguments['in_channels'] = in_dim['x']             # wiring resolve (x 소스 = ObservationNodeFeatures 개수/이전 conv out)
+                params = inspect.signature(callable_).parameters       # 생성자 시그니처로 일반 resolve (특정 레이어 하드코딩 X)
+                if 'in_features' in params and 'in_features' not in arguments:
+                    arguments['in_features'] = in_dim['input']         # Linear 류 (forward 'input')
+                elif 'in_channels' in params and 'in_channels' not in arguments:
+                    arguments['in_channels'] = in_dim['x']             # graph conv 류 (forward 'x') — GCN/SAGE/GAT/... 임의 교체
                 self.mods[node['id']] = callable_(**arguments)
                 out_dim = arguments.get('out_features', arguments.get('out_channels'))
             elif operation.endswith('op_concat_state'):
