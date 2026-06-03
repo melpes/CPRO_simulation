@@ -14833,8 +14833,8 @@
                             { "idShort": "out_channels", "valueType": "xs:int", "value": "64", "modelType": "Property" }
                           ], "modelType": "SubmodelElementCollection" },
                         { "idShort": "Inputs", "value": [
-                            { "idShort": "x",          "valueType": "xs:string", "value": "ObservationNodeFeatures",          "modelType": "Property" },
-                            { "idShort": "edge_index", "valueType": "xs:string", "value": "ObservationEdgeIndex", "modelType": "Property" }
+                            { "idShort": "x", "modelType": "ReferenceElement", "value": { "type": "ExternalReference", "keys": [ { "type": "GlobalReference", "value": "https://www.smart-factory.kr/ids/cd/NodeFeatures/1/0" } ] } },
+                            { "idShort": "edge_index", "modelType": "ReferenceElement", "value": { "type": "ExternalReference", "keys": [ { "type": "GlobalReference", "value": "https://www.smart-factory.kr/ids/cd/GraphTopology/1/0" } ] } }
                           ], "modelType": "SubmodelElementCollection" }
                       ], "modelType": "SubmodelElementCollection" },
                     { "idShort": "Activation1", "value": [
@@ -14848,7 +14848,7 @@
                           ], "modelType": "SubmodelElementCollection" },
                         { "idShort": "Inputs", "value": [
                             { "idShort": "x",          "valueType": "xs:string", "value": "Activation1",             "modelType": "Property" },
-                            { "idShort": "edge_index", "valueType": "xs:string", "value": "ObservationEdgeIndex", "modelType": "Property" }
+                            { "idShort": "edge_index", "modelType": "ReferenceElement", "value": { "type": "ExternalReference", "keys": [ { "type": "GlobalReference", "value": "https://www.smart-factory.kr/ids/cd/GraphTopology/1/0" } ] } }
                           ], "modelType": "SubmodelElementCollection" }
                       ], "modelType": "SubmodelElementCollection" },
                     { "idShort": "Activation2", "value": [
@@ -14862,7 +14862,7 @@
                           ], "modelType": "SubmodelElementCollection" },
                         { "idShort": "Inputs", "value": [
                             { "idShort": "x",          "valueType": "xs:string", "value": "Activation2",             "modelType": "Property" },
-                            { "idShort": "edge_index", "valueType": "xs:string", "value": "ObservationEdgeIndex", "modelType": "Property" }
+                            { "idShort": "edge_index", "modelType": "ReferenceElement", "value": { "type": "ExternalReference", "keys": [ { "type": "GlobalReference", "value": "https://www.smart-factory.kr/ids/cd/GraphTopology/1/0" } ] } }
                           ], "modelType": "SubmodelElementCollection" }
                       ], "modelType": "SubmodelElementCollection" }
                   ],

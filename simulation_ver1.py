@@ -158,33 +158,44 @@ class KnowledgeGraph:
 
         return ready
     
-    def to_pyg_data(self):
-        node_list     = list(self.nodes.keys())
-        node_index    = {ProcessCode: i for i, ProcessCode in enumerate(node_list)}
+    def to_pyg_data(self):                                             # 호환 wrapper — observe producer 위임
+        return Data(x=obs_node_features(self), edge_index=obs_graph_topology(self)), list(self.nodes.keys())
 
-        if self.NodeFeatureAttrs is None:                              # AAS ObservationNodeFeatures 미주입 (fallback 금지)
-            raise RuntimeError('KnowledgeGraph.NodeFeatureAttrs 미설정 — to_pyg_data 는 ModelArchitecture.Observation.ObservationNodeFeatures 필요')
-        sample  = next(iter(self.nodes.values()))
-        missing = [attr for attr in self.NodeFeatureAttrs if not hasattr(sample, attr)]
-        if missing:                                                    # CD tail 이 GraphNode flatten 필드가 아님 — loud
-            raise RuntimeError(f'ObservationNodeFeatures 항목이 GraphNode 속성이 아님: {missing}')
-        x = torch.tensor([
-            [getattr(self.nodes[ProcessCode], attr) for attr in self.NodeFeatureAttrs]
-            for ProcessCode in node_list
-        ], dtype=torch.float)
-        edge_src = []
-        edge_dst = []
-        for DepPrev, GraphEdges in self.edges.items():
-            for GraphEdge in GraphEdges:
-                if (DepPrev in node_index and 
-                    GraphEdge.ProcessCode in node_index):
-                    edge_src.append(node_index[DepPrev])
-                    edge_dst.append(node_index[GraphEdge.ProcessCode])
-                    
-        edge_index  = torch.tensor([edge_src, edge_dst], dtype=torch.long)
-        
-        return Data (x=x, edge_index=edge_index), node_list
-    
+#========관측 카탈로그 (observe — 닫힌 producer 집합, KnowledgeGraph/env 위에서만)========
+# (a) 환경 관측 producer. AAS 인코더 Inputs 가 CD ref(cd/NodeFeatures·cd/GraphTopology)로 가리키고
+# 해석기가 카탈로그 id 로 resolve, 알고리즘(choose)이 호출해 텐서 공급. (b) ready/pooled 임베딩은
+# 알고리즘 내부값이라 여기 없음(choose 가 actor/critic 에 직접 공급). raw AAS 안 봄 — 도메인 클래스 위.
+def obs_node_features(kg):
+    """노드별 NodeFeatureAttrs gather → (N, F). 구성=AAS ObservationNodeFeatures(CD 리스트)."""
+    if kg.NodeFeatureAttrs is None:
+        raise RuntimeError('KnowledgeGraph.NodeFeatureAttrs 미설정 — ObservationNodeFeatures(AAS) 필요')
+    sample  = next(iter(kg.nodes.values()))
+    missing = [attr for attr in kg.NodeFeatureAttrs if not hasattr(sample, attr)]
+    if missing:
+        raise RuntimeError(f'ObservationNodeFeatures 항목이 GraphNode 속성이 아님: {missing}')
+    return torch.tensor([[getattr(kg.nodes[pc], attr) for attr in kg.NodeFeatureAttrs]
+                         for pc in kg.nodes], dtype=torch.float)
+
+def obs_graph_topology(kg):
+    """공정 precedence(DepPrev/DepType edges) → edge_index (2, E). 토폴로지(고정)."""
+    node_index = {pc: i for i, pc in enumerate(kg.nodes)}
+    src, dst = [], []
+    for DepPrev, GraphEdges in kg.edges.items():
+        for GraphEdge in GraphEdges:
+            if DepPrev in node_index and GraphEdge.ProcessCode in node_index:
+                src.append(node_index[DepPrev]); dst.append(node_index[GraphEdge.ProcessCode])
+    return torch.tensor([src, dst], dtype=torch.long)
+
+def obs_state_vector(env):
+    """전역 상태 → (StateDim,). 구성=RuntimeVariables/Params, 정규화=코드."""
+    return env.state_vec()
+
+OBSERVATION_CATALOG = {                                   # 닫힌 어휘 — AAS 외부 ref 가 가리킬 수 있는 관측 소스
+    'NodeFeatures':  obs_node_features,
+    'GraphTopology': obs_graph_topology,
+    'StateVector':   obs_state_vector,
+}
+
 @dataclass
 class StockItem:
     present_stock      : float    # 초기재고 = MinStock
@@ -382,8 +393,9 @@ class PPOAgent(torch.nn.Module):
         # produce_unit 의 결정점 콜백. 학습(training)→샘플, 평가(eval)→argmax(결정론).
         # ready_pcs 는 distinct 공정 코드 리스트(디스패처가 중복 압축해 전달) — 큐 깊이가 아니라
         # 공정 타입 위 분포를 학습. 저장값은 전부 스칼라/snapshot 텐서라 grad 불요. buf 는 학습·평가 양쪽 다.
-        data, node_list  = env.KnowledgeGraph.to_pyg_data()
-        embeddings       = self.GNNEncoder(**{'ObservationNodeFeatures': data.x, 'ObservationEdgeIndex': data.edge_index})
+        kg               = env.KnowledgeGraph
+        node_list        = list(kg.nodes.keys())
+        embeddings       = self.GNNEncoder(NodeFeatures=obs_node_features(kg), GraphTopology=obs_graph_topology(kg))
         ready_emb        = torch.stack([embeddings[node_list.index(pc)] for pc in ready_pcs])
         state            = env.state_vec() if self.StateDim > 0 else None    # 결정점 동적 관측
         dist             = torch.distributions.Categorical(self.Actor(ReadyNodeEmbeddings=ready_emb, StateVector=state))
@@ -426,9 +438,11 @@ class PPOAgent(torch.nn.Module):
         grad_norm = 0.0
         for _ in range(self.UpdateEpochs):
             new_logp, entropy, value_preds = [], [], []
-            data, node_list = KnowledgeGraph.to_pyg_data()
+            node_list      = list(KnowledgeGraph.nodes.keys())
+            node_features  = obs_node_features(KnowledgeGraph)         # 에폭당 1회 (그래프 고정)
+            graph_topology = obs_graph_topology(KnowledgeGraph)
             for b in self.buf:
-                embeddings = self.GNNEncoder(**{'ObservationNodeFeatures': data.x, 'ObservationEdgeIndex': data.edge_index})
+                embeddings = self.GNNEncoder(NodeFeatures=node_features, GraphTopology=graph_topology)
                 ready_emb  = torch.stack([embeddings[node_list.index(pc)] for pc in b['ready']])
                 state      = b['state']                                          # 결정점 시점 snapshot 재사용
                 dist       = torch.distributions.Categorical(self.Actor(ReadyNodeEmbeddings=ready_emb, StateVector=state))

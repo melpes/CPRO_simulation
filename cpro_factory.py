@@ -135,18 +135,24 @@ def build_agent(env=None, *, StateDim: Optional[int] = None, checkpoint: Optiona
 
     # 전 네트워크(encoder/actor/critic) = AAS 계산그래프(op 노드) → 제네릭 해석기(GraphModule). 코드는 import+wire.
     # 각 노드: Op=실제 import 경로/태스크 primitive, Args=생성자 인자, In={forward param: source}.
+    def _input_source(child):
+        # ReferenceElement(외부 관측 카탈로그 CD ref) → 카탈로그 id(CD tail). Property → 내부 노드 출력(문자열).
+        if isinstance(child, path_extractor.ReferenceElement):
+            return path_extractor._idShort_from_cd(child.value[0])
+        return child.value
+
     def _graph_spec(graph_smc):
         spec = []
         for node_id, node in graph_smc.value.items():
             operation = node.Operation.value
             arguments = {name: child.value for name, child in node.value['Arguments'].value.items()} if 'Arguments' in node.value else {}
-            inputs    = {name: child.value for name, child in node.value['Inputs'].value.items()}      if 'Inputs'    in node.value else {}
+            inputs    = {name: _input_source(child) for name, child in node.value['Inputs'].value.items()} if 'Inputs' in node.value else {}
             spec.append({'id': node_id, 'Operation': operation, 'Arguments': arguments, 'Inputs': inputs})
         return spec
 
     NodeFeatureDim = len(ModelArchitecture.Observation.ObservationNodeFeatures)          #← 노드 피처 개수 = GNN 입력차원
     encoder = sv.GraphModule(_graph_spec(ModelArchitecture.Encoder),
-                             source_dims={'ObservationNodeFeatures': NodeFeatureDim, 'ObservationEdgeIndex': None})
+                             source_dims={'NodeFeatures': NodeFeatureDim, 'GraphTopology': None})
     embedding_dim = next(node['Arguments']['out_channels'] for node in reversed(encoder.spec)
                          if 'out_channels' in node.get('Arguments', {}))                # 인코더 출력차원 = 마지막 conv out
     # actor/critic 도 계산그래프. source_dims 로 Linear in_features(=embedding+state) 를 wiring resolve.
