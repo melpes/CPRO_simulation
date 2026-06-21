@@ -99,11 +99,11 @@
           "idShort": "MODEL_C_NVD1",
           "displayName": [
             {
-              "language": "en",
+              "language": "ko",
               "text": "NVD1-75L-R(R1)/NVD1_5600(CV25S55M)/WH/N *CPRO향* *NO LOGO*"
             },
             {
-              "language": "en",
+              "language": "ko",
               "text": "NVD1 CPRO향 미니돔 IP 카메라 (NO LOGO)"
             }
           ],
@@ -206,7 +206,7 @@
                       "text": "HasPart relationship. PCB 03203315 contains a ferrite bead chip. Used for high-frequency EMI suppression and noise filtering on signal and power lines."
                     },
                     {
-                      "language": "en",
+                      "language": "ko",
                       "text": "도급(BEAD CHIP) / MMZ1005Y301C/CIM05J241NC"
                     }
                   ],
@@ -4021,7 +4021,7 @@
                       "text": "HasPart relationship. PCB 03203315 contains a 2k ohm precision chip resistor in 1005 package. Used for accurate voltage division, biasing, and feedback in analog and mixed-signal circuits."
                     },
                     {
-                      "language": "en",
+                      "language": "ko",
                       "text": "도급(RESISTOR CHIP-1%) / 2KR(1005)-F/MCR01MZPF2001"
                     }
                   ],
@@ -4348,7 +4348,7 @@
                       "text": "HasPart relationship. PCB 03203315 contains a 9.53k ohm precision chip resistor in 0402 package. Used for accurate voltage division, biasing, and feedback in analog and mixed-signal circuits."
                     },
                     {
-                      "language": "en",
+                      "language": "ko",
                       "text": "도급(0402(1005) Size, F , *M09-06-0108*) / 9.53K-1005_F"
                     }
                   ],
@@ -4671,11 +4671,11 @@
                   "idShort": "HasPart_11102694",
                   "description": [
                     {
-                      "language": "en",
+                      "language": "ko",
                       "text": "HasPart relationship. PCB 03203315 contains a SENSOR PCB/2X2ARRAY[25.08.13]/정배열/1.2T/4LY/블랙무광/GOLD/임피던스. Used as a daughter board for component mounting and signal routing."
                     },
                     {
-                      "language": "en",
+                      "language": "ko",
                       "text": "SENSOR PCB/2X2ARRAY[25.08.13]/정배열/1.2T/4LY/블랙무광/GOLD/임피던스 / NVD1_5600-R1"
                     }
                   ],
@@ -4776,7 +4776,7 @@
                   "modelType": "RelationshipElement"
                 }
               ],
-              "entityType": "CoManagedEntity",
+              "entityType": "SelfManagedEntity",
               "modelType": "Entity"
             },
             {
@@ -7688,7 +7688,7 @@
                       "text": "HasPart relationship. PCB 03903388 contains a 2.2uH inductor. Used for current smoothing and energy storage in switching power converters."
                     },
                     {
-                      "language": "en",
+                      "language": "ko",
                       "text": "INDUCTOR CHIP/2.2uH±20%/3.2A / SWPA5020S2R2NT *재고 소진 후 10600124 사용"
                     }
                   ],
@@ -7906,7 +7906,7 @@
                       "text": "HasPart relationship. PCB 03903388 contains a 1.0 mm-pitch 4-position SMD board-to-board connector (1.0T-1-04A). Used for compact wire-to-board or board-to-board connection in low-profile electronic assemblies."
                     },
                     {
-                      "language": "en",
+                      "language": "ko",
                       "text": "CONNECTOR SMD / 1.0T-1-04A/1.0mm-04P/ST SMD(티엠텍)"
                     }
                   ],
@@ -8015,7 +8015,7 @@
                       "text": "HasPart relationship. PCB 03903388 contains a 1.0 mm-pitch 4-position right-angle SMD connector (1.0T-1-04AW). Used for compact wire-to-board or board-to-board connection in low-profile electronic assemblies."
                     },
                     {
-                      "language": "en",
+                      "language": "ko",
                       "text": "CONNECTOR SMD / 1.0T-1-04AW/1.0mm-04P/AN SMD(티엠텍)"
                     }
                   ],
@@ -9105,7 +9105,7 @@
                       "text": "HasPart relationship. PCB 03903388 contains a IC CHIP/eMMC5.1/FBGA153/4GB/-20~85℃. Used for power management and analog signal conditioning."
                     },
                     {
-                      "language": "en",
+                      "language": "ko",
                       "text": "IC CHIP/eMMC5.1/FBGA153/4GB/-20~85℃ / S40FC004C1B1C00000 *재고 소진 후 10701753 사용*"
                     }
                   ],
@@ -9432,7 +9432,7 @@
                       "text": "HasPart relationship. PCB 03903388 contains a IC CHIP/TSOT23-6/DC-DC CONVERTER. Used for efficient voltage conversion from a higher input voltage to a lower regulated output."
                     },
                     {
-                      "language": "en",
+                      "language": "ko",
                       "text": "IC CHIP/TSOT23-6/DC-DC CONVERTER / AP62250WU-7 *재고 소진 후 10701509 사용"
                     }
                   ],
@@ -10304,7 +10304,7 @@
                       "text": "HasPart relationship. PCB 03903388 contains a IC CHIP/SOT-23-5. Used for power management and analog signal conditioning."
                     },
                     {
-                      "language": "en",
+                      "language": "ko",
                       "text": "IC CHIP/SOT-23-5 / AP2127K-ADJTRG1/EUP7907VIR1 (재고소진 후 10701803 사용)"
                     }
                   ],
@@ -10522,7 +10522,7 @@
                       "text": "HasPart relationship. PCB 03903388 contains a IC CHIP/TDFN 10P. Used for power management and analog signal conditioning."
                     },
                     {
-                      "language": "en",
+                      "language": "ko",
                       "text": "IC CHIP/TDFN 10P / AP3427MDNTR-G1/PAM2308BYMAA/FP6168D-G1 *재고소진후 10701790 사용*"
                     }
                   ],
@@ -11939,7 +11939,7 @@
                       "text": "HasPart relationship. PCB 03903388 contains a 21.5k ohm precision chip resistor in 1005 package. Used for accurate voltage division, biasing, and feedback in analog and mixed-signal circuits."
                     },
                     {
-                      "language": "en",
+                      "language": "ko",
                       "text": "도급 (RESISTOR CHIP/1005/F) / 21.5KR(1005)/CR1005-2152-F"
                     }
                   ],
@@ -12484,7 +12484,7 @@
                       "text": "HasPart relationship. PCB 03903388 contains a 33k ohm precision chip resistor in 1005 package. Used for accurate voltage division, biasing, and feedback in analog and mixed-signal circuits."
                     },
                     {
-                      "language": "en",
+                      "language": "ko",
                       "text": "도급(RESISTOR CHIP-1%) / 33KR(1005)-F/MCR01MZPF3302"
                     }
                   ],
@@ -12811,7 +12811,7 @@
                       "text": "HasPart relationship. PCB 03903388 contains a 40.2k ohm precision chip resistor in 1005 package. Used for accurate voltage division, biasing, and feedback in analog and mixed-signal circuits."
                     },
                     {
-                      "language": "en",
+                      "language": "ko",
                       "text": "도급(RESISTOR CHIP/1005) / 40.2K, 1005, 1/16W, 1%, 50V"
                     }
                   ],
@@ -13247,7 +13247,7 @@
                       "text": "HasPart relationship. PCB 03903388 contains a 60.4k ohm precision chip resistor in 1005 package. Used for accurate voltage division, biasing, and feedback in analog and mixed-signal circuits."
                     },
                     {
-                      "language": "en",
+                      "language": "ko",
                       "text": "도급(RESISTOR CHIP/1005/F) / 60.4K 1%"
                     }
                   ],
@@ -14224,11 +14224,11 @@
                   "idShort": "HasPart_11400231",
                   "description": [
                     {
-                      "language": "en",
+                      "language": "ko",
                       "text": "HasPart relationship. PCB 03903388 contains a 3V/5.5mAh/Pin Type (수삽). Used for circuit protection or signal switching."
                     },
                     {
-                      "language": "en",
+                      "language": "ko",
                       "text": "3V/5.5mAh/Pin Type (수삽) / MS621FE FL11E"
                     }
                   ],
@@ -14333,11 +14333,11 @@
                   "idShort": "HasPart_11102691",
                   "description": [
                     {
-                      "language": "en",
+                      "language": "ko",
                       "text": "HasPart relationship. PCB 03903388 contains a MAIN PCB/2x2ARRAY[25.05.02]/정배열/1.2T/8LY/임피던스/블랙무광/GOLD. Used as a daughter board for component mounting and signal routing."
                     },
                     {
-                      "language": "en",
+                      "language": "ko",
                       "text": "MAIN PCB/2x2ARRAY[25.05.02]/정배열/1.2T/8LY/임피던스/블랙무광/GOLD / NVD1_CV25M-1-R1"
                     }
                   ],
@@ -14664,7 +14664,7 @@
                       "text": "HasPart relationship. PCB 03903388 contains a 56k ohm chip resistor in 1005 package. Used for current limiting, voltage division, and signal conditioning in surface-mount circuits."
                     },
                     {
-                      "language": "en",
+                      "language": "ko",
                       "text": "도급(RESISTOR CHIP) / 56KR(1005)/CR1005-563"
                     }
                   ],
@@ -14765,7 +14765,7 @@
                   "modelType": "RelationshipElement"
                 }
               ],
-              "entityType": "CoManagedEntity",
+              "entityType": "SelfManagedEntity",
               "modelType": "Entity"
             },
             {
@@ -16042,7 +16042,7 @@
                       "text": "HasPart relationship. PCB 03903391 contains a 2.2uF 100V multilayer ceramic capacitor in 1206 SMD package. Used for localized decoupling and power supply stabilization."
                     },
                     {
-                      "language": "en",
+                      "language": "ko",
                       "text": "2.2uF-100V/SMD/1206(3216) / CL31B225KCHSNNNE (삼성단독)"
                     }
                   ],
@@ -16805,7 +16805,7 @@
                       "text": "HasPart relationship. PCB 03903391 contains a 1.0T-1-04A connector. Used for compact wire-to-board or board-to-board connection in low-profile electronic assemblies."
                     },
                     {
-                      "language": "en",
+                      "language": "ko",
                       "text": "CONNECTOR SMD / 1.0T-1-04A/1.0mm-04P/ST SMD(티엠텍)"
                     }
                   ],
@@ -17895,7 +17895,7 @@
                       "text": "HasPart relationship. PCB 03903391 contains a 850 nm 3 W LED chip. Used for indication or illumination as a light-emitting source."
                     },
                     {
-                      "language": "en",
+                      "language": "ko",
                       "text": "LED CHIP/850nm/3W/60도 / WOPS-850NU3A-60"
                     }
                   ],
@@ -18222,7 +18222,7 @@
                       "text": "HasPart relationship. PCB 03903391 contains a 120k ohm chip resistor in 1005 package. Used for current limiting, voltage division, and signal conditioning in surface-mount circuits."
                     },
                     {
-                      "language": "en",
+                      "language": "ko",
                       "text": "도급(RESISTOR CHIP) / 120KR(1005)/CR1005-124-J"
                     }
                   ],
@@ -19094,7 +19094,7 @@
                       "text": "HasPart relationship. PCB 03903391 contains a 27k ohm chip resistor in 1608 package. Used for current limiting, voltage division, and signal conditioning in surface-mount circuits."
                     },
                     {
-                      "language": "en",
+                      "language": "ko",
                       "text": "도급(RESISTOR CHIP) / 27KR(1608)/CR1608-273-J"
                     }
                   ],
@@ -19312,7 +19312,7 @@
                       "text": "HasPart relationship. PCB 03903391 contains a 36k ohm precision chip resistor in 1608 package. Used for accurate voltage division, biasing, and feedback in analog and mixed-signal circuits."
                     },
                     {
-                      "language": "en",
+                      "language": "ko",
                       "text": "도급(RESISTOR CHIP-1%) / 36KR(1608)-F/MCR03EZPFX3602"
                     }
                   ],
@@ -19421,7 +19421,7 @@
                       "text": "HasPart relationship. PCB 03903391 contains a 4.7k ohm chip resistor in 1608 package. Used for current limiting, voltage division, and signal conditioning in surface-mount circuits."
                     },
                     {
-                      "language": "en",
+                      "language": "ko",
                       "text": "도급(RESISTOR CHIP) / 4.7KR(1608)/CR1608-472-J"
                     }
                   ],
@@ -19530,7 +19530,7 @@
                       "text": "HasPart relationship. PCB 03903391 contains a 56k ohm precision chip resistor in 1608 package. Used for accurate voltage division, biasing, and feedback in analog and mixed-signal circuits."
                     },
                     {
-                      "language": "en",
+                      "language": "ko",
                       "text": "도급(RESISTOR CHIP-1%) / 56KR(1608)-F/CR1608-5602"
                     }
                   ],
@@ -19966,7 +19966,7 @@
                       "text": "HasPart relationship. PCB 03903391 contains a 1 ohm chip resistor in 3216 package. Used for current limiting, voltage division, and signal conditioning in surface-mount circuits."
                     },
                     {
-                      "language": "en",
+                      "language": "ko",
                       "text": "도급(RESISTOR CHIP) / 1R(3216)/CR3216-1R0-J/WR12W1R0JTL"
                     }
                   ],
@@ -20289,11 +20289,11 @@
                   "idShort": "HasPart_20901023",
                   "description": [
                     {
-                      "language": "en",
+                      "language": "ko",
                       "text": "HasPart relationship. PCB 03903391 contains a (도면없음)SW4002. Used as a molded mechanical support component."
                     },
                     {
-                      "language": "en",
+                      "language": "ko",
                       "text": "(도면없음)SW4002 / 사출 원형 사출물 LED,CDS 지지대-SW4002-2mm"
                     }
                   ],
@@ -20398,11 +20398,11 @@
                   "idShort": "HasPart_11700024",
                   "description": [
                     {
-                      "language": "en",
+                      "language": "ko",
                       "text": "HasPart relationship. PCB 03903391 contains a SENSOR (수삽) *IR CUT 필터 기능 내장형*. Used for infrared cut detection in camera modules."
                     },
                     {
-                      "language": "en",
+                      "language": "ko",
                       "text": "SENSOR (수삽) *IR CUT 필터 기능 내장형* / NJL7302L-F3"
                     }
                   ],
@@ -20507,11 +20507,11 @@
                   "idShort": "HasPart_11102693",
                   "description": [
                     {
-                      "language": "en",
+                      "language": "ko",
                       "text": "HasPart relationship. PCB 03903391 contains a POE PCB/2X2ARRAY[25.09.23]/정배열/1.2T/4LY/블랙무광/GOLD. Used as a daughter board for component mounting and signal routing."
                     },
                     {
-                      "language": "en",
+                      "language": "ko",
                       "text": "POE PCB/2X2ARRAY[25.09.23]/정배열/1.2T/4LY/블랙무광/GOLD / NVD1-POE&H2IR-R1"
                     }
                   ],
@@ -20612,7 +20612,7 @@
                   "modelType": "RelationshipElement"
                 }
               ],
-              "entityType": "CoManagedEntity",
+              "entityType": "SelfManagedEntity",
               "modelType": "Entity"
             },
             {
@@ -20870,7 +20870,7 @@
               "idShort": "P20502501",
               "description": [
                 {
-                  "language": "en",
+                  "language": "ko",
                   "text": "DC-cast aluminum FRONT CASE - VD1(BELL향) (ADC12-1, chromate-treated, white powder-coat finish) used in FRONT ASSY of MODEL_C NVD1. The frontal exterior housing that carries the lens window, IR LED window, and front body gasket."
                 }
               ],
@@ -20920,7 +20920,7 @@
               "idShort": "P20502502",
               "description": [
                 {
-                  "language": "en",
+                  "language": "ko",
                   "text": "DC-cast aluminum REAR CASE - VD1(BELL향) (ADC12-1, chromate-treated, white powder-coat finish) used in REAR CASE ASSY of MODEL_C NVD1. The rear exterior housing that carries the cable exit, side-cover aperture, and gimbal interface."
                 }
               ],
@@ -20970,7 +20970,7 @@
               "idShort": "P20502503",
               "description": [
                 {
-                  "language": "en",
+                  "language": "ko",
                   "text": "DC-cast aluminum SIDE COVER (ADC12-1, chromate-treated, white powder-coat finish) used in SIDE COVER 조립 of MODEL_C NVD1. Covers the side service aperture, providing tool access to the internal connectors during field installation."
                 }
               ],
@@ -21070,7 +21070,7 @@
               "idShort": "P20502535",
               "description": [
                 {
-                  "language": "en",
+                  "language": "ko",
                   "text": "DC-cast aluminum BOTTOM CASE - VD1(CPRO향) (ADC12-1, chromate-treated, white powder-coat finish) used in SET ASSY of MODEL_C NVD1. The bottom exterior housing that carries the conduit cap and mounting interface."
                 }
               ],
@@ -21120,7 +21120,7 @@
               "idShort": "P21000140",
               "description": [
                 {
-                  "language": "en",
+                  "language": "ko",
                   "text": "T10 Torx L-wrench (53 mm, nickel-plated) supplied with the camera in 포장 of MODEL_C NVD1. End-user accessory used to tighten the front-cover and side-cover Torx screws during installation."
                 }
               ],
@@ -21370,7 +21370,7 @@
               "idShort": "P21201169",
               "description": [
                 {
-                  "language": "en",
+                  "language": "ko",
                   "text": "고무 Adhesive Vent – MIC 전용 used in SIDE COVER 조립, FRONT ASSY of MODEL_C NVD1. Protective vent membrane for pressure equalization."
                 }
               ],
@@ -21420,7 +21420,7 @@
               "idShort": "P21201212",
               "description": [
                 {
-                  "language": "en",
+                  "language": "ko",
                   "text": "PS-5005 transparent protective film used in SIDE COVER 조립 of MODEL_C NVD1. Temporary peelable film applied over the lens window during final assembly to prevent scratches; removed by the end user before use."
                 }
               ],
@@ -21470,7 +21470,7 @@
               "idShort": "P21201287",
               "description": [
                 {
-                  "language": "en",
+                  "language": "ko",
                   "text": "Silicone RJ45 CABLE waterproof cap used in 포장 of MODEL_C NVD1. Slips over the RJ45 connector during installation to seal the network connector against moisture ingress."
                 }
               ],
@@ -21670,7 +21670,7 @@
               "idShort": "P21201482",
               "description": [
                 {
-                  "language": "en",
+                  "language": "ko",
                   "text": "고무 BODY GASKET - VD1 used in FRONT ASSY of MODEL_C NVD1. Sealing gasket or connector component."
                 }
               ],
@@ -21720,7 +21720,7 @@
               "idShort": "P21201483",
               "description": [
                 {
-                  "language": "en",
+                  "language": "ko",
                   "text": "고무 SIDE COVER GASKET - VD1 used in REAR CASE ASSY of MODEL_C NVD1. Sealing gasket or connector component."
                 }
               ],
@@ -21820,7 +21820,7 @@
               "idShort": "P21201486",
               "description": [
                 {
-                  "language": "en",
+                  "language": "ko",
                   "text": "고무 LED WINDOW GASKET - VD1 used in FRONT ASSY of MODEL_C NVD1. Sealing gasket or connector component."
                 }
               ],
@@ -21970,7 +21970,7 @@
               "idShort": "P21201490",
               "description": [
                 {
-                  "language": "en",
+                  "language": "ko",
                   "text": "Thin polystyrene protective film (PS7580 grade, 0.075 mm) used in SIDE COVER 조립 of MODEL_C NVD1. Temporary peelable film over the IR LED window protecting it from scratches during final assembly and shipping."
                 }
               ],
@@ -22020,7 +22020,7 @@
               "idShort": "P21201497",
               "description": [
                 {
-                  "language": "en",
+                  "language": "ko",
                   "text": "고무 BOTTOM GASKET – VD1 used in SET ASSY of MODEL_C NVD1. Sealing gasket or connector component."
                 }
               ],
@@ -22220,7 +22220,7 @@
               "idShort": "P30100210",
               "description": [
                 {
-                  "language": "en",
+                  "language": "ko",
                   "text": "Blank coated-paper UNIT BOX label (60 × 30 mm, art-paper roll) used in 포장(카톤박스) of MODEL_C NVD1. Affixed to the unit box exterior; receives final model and lot identification print before shipment."
                 }
               ],
@@ -22270,7 +22270,7 @@
               "idShort": "P30101295",
               "description": [
                 {
-                  "language": "en",
+                  "language": "ko",
                   "text": "Blank synthetic-paper (yupo) PRODUCT label (37 × 17 mm) used in 포장(박스) of MODEL_C NVD1. Adhered to the camera body to carry the product identification and serial print."
                 }
               ],
@@ -22320,7 +22320,7 @@
               "idShort": "P30101438",
               "description": [
                 {
-                  "language": "en",
+                  "language": "ko",
                   "text": "MAC address LABEL (CP24LAB009-A grade, 38 × 8 mm, white PET) used in FIRMWARE 입력 (Process 23) and SET ASSY (Process 82) of MODEL_C NVD1. Two labels are printed and applied: one on the PCB during MAC programming and one on the camera body for end-user identification."
                 }
               ],
@@ -22370,7 +22370,7 @@
               "idShort": "P30101499",
               "description": [
                 {
-                  "language": "en",
+                  "language": "ko",
                   "text": "DESIPAK warning sticker (CP22LAB014-C grade, PET-BW0153) for the BULLET SIDE COVER position used in SIDE COVER 조립 of MODEL_C NVD1. Adhesive sticker indicating the desiccant location for service technicians."
                 }
               ],
@@ -22420,7 +22420,7 @@
               "idShort": "P30201153",
               "description": [
                 {
-                  "language": "en",
+                  "language": "ko",
                   "text": "160 × 160 × 158 mm E-flute corrugated cardboard UNIT BOX (CP22PAK040-A grade, natural finish) used in 포장(박스) of MODEL_C NVD1. Individual retail/shipping carton holding one packaged camera with accessories and desiccant."
                 }
               ],
@@ -22470,7 +22470,7 @@
               "idShort": "P30201154",
               "description": [
                 {
-                  "language": "en",
+                  "language": "ko",
                   "text": "AB-flute corrugated CARTON BOX (CP23PAK043-A grade, natural finish, 510 × ...) used in 포장(카톤박스) of MODEL_C NVD1. Outer shipping carton; one carton holds approximately six unit boxes for bulk transport (qty 0.166 ≈ 1/6 share per camera)."
                 }
               ],
@@ -22520,7 +22520,7 @@
               "idShort": "P30300062",
               "description": [
                 {
-                  "language": "en",
+                  "language": "ko",
                   "text": "M2.0 × 5.0 mm tapping screw (#0 cross-recessed cheese head, black, 3.5 mm head height) used in MODULE SUB ASSY of MODEL_C NVD1. Fastens the lens to the lens holder during focus setting; specified by 포커스엔지니어링 as the standard tapping fastener."
                 }
               ],
@@ -22620,7 +22620,7 @@
               "idShort": "P30300303",
               "description": [
                 {
-                  "language": "en",
+                  "language": "ko",
                   "text": "M2 × 4 mm flat-head machine screw (#0 cross-recessed, HD6.0) used in REAR CASE ASSY (Process 61) and SIDE COVER 조립 (Process 100) of MODEL_C NVD1. Fastens the cable bracket and side cover plate to the rear housing. (1 in REAR + 1 in SIDE COVER)."
                 }
               ],
@@ -22820,7 +22820,7 @@
               "idShort": "P30301034",
               "description": [
                 {
-                  "language": "en",
+                  "language": "ko",
                   "text": "M3.0 × 8.0 mm SUS flat-head machine screw (4.9 mm head height, Torx-10 drive, natural-finish tap) used in SIDE COVER 조립 of MODEL_C NVD1. Fastens the side cover plate to the rear housing."
                 }
               ],
@@ -22920,7 +22920,7 @@
               "idShort": "P30301127",
               "description": [
                 {
-                  "language": "en",
+                  "language": "ko",
                   "text": "Concrete anchor kit (1 set = 3 × M3 anchor block + 3 × T/S-1 PHL+ D3 × 35 mm screw) used in 포장 of MODEL_C NVD1. End-user installation accessory for mounting the camera to a wall or ceiling."
                 }
               ],
@@ -22970,7 +22970,7 @@
               "idShort": "P30400105",
               "description": [
                 {
-                  "language": "en",
+                  "language": "ko",
                   "text": "Silica-gel desiccant pouch (1 g, common grade) used in 포장(박스) of MODEL_C NVD1. Inserted inside the unit box to absorb residual moisture during storage and shipment."
                 }
               ],
@@ -23020,7 +23020,7 @@
               "idShort": "P30401685",
               "description": [
                 {
-                  "language": "en",
+                  "language": "ko",
                   "text": "Hex 2.0 mm L-wrench (55 mm, nickel-plated) supplied with the camera in 포장 of MODEL_C NVD1. End-user accessory used to tighten the M4 set-screws of the gimbal during installation."
                 }
               ],
@@ -23120,7 +23120,7 @@
               "idShort": "P30402885",
               "description": [
                 {
-                  "language": "en",
+                  "language": "ko",
                   "text": "Magnesium-chloride desiccant pouch (2 g, 53 × 30 mm) used in SIDE COVER 조립 of MODEL_C NVD1. Inserted inside the camera housing before sealing to absorb residual moisture during the sealed assembly."
                 }
               ],
@@ -23170,7 +23170,7 @@
               "idShort": "P30402886",
               "description": [
                 {
-                  "language": "en",
+                  "language": "ko",
                   "text": "Vacuum-packaged DESI-TOP desiccant kit (2 g) used in 포장 of MODEL_C NVD1. Pre-bagged combination of the magnesium-chloride desiccant pouch (P30402885) and an anti-static bag (P30500133) supplied with each camera unit for installation-time use."
                 }
               ],
@@ -23220,7 +23220,7 @@
               "idShort": "P30402892",
               "description": [
                 {
-                  "language": "en",
+                  "language": "ko",
                   "text": "White polyethylene foam TOP PAD (160 × 160 × 60 mm, CP25PAK003-B grade) used in 포장(라벨부착) of MODEL_C NVD1. Inserted above the packaged camera in the unit box to absorb shock during shipment."
                 }
               ],
@@ -23270,7 +23270,7 @@
               "idShort": "P30402893",
               "description": [
                 {
-                  "language": "en",
+                  "language": "ko",
                   "text": "White polyethylene foam BOTTOM PAD (160 × 160 × 45 mm, CP25PAK004-A grade) used in 포장(박스) of MODEL_C NVD1. Inserted below the packaged camera in the unit box to cushion against impact during shipment."
                 }
               ],
@@ -23320,7 +23320,7 @@
               "idShort": "P30500003",
               "description": [
                 {
-                  "language": "en",
+                  "language": "ko",
                   "text": "Zippered anti-static polyethylene bag (120 × 170 mm, SWE-PACKING grade) used in 포장 of MODEL_C NVD1. Encloses the camera unit before insertion into the unit box to provide ESD protection during handling."
                 }
               ],
@@ -23370,7 +23370,7 @@
               "idShort": "P30601696",
               "description": [
                 {
-                  "language": "en",
+                  "language": "ko",
                   "text": "Coated-paper MOUNT TEMPLATE sticker (120 × 120 mm) used in 포장(라벨부착) of MODEL_C NVD1. Installer uses the template as a drilling guide for the camera-mounting hole pattern."
                 }
               ],
@@ -27812,7 +27812,7 @@
           "idShort": "NVDFwInput",
           "description": [
             {
-              "language": "en",
+              "language": "ko",
               "text": "Firmware input process group for MODEL_C NVD1-75L-R(R1)/NVD1_5600(CV25S55M)/WH/N (CPRO향, NO LOGO). Contains four sequential steps: F/W input with MAC and model name setting (20), F/W input (21), F/W input (22), and F/W input with MAC label attachment (23). All steps share worker group WORKER_FW (2 persons), equipment NO44-FW_JIG (capacity 6, rated power 0 kW), and cycle time 20 s per step. Total cycle time: 80 s. Input materials per unit: SMT 03903388 (NVD1_CV25M-1, qty 1) at step 20, MAC label (30101438, qty 1) at step 23. Revision 1.0 issued 2025-07-28."
             }
           ],
@@ -28872,7 +28872,7 @@
           "idShort": "NVDModuleAssembly",
           "description": [
             {
-              "language": "en",
+              "language": "ko",
               "text": "Module sub-assembly process group for MODEL_C NVD1-75L-R(R1)/NVD1_5600(CV25S55M)/WH/N (CPRO향, NO LOGO). Contains one step: MODULE SUB ASSY (30). M12 lens (10800723) and screws (30300062, qty 2) are mounted onto the SMT main board (03203315, qty 1) to form the module sub-assembly. Worker group: WORKER_LENS_HOLDER (4 persons). Cycle time: 60 s. Predecessor: SMT_COMPLETE. Revision 1.0 issued 2025-07-28."
             }
           ],
@@ -29299,7 +29299,7 @@
           "idShort": "NVDFocusAdjustment",
           "description": [
             {
-              "language": "en",
+              "language": "ko",
               "text": "Focus adjustment process group for MODEL_C NVD1-75L-R(R1)/NVD1_5600(CV25S55M)/WH/N (CPRO향, NO LOGO). Contains one step: FOCUS SETTING with UV BOND (40). Optical focus is adjusted on the module sub-assembly received from process 30 and the lens position is fixed using ultraviolet-cured adhesive. Worker group: WORKER_SENSOR_FOCUS (3 persons). Equipment: NO30-UV_CURE (UV curing unit, OPAS Xlite 400P). Cycle time: 100 s. No additional input materials consumed. Revision 1.0 issued 2025-07-28."
             }
           ],
@@ -29557,7 +29557,7 @@
           "idShort": "NVDFrontAssembly",
           "description": [
             {
-              "language": "en",
+              "language": "ko",
               "text": "Front assembly process group for MODEL_C NVD1-75L-R(R1)/NVD1_5600(CV25S55M)/WH/N (CPRO향, NO LOGO). Contains four steps: FRONT ASSY (50), FRONT ASSY (51), FRONT ASSY JOIN with focused module (52), and FRONT ASSY JOIN with FW-input PCB (53). Step 50 is an independent SEMI process assembling front case, multiple gaskets, and glass windows. Step 51 adds LED heat sink, window bracket, POE/H2IR PCB (03903391, qty 1), and screws. Step 52 is a JOIN step merging the focused module sub-assembly and the front sub-assembly with internal cables. Step 53 is a JOIN step merging the FW-input completed PCB with the front sub-assembly. Worker groups: WORKER_SEMI (11 persons) for steps 50-52, WORKER_SET (16 persons) for step 53. Cycle times 50/65/70/30 s. Total cycle time: 215 s. Sub-assemblies transferred via CART (transfer qty: 80 units per batch). Revision 1.0 issued 2025-07-28."
             }
           ],
@@ -29852,7 +29852,7 @@
                       ],
                       "description": [
                         {
-                          "language": "en",
+                          "language": "ko",
                           "text": "Reference to P20502501 entity in HierarchicalStructures. DC FRONT CASE - VD1(BELL향). Quantity: 1."
                         }
                       ],
@@ -31370,7 +31370,7 @@
           "idShort": "NVDRearCaseAssembly",
           "description": [
             {
-              "language": "en",
+              "language": "ko",
               "text": "Rear case assembly process group for MODEL_C NVD1-75L-R(R1)/NVD1_5600(CV25S55M)/WH/N (CPRO향, NO LOGO). Contains two sequential steps: REAR CASE ASSY (60) and REAR CASE ASSY (61). Step 60 assembles DC rear case (20502502, qty 1), side cover gasket (21201483), cable rubber (21201484), and machine screws (30300999, qty 4) into the rear housing sub-assembly. Step 61 routes the waterproof RJ45/DCJ cable assembly (20200899) and O-ring terminal (20200819) through the cable bracket (21101550), secures with cable tie (30402020) and screws (30301095, qty 3 / 30300303, qty 1), and applies a wire harness core (21800016). Worker group: WORKER_SEMI (11 persons). Cycle times 80/110 s. Total cycle time: 190 s. Sub-assemblies transferred via CART (transfer qty: 80 units per batch). Revision 1.0 issued 2025-07-28."
             }
           ],
@@ -31665,7 +31665,7 @@
                       ],
                       "description": [
                         {
-                          "language": "en",
+                          "language": "ko",
                           "text": "Reference to P20502502 entity in HierarchicalStructures. DC REAR CASE - VD1(BELL향). Quantity: 1."
                         }
                       ],
@@ -32388,7 +32388,7 @@
           "idShort": "NVDGimbalAssembly",
           "description": [
             {
-              "language": "en",
+              "language": "ko",
               "text": "Gimbal assembly process group for MODEL_C NVD1-75L-R(R1)/NVD1_5600(CV25S55M)/WH/N (CPRO향, NO LOGO). Contains one step: GIMBAL ASSY (70). JOIN step merging NVD_53_FRONT (front housing completed sub-assembly with FW-input PCB) and NVD_61_REAR (rear case completed sub-assembly with cable harness). Thermal pad (21201322, qty 1) is placed at the heater interface during convergence. Worker group: WORKER_SET (16 persons). Cycle time: 45 s. Revision 1.0 issued 2025-07-28."
             }
           ],
@@ -32729,7 +32729,7 @@
           "idShort": "NVDSetAssembly",
           "description": [
             {
-              "language": "en",
+              "language": "ko",
               "text": "SET assembly process group for MODEL_C NVD1-75L-R(R1)/NVD1_5600(CV25S55M)/WH/N (CPRO향, NO LOGO). Contains four steps: SET ASSY (80), SET ASSY (81), SET ASSY (82), and SET ASSY (83). Step 80 is an independent SEMI process assembling DC bottom case (20502535), conduit cap (21201310), and bottom gaskets (21201497, qty 3) into the bottom housing sub-assembly. Step 81 is a JOIN step merging the bottom housing with the gimbal-completed sub-assembly and adds the DC top cover (20502534) with a set socket (30300965). Step 82 attaches the MAC label (30101438) to the assembled housing. Step 83 completes the SET assembly stage prior to camera test. Worker groups: WORKER_SEMI (11 persons) for step 80, WORKER_SET (16 persons) for steps 81-83. Cycle times 25/25/40/0 s (step 83 cycle time pending data). Total cycle time: 90 s. Revision 1.0 issued 2025-07-28."
             }
           ],
@@ -33024,7 +33024,7 @@
                       ],
                       "description": [
                         {
-                          "language": "en",
+                          "language": "ko",
                           "text": "Reference to P20502535 entity in HierarchicalStructures. DC BOTTOM CASE – VD1(CPRO향). Quantity: 1."
                         }
                       ],
@@ -33400,7 +33400,7 @@
                       ],
                       "description": [
                         {
-                          "language": "en",
+                          "language": "ko",
                           "text": "Reference to P20502534 entity in HierarchicalStructures. DC TOP COVER – VD1(CPRO향). Quantity: 1."
                         }
                       ],
@@ -33986,7 +33986,7 @@
           "idShort": "NVDInspection",
           "description": [
             {
-              "language": "en",
+              "language": "ko",
               "text": "Camera inspection process group for MODEL_C NVD1-75L-R(R1)/NVD1_5600(CV25S55M)/WH/N (CPRO향, NO LOGO). Contains three sequential steps: Camera Test inspection (90), Camera Test inspection (91), and Camera Test inspection (92). All three steps perform functional and visual inspection of the assembled camera unit and are performed by an inspection-dedicated sub-group within WORKER_SET (16 persons). No input materials consumed across any step. Cycle time: 80 s per step. Total cycle time: 240 s. Non-conforming units diverted to RMA repair process. Revision 1.0 issued 2025-07-28."
             }
           ],
@@ -34658,7 +34658,7 @@
           "idShort": "NVDSideCoverAssembly",
           "description": [
             {
-              "language": "en",
+              "language": "ko",
               "text": "Side cover assembly process group for MODEL_C NVD1-75L-R(R1)/NVD1_5600(CV25S55M)/WH/N (CPRO향, NO LOGO). Contains one step: SIDE COVER 조립 (100). DC side cover (20502503), Adhesive Vent — MIC (21201169), screws (30301034, qty 2 / 30300303, qty 2), WINDOW protection films (21201212, 21201490), DESI-TOP desiccant (30402885), and DESIPAK STICKER (30101499) are attached to complete the side cover assembly. Worker group: WORKER_SET (16 persons). Cycle time: 110 s. Revision 1.0 issued 2025-07-28."
             }
           ],
@@ -34706,7 +34706,7 @@
               "idShort": "NVD_100",
               "description": [
                 {
-                  "language": "en",
+                  "language": "ko",
                   "text": "Process 100 — SIDE COVER 조립 (side cover assembly). Adhesive Vent — MIC (21201169, qty 1) is bonded to the DC SIDE COVER (20502503, qty 1). The side cover is fastened to the camera body using M3.0×8.0 SUS Torx-10 screws (30301034, qty 2) and M2×4 black FH screws (30300303, qty 2). WINDOW protection film (21201212, qty 1) and LED WINDOW protection film (21201490, qty 1) are applied. DESI-TOP 2g desiccant (30402885, qty 1) and DESIPAK STICKER (30101499, qty 1) are placed inside before closure. Vent attachment, screw torque, and film placement confirmed visually before transfer."
                 }
               ],
@@ -34996,7 +34996,7 @@
                       ],
                       "description": [
                         {
-                          "language": "en",
+                          "language": "ko",
                           "text": "Reference to P20502503 entity in HierarchicalStructures. DC SIDE COVER - VD1(BELL향). Quantity: 1."
                         }
                       ],
@@ -35125,7 +35125,7 @@
                       ],
                       "description": [
                         {
-                          "language": "en",
+                          "language": "ko",
                           "text": "Reference to P21201212 entity in HierarchicalStructures. 고무 WINDOW 보호FILM-BI4. Quantity: 1."
                         }
                       ],
@@ -35168,7 +35168,7 @@
                       ],
                       "description": [
                         {
-                          "language": "en",
+                          "language": "ko",
                           "text": "Reference to P21201490 entity in HierarchicalStructures. 고무 LED WINDOW 보호필름 – VD1(BELL향). Quantity: 1."
                         }
                       ],
@@ -35211,7 +35211,7 @@
                       ],
                       "description": [
                         {
-                          "language": "en",
+                          "language": "ko",
                           "text": "Reference to P30402885 entity in HierarchicalStructures. 방습제 염화마그네슘 2g. Quantity: 1."
                         }
                       ],
@@ -35254,7 +35254,7 @@
                       ],
                       "description": [
                         {
-                          "language": "en",
+                          "language": "ko",
                           "text": "Reference to P30101499 entity in HierarchicalStructures. 라벨 DESIPAK STICKER - BULLET SIDE COVER STICKER *재고소진후 Re C 사용*. Quantity: 1."
                         }
                       ],
@@ -35300,7 +35300,7 @@
           "idShort": "NVDAgingTest",
           "description": [
             {
-              "language": "en",
+              "language": "ko",
               "text": "Aging test process group for MODEL_C NVD1-75L-R(R1)/NVD1_5600(CV25S55M)/WH/N (CPRO향, NO LOGO). Contains one step: AGING (110). Fully assembled camera units received from NVD_100_SIDE are subjected to an aging test to identify early-stage failures under operating conditions. Worker group: WORKER_AGING (6 persons). Cycle time: 240 s. No input materials consumed. Sub-assemblies transferred via CART (transfer qty: 80 units per batch). Revision 1.0 issued 2025-07-28."
             }
           ],
@@ -35558,7 +35558,7 @@
           "idShort": "NVDPackaging",
           "description": [
             {
-              "language": "en",
+              "language": "ko",
               "text": "Packaging process group for MODEL_C NVD1-75L-R(R1)/NVD1_5600(CV25S55M)/WH/N (CPRO향, NO LOGO). Contains four sequential steps: 포장 (accessory packaging, 120), 포장(박스) (unit box packaging, 121), 포장(라벨부착) (label attachment, 122), and 포장(카톤박스) (carton box packaging, 123). Step 120 packages mounting accessories including DESI-TOP desiccant, anchor screw set (30301127), L-wrenches (30401685, 21000140), waterproof RJ45 cap (21201287), and antistatic bag (30500003). Step 121 places the unit into the individual product box (30201153) with PE FOAM bottom (30402893), silica gel desiccant (30400105), and product label (30101295). Step 122 attaches PE FOAM top (30402892) and mount template (30601696). Step 123 completes carton packaging with unit-box label (30100210) and carton box (30201154, qty 0.166 — 1 carton per 6 units). Worker groups: WORKER_PACK (6 persons) for steps 120/121/123, WORKER_PACK_LABEL (2 persons) for step 122. Cycle times 38/38/37/37 s. Total cycle time: 150 s. Revision 1.0 issued 2025-07-28."
             }
           ],
@@ -35606,7 +35606,7 @@
               "idShort": "NVD_120",
               "description": [
                 {
-                  "language": "en",
+                  "language": "ko",
                   "text": "Process 120 — 포장 (accessory packaging). Field installation accessories are prepared and packaged alongside the finished camera unit. Items included: DESI-TOP 2g VIETNAM vacuum-packed desiccant (30402886, qty 1), anchor T/S-1 PHL+ D3×35 with calblock 3EA set (30301127, qty 1), L-WRENCH HEX2.0 (30401685, qty 1), L-WRENCH T10 TORX (21000140, qty 1), RJ45 CABLE WATER PROOF CAP (21201287, qty 1), and antistatic bag (30500003, qty 1). Accessory completeness confirmed by visual inspection before proceeding to unit box packaging."
                 }
               ],
@@ -35853,7 +35853,7 @@
                       ],
                       "description": [
                         {
-                          "language": "en",
+                          "language": "ko",
                           "text": "Reference to P30402886 entity in HierarchicalStructures. 방습제 DESI-TOP 2g (VIETNAM진공포장). Quantity: 1."
                         }
                       ],
@@ -35896,7 +35896,7 @@
                       ],
                       "description": [
                         {
-                          "language": "en",
+                          "language": "ko",
                           "text": "Reference to P30301127 entity in HierarchicalStructures. T/S-1 PHL+ D3X35 + 앙카 칼블록 3EA 포장. Quantity: 1."
                         }
                       ],
@@ -35939,7 +35939,7 @@
                       ],
                       "description": [
                         {
-                          "language": "en",
+                          "language": "ko",
                           "text": "Reference to P30401685 entity in HierarchicalStructures. L-WRENCH, HEX2.0-55.0X5.0(NI 도금). Quantity: 1."
                         }
                       ],
@@ -35982,7 +35982,7 @@
                       ],
                       "description": [
                         {
-                          "language": "en",
+                          "language": "ko",
                           "text": "Reference to P21000140 entity in HierarchicalStructures. L-WRENCH, T10, TORX 52.9*16.7*2.5 *Upper재고 소진후 변경시 21000072 적용*. Quantity: 1."
                         }
                       ],
@@ -36111,7 +36111,7 @@
               "idShort": "NVD_121",
               "description": [
                 {
-                  "language": "en",
+                  "language": "ko",
                   "text": "Process 121 — 포장(박스) (unit box packaging). The camera unit and accessories prepared in process 120 are placed into the UNIT BOX (30201153, qty 1) with PE FOAM bottom pad (30402893, qty 1) and silica gel desiccant (30400105, qty 1). Product label (30101295, qty 1) is attached to the unit box. Box and PE FOAM moulding defects confirmed absent by visual inspection. Accessory completeness confirmed before box closure."
                 }
               ],
@@ -36444,7 +36444,7 @@
                       ],
                       "description": [
                         {
-                          "language": "en",
+                          "language": "ko",
                           "text": "Reference to P30400105 entity in HierarchicalStructures. 방습제 SILICA-GEL. Quantity: 1."
                         }
                       ],
@@ -36487,7 +36487,7 @@
                       ],
                       "description": [
                         {
-                          "language": "en",
+                          "language": "ko",
                           "text": "Reference to P30101295 entity in HierarchicalStructures. 라벨 PRODUCT-무인쇄 *유포지*. Quantity: 1."
                         }
                       ],
@@ -36530,7 +36530,7 @@
               "idShort": "NVD_122",
               "description": [
                 {
-                  "language": "en",
+                  "language": "ko",
                   "text": "Process 122 — 포장(라벨부착) (label attachment). PE FOAM top pad (30402892, qty 1) is placed over the camera unit inside the unit box. Mount template (30601696, qty 1) is inserted. Label print specification and serial number confirmed by visual inspection. PE FOAM top moulding defects confirmed absent. Performed by WORKER_PACK_LABEL (2 persons)."
                 }
               ],
@@ -36820,7 +36820,7 @@
                       ],
                       "description": [
                         {
-                          "language": "en",
+                          "language": "ko",
                           "text": "Reference to P30601696 entity in HierarchicalStructures. 포장 MOUNT TEMPLATE-VD6. Quantity: 1."
                         }
                       ],
@@ -36863,7 +36863,7 @@
               "idShort": "NVD_123",
               "description": [
                 {
-                  "language": "en",
+                  "language": "ko",
                   "text": "Process 123 — 포장(카톤박스) (carton box packaging). Unit-box label (30100210, qty 1) is attached and the individually boxed camera units are consolidated into the shipping carton (30201154, NK, qty 0.166 — 1 carton per 6 units). Packaging material completeness and label specification confirmed before carton closure. This step constitutes the final stage of the MODEL_C NVD assembly and packaging sequence."
                 }
               ],
@@ -37110,7 +37110,7 @@
                       ],
                       "description": [
                         {
-                          "language": "en",
+                          "language": "ko",
                           "text": "Reference to P30100210 entity in HierarchicalStructures. 라벨 UNIT BOX-무인쇄. Quantity: 1."
                         }
                       ],
@@ -37230,7 +37230,7 @@
       "idShort": "MODEL_C_NVD1",
       "displayName": [
         {
-          "language": "en",
+          "language": "ko",
           "text": "NVD1 CPRO향 미니돔 IP 카메라 (NO LOGO)"
         }
       ],
@@ -38509,7 +38509,7 @@
       "idShort": "CAPACITOR_10200474",
       "displayName": [
         {
-          "language": "en",
+          "language": "ko",
           "text": "CL31B225KCHSNNNE (삼성단독)"
         }
       ],
@@ -38980,7 +38980,7 @@
       "idShort": "CONNECTOR_10300274",
       "displayName": [
         {
-          "language": "en",
+          "language": "ko",
           "text": "1.0T-1-04A/1.0mm-04P/ST SMD(티엠텍)"
         }
       ],
@@ -39021,7 +39021,7 @@
       "idShort": "CONNECTOR_10300284",
       "displayName": [
         {
-          "language": "en",
+          "language": "ko",
           "text": "1.0T-1-04AW/1.0mm-04P/AN SMD(티엠텍)"
         }
       ],
@@ -40125,7 +40125,7 @@
       "idShort": "INDUCTOR_FILTER_CHIP_10600361",
       "displayName": [
         {
-          "language": "en",
+          "language": "ko",
           "text": "SWPA5020S2R2NT *재고 소진 후 10600124 사용"
         }
       ],
@@ -40426,7 +40426,7 @@
       "idShort": "IC_REGULATOR_10700726",
       "displayName": [
         {
-          "language": "en",
+          "language": "ko",
           "text": "AP3427MDNTR-G1/PAM2308BYMAA/FP6168D-G1 *재고소진후 10701790 사용*"
         }
       ],
@@ -40555,7 +40555,7 @@
       "idShort": "IC_REGULATOR_10700894",
       "displayName": [
         {
-          "language": "en",
+          "language": "ko",
           "text": "AP2127K-ADJTRG1/EUP7907VIR1 (재고소진 후 10701803 사용)"
         }
       ],
@@ -40770,7 +40770,7 @@
       "idShort": "IC_REGULATOR_10701771",
       "displayName": [
         {
-          "language": "en",
+          "language": "ko",
           "text": "S40FC004C1B1C00000 *재고 소진 후 10701753 사용*"
         }
       ],
@@ -41028,7 +41028,7 @@
       "idShort": "IC_REGULATOR_10701935",
       "displayName": [
         {
-          "language": "en",
+          "language": "ko",
           "text": "AP62250WU-7 *재고 소진 후 10701509 사용"
         }
       ],
@@ -44116,7 +44116,7 @@
       "idShort": "MOL_20901023",
       "displayName": [
         {
-          "language": "en",
+          "language": "ko",
           "text": "사출 원형 사출물 LED,CDS 지지대-SW4002-2mm"
         }
       ],
@@ -44198,7 +44198,7 @@
       "idShort": "P20200819",
       "displayName": [
         {
-          "language": "en",
+          "language": "ko",
           "text": "O단자-39-O단자"
         }
       ],
@@ -44239,7 +44239,7 @@
       "idShort": "P20200899",
       "displayName": [
         {
-          "language": "en",
+          "language": "ko",
           "text": "15001HS9P-500-RJ45(방수)+DCJ(BLACK)"
         }
       ],
@@ -44280,7 +44280,7 @@
       "idShort": "P20400165",
       "displayName": [
         {
-          "language": "en",
+          "language": "ko",
           "text": "GLASS LENS WINDOW - VD1(BELL향)"
         }
       ],
@@ -44321,7 +44321,7 @@
       "idShort": "P20400166",
       "displayName": [
         {
-          "language": "en",
+          "language": "ko",
           "text": "GLASS IR LED WINDOW - VD1(BELL향)"
         }
       ],
@@ -44362,7 +44362,7 @@
       "idShort": "P20502501",
       "displayName": [
         {
-          "language": "en",
+          "language": "ko",
           "text": "DC FRONT CASE - VD1(BELL향)"
         }
       ],
@@ -44403,7 +44403,7 @@
       "idShort": "P20502502",
       "displayName": [
         {
-          "language": "en",
+          "language": "ko",
           "text": "DC REAR CASE - VD1(BELL향)"
         }
       ],
@@ -44444,7 +44444,7 @@
       "idShort": "P20502503",
       "displayName": [
         {
-          "language": "en",
+          "language": "ko",
           "text": "DC SIDE COVER - VD1(BELL향)"
         }
       ],
@@ -44485,7 +44485,7 @@
       "idShort": "P20502534",
       "displayName": [
         {
-          "language": "en",
+          "language": "ko",
           "text": "DC TOP COVER – VD1(CPRO향)"
         }
       ],
@@ -44526,7 +44526,7 @@
       "idShort": "P20502535",
       "displayName": [
         {
-          "language": "en",
+          "language": "ko",
           "text": "DC BOTTOM CASE – VD1(CPRO향)"
         }
       ],
@@ -44567,7 +44567,7 @@
       "idShort": "P21000140",
       "displayName": [
         {
-          "language": "en",
+          "language": "ko",
           "text": "L-WRENCH, T10, TORX 52.9*16.7*2.5 *Upper재고 소진후 변경시 21000072 적용*"
         }
       ],
@@ -44608,7 +44608,7 @@
       "idShort": "P21000172",
       "displayName": [
         {
-          "language": "en",
+          "language": "ko",
           "text": "가공 SPACE BAR-D3.5X5.0mm"
         }
       ],
@@ -44649,7 +44649,7 @@
       "idShort": "P21001371",
       "displayName": [
         {
-          "language": "en",
+          "language": "ko",
           "text": "가공 LED HEAT SINK - VD1(BELL향)"
         }
       ],
@@ -44690,7 +44690,7 @@
       "idShort": "P21101550",
       "displayName": [
         {
-          "language": "en",
+          "language": "ko",
           "text": "프레스 CABLE BRACKET-ST17"
         }
       ],
@@ -44731,7 +44731,7 @@
       "idShort": "P21101585",
       "displayName": [
         {
-          "language": "en",
+          "language": "ko",
           "text": "프레스 WINDOW BRACKET - VD1(BELL향)"
         }
       ],
@@ -44772,7 +44772,7 @@
       "idShort": "P21201169",
       "displayName": [
         {
-          "language": "en",
+          "language": "ko",
           "text": "고무 Adhesive Vent – MIC 전용"
         }
       ],
@@ -44813,7 +44813,7 @@
       "idShort": "P21201212",
       "displayName": [
         {
-          "language": "en",
+          "language": "ko",
           "text": "고무 WINDOW 보호FILM-BI4"
         }
       ],
@@ -44854,7 +44854,7 @@
       "idShort": "P21201287",
       "displayName": [
         {
-          "language": "en",
+          "language": "ko",
           "text": "고무 RJ45 CABLE WATER PROOF CAP"
         }
       ],
@@ -44895,7 +44895,7 @@
       "idShort": "P21201310",
       "displayName": [
         {
-          "language": "en",
+          "language": "ko",
           "text": "고무 CONDUIT CAP - WH"
         }
       ],
@@ -44936,7 +44936,7 @@
       "idShort": "P21201322",
       "displayName": [
         {
-          "language": "en",
+          "language": "ko",
           "text": "고무 THERMAL PAD-SF1(HEATER)"
         }
       ],
@@ -44977,7 +44977,7 @@
       "idShort": "P21201481",
       "displayName": [
         {
-          "language": "en",
+          "language": "ko",
           "text": "고무 LENS WINDOW GASKET - VD1(BELL향)"
         }
       ],
@@ -45018,7 +45018,7 @@
       "idShort": "P21201482",
       "displayName": [
         {
-          "language": "en",
+          "language": "ko",
           "text": "고무 BODY GASKET - VD1(BELL향)"
         }
       ],
@@ -45059,7 +45059,7 @@
       "idShort": "P21201483",
       "displayName": [
         {
-          "language": "en",
+          "language": "ko",
           "text": "고무 SIDE COVER GASKET - VD1(BELL향)"
         }
       ],
@@ -45100,7 +45100,7 @@
       "idShort": "P21201484",
       "displayName": [
         {
-          "language": "en",
+          "language": "ko",
           "text": "고무 CABLE RUBBER - VD1(BELL향)"
         }
       ],
@@ -45141,7 +45141,7 @@
       "idShort": "P21201486",
       "displayName": [
         {
-          "language": "en",
+          "language": "ko",
           "text": "고무 LED WINDOW GASKET - VD1(BELL향)"
         }
       ],
@@ -45182,7 +45182,7 @@
       "idShort": "P21201487",
       "displayName": [
         {
-          "language": "en",
+          "language": "ko",
           "text": "고무 LED HEAT SINK 열전도 양면 TAPE - VD1(BELL향)"
         }
       ],
@@ -45223,7 +45223,7 @@
       "idShort": "P21201488",
       "displayName": [
         {
-          "language": "en",
+          "language": "ko",
           "text": "고무 HEAT SINK THERMAL PAD - VD1(BELL향)"
         }
       ],
@@ -45264,7 +45264,7 @@
       "idShort": "P21201490",
       "displayName": [
         {
-          "language": "en",
+          "language": "ko",
           "text": "고무 LED WINDOW 보호필름 – VD1(BELL향)"
         }
       ],
@@ -45305,7 +45305,7 @@
       "idShort": "P21201497",
       "displayName": [
         {
-          "language": "en",
+          "language": "ko",
           "text": "고무 BOTTOM GASKET – VD1(CPRO향)"
         }
       ],
@@ -45428,7 +45428,7 @@
       "idShort": "P21800016",
       "displayName": [
         {
-          "language": "en",
+          "language": "ko",
           "text": "WIRE HARNESS용 CORE( 수축튜브 )"
         }
       ],
@@ -45469,7 +45469,7 @@
       "idShort": "P30100210",
       "displayName": [
         {
-          "language": "en",
+          "language": "ko",
           "text": "라벨 UNIT BOX-무인쇄"
         }
       ],
@@ -45510,7 +45510,7 @@
       "idShort": "P30101295",
       "displayName": [
         {
-          "language": "en",
+          "language": "ko",
           "text": "라벨 PRODUCT-무인쇄 *유포지*"
         }
       ],
@@ -45592,7 +45592,7 @@
       "idShort": "P30101499",
       "displayName": [
         {
-          "language": "en",
+          "language": "ko",
           "text": "라벨 DESIPAK STICKER - BULLET SIDE COVER STICKER *재고소진후 Re C 사용*"
         }
       ],
@@ -45920,7 +45920,7 @@
       "idShort": "P30300999",
       "displayName": [
         {
-          "language": "en",
+          "language": "ko",
           "text": "M/S 평머리* M3.0x14.0 (SUS) H=4.9"
         }
       ],
@@ -45961,7 +45961,7 @@
       "idShort": "P30301034",
       "displayName": [
         {
-          "language": "en",
+          "language": "ko",
           "text": "M/S 평머리* M3.0x8.0 (SUS) H=4.9 Torx-10"
         }
       ],
@@ -46043,7 +46043,7 @@
       "idShort": "P30301127",
       "displayName": [
         {
-          "language": "en",
+          "language": "ko",
           "text": "T/S-1 PHL+ D3X35 + 앙카 칼블록 3EA 포장"
         }
       ],
@@ -46084,7 +46084,7 @@
       "idShort": "P30400105",
       "displayName": [
         {
-          "language": "en",
+          "language": "ko",
           "text": "방습제 SILICA-GEL"
         }
       ],
@@ -46125,7 +46125,7 @@
       "idShort": "P30401685",
       "displayName": [
         {
-          "language": "en",
+          "language": "ko",
           "text": "L-WRENCH, HEX2.0-55.0X5.0(NI 도금)"
         }
       ],
@@ -46207,7 +46207,7 @@
       "idShort": "P30402885",
       "displayName": [
         {
-          "language": "en",
+          "language": "ko",
           "text": "방습제 염화마그네슘 2g"
         }
       ],
@@ -46248,7 +46248,7 @@
       "idShort": "P30402886",
       "displayName": [
         {
-          "language": "en",
+          "language": "ko",
           "text": "방습제 DESI-TOP 2g (VIETNAM진공포장)"
         }
       ],
@@ -46289,7 +46289,7 @@
       "idShort": "P30402892",
       "displayName": [
         {
-          "language": "en",
+          "language": "ko",
           "text": "포장 PE FOAM-VD1(BELL향) –TOP PAD"
         }
       ],
@@ -46330,7 +46330,7 @@
       "idShort": "P30402893",
       "displayName": [
         {
-          "language": "en",
+          "language": "ko",
           "text": "포장 PE FOAM-VD1(BELL향) –BOTTOM PAD"
         }
       ],
@@ -46371,7 +46371,7 @@
       "idShort": "P30500003",
       "displayName": [
         {
-          "language": "en",
+          "language": "ko",
           "text": "비닐 ANTISTATIC BAG(Zipper)"
         }
       ],
@@ -46412,7 +46412,7 @@
       "idShort": "P30601696",
       "displayName": [
         {
-          "language": "en",
+          "language": "ko",
           "text": "포장 MOUNT TEMPLATE-VD6"
         }
       ],

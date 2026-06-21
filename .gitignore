@@ -23,3 +23,6 @@ rl_log*.jsonl
 scratch/
 # 빌드 캐시 디렉토리
 __pycache__/
+# 발표 덱·바이너리 산출물 (커밋 제외)
+*.pptx
+aas_template/

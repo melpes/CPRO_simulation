@@ -3312,7 +3312,7 @@
                           "idShort": "VD7_110",
                           "description": [
                             {
-                              "language": "en",
+                              "language": "ko",
                               "text": "Process 110 — 포장 (accessory packaging). Mounting nuts (20900925, qty 2), mounting bolts (21000790, qty 2), L-wrench Torx T20 (21000072, qty 1), tapping screw (30300614, qty 1), antistatic bags (30500003, 30500004, qty 1 each), and RJ45 waterproof cap (21201287, qty 1) are prepared and packaged as accessories. Accessory completeness confirmed by visual inspection before proceeding to unit boxing. Revision history: ECO550 (Rev1.5, 2021-08-27): RJ45 cable waterproof cap added."
                             }
                           ],
@@ -3463,7 +3463,7 @@
                           "idShort": "VD7_110_1",
                           "description": [
                             {
-                              "language": "en",
+                              "language": "ko",
                               "text": "Process 110-1 — 포장(박스) (unit box packaging). Camera unit and accessories placed into unit box (30200916) with PE foam bottom insert (21400282) and silica gel desiccant (30400105). Box and PE foam moulding defects confirmed absent by visual inspection. Accessory completeness confirmed before box closure. Quantity per unit: 1 box."
                             }
                           ],
@@ -3614,7 +3614,7 @@
                           "idShort": "VD7_110_2",
                           "description": [
                             {
-                              "language": "en",
+                              "language": "ko",
                               "text": "Process 110-2 — 포장(라벨부착) (label attachment). PE foam top insert (21400283) placed over camera unit inside unit box. Product label attached to unit box surface. Label print specification and serial number confirmed free of duplication by visual inspection. PE foam top moulding defects confirmed absent. Performed by WORKER_PACK_LABEL (2 persons)."
                             }
                           ],
@@ -3765,7 +3765,7 @@
                           "idShort": "VD7_110_3",
                           "description": [
                             {
-                              "language": "en",
+                              "language": "ko",
                               "text": "Process 110-3 — 포장(카톤박스) (carton box packaging). Mount template (30600066), CD manual (30401009), and carton box (30201152, qty 0.125, 1 carton per 8 units) complete the final packaging stage. Packaging material completeness confirmed by visual inspection. Label specification and attachment position confirmed before carton closure. This is the final process step of the MODEL_A VD7 assembly and packaging sequence."
                             }
                           ],
@@ -8992,7 +8992,7 @@
                           "idShort": "NVD_40",
                           "description": [
                             {
-                              "language": "en",
+                              "language": "ko",
                               "text": "Focus adjustment process group for MODEL_C NVD1-75L-R(R1)/NVD1_5600(CV25S55M)/WH/N (CPRO향, NO LOGO). Contains one step: FOCUS SETTING with UV BOND (40). Optical focus is adjusted on the module sub-assembly received from process 30 and the lens position is fixed using ultraviolet-cured adhesive. Worker group: WORKER_SENSOR_FOCUS (3 persons). Equipment: NO30-UV_CURE (UV curing unit, OPAS Xlite 400P). Cycle time: 100 s. No additional input materials consumed. Revision 1.0 issued 2025-07-28."
                             }
                           ],
@@ -10987,7 +10987,7 @@
                           "idShort": "NVD_100",
                           "description": [
                             {
-                              "language": "en",
+                              "language": "ko",
                               "text": "Process 100 — SIDE COVER 조립 (side cover assembly). Adhesive Vent — MIC (21201169, qty 1) is bonded to the DC SIDE COVER (20502503, qty 1). The side cover is fastened to the camera body using M3.0×8.0 SUS Torx-10 screws (30301034, qty 2) and M2×4 black FH screws (30300303, qty 2). WINDOW protection film (21201212, qty 1) and LED WINDOW protection film (21201490, qty 1) are applied. DESI-TOP 2g desiccant (30402885, qty 1) and DESIPAK STICKER (30101499, qty 1) are placed inside before closure. Vent attachment, screw torque, and film placement confirmed visually before transfer."
                             }
                           ],
@@ -11253,7 +11253,7 @@
                           "idShort": "NVD_120",
                           "description": [
                             {
-                              "language": "en",
+                              "language": "ko",
                               "text": "Process 120 — 포장 (accessory packaging). Field installation accessories are prepared and packaged alongside the finished camera unit. Items included: DESI-TOP 2g VIETNAM vacuum-packed desiccant (30402886, qty 1), anchor T/S-1 PHL+ D3×35 with calblock 3EA set (30301127, qty 1), L-WRENCH HEX2.0 (30401685, qty 1), L-WRENCH T10 TORX (21000140, qty 1), RJ45 CABLE WATER PROOF CAP (21201287, qty 1), and antistatic bag (30500003, qty 1). Accessory completeness confirmed by visual inspection before proceeding to unit box packaging."
                             }
                           ],
@@ -11386,7 +11386,7 @@
                           "idShort": "NVD_121",
                           "description": [
                             {
-                              "language": "en",
+                              "language": "ko",
                               "text": "Process 121 — 포장(박스) (unit box packaging). The camera unit and accessories prepared in process 120 are placed into the UNIT BOX (30201153, qty 1) with PE FOAM bottom pad (30402893, qty 1) and silica gel desiccant (30400105, qty 1). Product label (30101295, qty 1) is attached to the unit box. Box and PE FOAM moulding defects confirmed absent by visual inspection. Accessory completeness confirmed before box closure."
                             }
                           ],
@@ -11519,7 +11519,7 @@
                           "idShort": "NVD_122",
                           "description": [
                             {
-                              "language": "en",
+                              "language": "ko",
                               "text": "Process 122 — 포장(라벨부착) (label attachment). PE FOAM top pad (30402892, qty 1) is placed over the camera unit inside the unit box. Mount template (30601696, qty 1) is inserted. Label print specification and serial number confirmed by visual inspection. PE FOAM top moulding defects confirmed absent. Performed by WORKER_PACK_LABEL (2 persons)."
                             }
                           ],
@@ -11652,7 +11652,7 @@
                           "idShort": "NVD_123",
                           "description": [
                             {
-                              "language": "en",
+                              "language": "ko",
                               "text": "Process 123 — 포장(카톤박스) (carton box packaging). Unit-box label (30100210, qty 1) is attached and the individually boxed camera units are consolidated into the shipping carton (30201154, NK, qty 0.166 — 1 carton per 6 units). Packaging material completeness and label specification confirmed before carton closure. This step constitutes the final stage of the MODEL_C NVD assembly and packaging sequence."
                             }
                           ],
@@ -13599,6 +13599,42 @@
                   "valueType": "xs:float",
                   "value": "0.1",
                   "modelType": "Property"
+                },
+                {
+                  "category": "PARAMETER",
+                  "idShort": "W7_DueDate",
+                  "displayName": [
+                    {
+                      "language": "en",
+                      "text": "Reward Weight — Due-Date Pace Penalty"
+                    }
+                  ],
+                  "description": [
+                    {
+                      "language": "en",
+                      "text": "Weight applied to the due-date pace penalty. Penalizes the agent when a model's cumulative production lags the linear pace required to meet its purchase-order DueDay, accumulated per work tick, driving anticipatory prioritization of models behind their delivery schedule."
+                    }
+                  ],
+                  "semanticId": {
+                    "type": "ModelReference",
+                    "keys": [
+                      {
+                        "type": "ConceptDescription",
+                        "value": "https://www.smart-factory.kr/ids/cd/W7_DueDate/1/0"
+                      }
+                    ]
+                  },
+                  "qualifiers": [
+                    {
+                      "kind": "TemplateQualifier",
+                      "type": "Multiplicity",
+                      "valueType": "xs:string",
+                      "value": "One"
+                    }
+                  ],
+                  "valueType": "xs:float",
+                  "value": "0.25",
+                  "modelType": "Property"
                 }
               ],
               "modelType": "SubmodelElementCollection"
@@ -13914,7 +13950,7 @@
                   "description": [
                     {
                       "language": "en",
-                      "text": "Replenishment lead time in hours (Default: 24 hours = 1 day)"
+                      "text": "Replenishment lead time in days (Default: 7 days). cpro_factory multiplies by 86400 for seconds."
                     }
                   ],
                   "semanticId": {
@@ -13927,7 +13963,7 @@
                     ]
                   },
                   "valueType": "xs:int",
-                  "value": "24",
+                  "value": "7",
                   "modelType": "Property"
                 },
                 {
@@ -14429,7 +14465,7 @@
                   "idShort": "SolderCream",
                   "description": [
                     {
-                      "language": "en",
+                      "language": "ko",
                       "text": "솔더크림 정책 — 다른 BOMCategory 와 동일 (MinStock/MaxStock/OrderRatio). present_stock 은 정책이 아니라 런타임 상태라 두지 않음 (Warehouse.build 가 reset 시 present_stock=MinStock 으로 생성). Category(모델 HS entity)가 아닌 SMT 라인 소모품이라 Warehouse 직속. semanticId=cd/SolderCream 이 ScreenPrinterProcess.Materials.input 의 SolderCream ref 와 매칭."
                     }
                   ],
@@ -14456,7 +14492,7 @@
                       "idShort": "MinStock",
                       "description": [
                         {
-                          "language": "en",
+                          "language": "ko",
                           "text": "발주점 임계 (g). 초기재고 = MinStock (Warehouse.build 패턴). 크게 설정."
                         }
                       ],
@@ -14596,7 +14632,7 @@
                         ]
                       },
                       "valueType": "xs:string",
-                      "value": "simulation_ver1.PPOAgent",
+                      "value": "simulation.PPOAgent",
                       "modelType": "Property"
                     },
                     {
@@ -14786,7 +14822,7 @@
                                 ]
                               },
                               "valueType": "xs:string",
-                              "value": "simulation_ver1.op_concat_state",
+                              "value": "simulation.op_concat_state",
                               "modelType": "Property"
                             },
                             {
@@ -15302,7 +15338,7 @@
                                 ]
                               },
                               "valueType": "xs:string",
-                              "value": "simulation_ver1.op_squeeze_last",
+                              "value": "simulation.op_squeeze_last",
                               "modelType": "Property"
                             },
                             {
@@ -15447,7 +15483,7 @@
                                 ]
                               },
                               "valueType": "xs:string",
-                              "value": "simulation_ver1.op_concat_state",
+                              "value": "simulation.op_concat_state",
                               "modelType": "Property"
                             },
                             {
@@ -16509,7 +16545,7 @@
               "idShort": "SMTProcess",
               "description": [
                 {
-                  "language": "en",
+                  "language": "ko",
                   "text": "SMT 공정 허브. 설비 Process SMC 는 일반화된 자원 ref 만 보유, SMTMaterials 가 모델별 실제 PCB CD 매핑. 공정 변화 = SMTMaterials 갱신, 설비 변경 = 카탈로그 AAS 갱신, 라인 토폴로지 = SMTLines 갱신."
                 }
               ],
@@ -16563,7 +16599,7 @@
                       "idShort": "Line_1",
                       "description": [
                         {
-                          "language": "en",
+                          "language": "ko",
                           "text": "SMT Line_1 라인 — 설비 Process SMC 7개 직렬."
                         }
                       ],
@@ -16590,7 +16626,7 @@
                           "idShort": "LoaderProcess",
                           "description": [
                             {
-                              "language": "en",
+                              "language": "ko",
                               "text": "LoaderProcess — DepPrev / CycleTime / RatedPower(ref) / Materials(Operation). semanticId = 설비 카탈로그 AAS ref."
                             }
                           ],
@@ -16617,7 +16653,7 @@
                               "idShort": "DepPrev",
                               "description": [
                                 {
-                                  "language": "en",
+                                  "language": "ko",
                                   "text": "이전 공정 idShort (\";\"-separated). KG.Node 와 동일 패턴 (string)."
                                 }
                               ],
@@ -16662,7 +16698,7 @@
                               "idShort": "CycleTimeSec",
                               "description": [
                                 {
-                                  "language": "en",
+                                  "language": "ko",
                                   "text": "LoaderProcess 의 사이클타임 — catalog AAS 의 같은 semanticId Property 자동 lookup."
                                 }
                               ],
@@ -16691,7 +16727,7 @@
                               "idShort": "RatedPowerKw",
                               "description": [
                                 {
-                                  "language": "en",
+                                  "language": "ko",
                                   "text": "LoaderProcess 의 정격전력 — catalog AAS 의 같은 semanticId Property 자동 lookup."
                                 }
                               ],
@@ -16720,7 +16756,7 @@
                               "idShort": "Materials",
                               "description": [
                                 {
-                                  "language": "en",
+                                  "language": "ko",
                                   "text": "LoaderProcess 의 1 PCB 처리 IO (AAS Operation SME, idShort=Materials). 자원 ref 의 semanticId 가 SMTMaterials.<MODEL>.<resource> 또는 직전 설비 output 과 매칭."
                                 }
                               ],
@@ -16748,7 +16784,7 @@
                                     "idShort": "PCB",
                                     "description": [
                                       {
-                                        "language": "en",
+                                        "language": "ko",
                                         "text": "Input 자원 PCB — SMTMaterials.<MODEL>.PCB 매칭."
                                       }
                                     ],
@@ -16781,7 +16817,7 @@
                                     "idShort": "PCB",
                                     "description": [
                                       {
-                                        "language": "en",
+                                        "language": "ko",
                                         "text": "Output 자원 PCB — SMTMaterials.<MODEL>.PCB 매칭."
                                       }
                                     ],
@@ -16818,7 +16854,7 @@
                           "idShort": "ScreenPrinterProcess",
                           "description": [
                             {
-                              "language": "en",
+                              "language": "ko",
                               "text": "ScreenPrinterProcess — DepPrev / CycleTime / RatedPower(ref) / Materials(Operation). semanticId = 설비 카탈로그 AAS ref."
                             }
                           ],
@@ -16845,7 +16881,7 @@
                               "idShort": "DepPrev",
                               "description": [
                                 {
-                                  "language": "en",
+                                  "language": "ko",
                                   "text": "이전 공정 idShort (\";\"-separated). KG.Node 와 동일 패턴 (string)."
                                 }
                               ],
@@ -16890,7 +16926,7 @@
                               "idShort": "CycleTimeSec",
                               "description": [
                                 {
-                                  "language": "en",
+                                  "language": "ko",
                                   "text": "ScreenPrinterProcess 의 사이클타임 — catalog AAS 의 같은 semanticId Property 자동 lookup."
                                 }
                               ],
@@ -16919,7 +16955,7 @@
                               "idShort": "RatedPowerKw",
                               "description": [
                                 {
-                                  "language": "en",
+                                  "language": "ko",
                                   "text": "ScreenPrinterProcess 의 정격전력 — catalog AAS 의 같은 semanticId Property 자동 lookup."
                                 }
                               ],
@@ -16948,7 +16984,7 @@
                               "idShort": "Materials",
                               "description": [
                                 {
-                                  "language": "en",
+                                  "language": "ko",
                                   "text": "ScreenPrinterProcess 의 1 PCB 처리 IO (AAS Operation SME, idShort=Materials). 자원 ref 의 semanticId 가 SMTMaterials.<MODEL>.<resource> 또는 직전 설비 output 과 매칭."
                                 }
                               ],
@@ -16976,7 +17012,7 @@
                                     "idShort": "PCB",
                                     "description": [
                                       {
-                                        "language": "en",
+                                        "language": "ko",
                                         "text": "Input 자원 PCB — SMTMaterials.<MODEL>.PCB 매칭."
                                       }
                                     ],
@@ -17007,7 +17043,7 @@
                                     "idShort": "SolderCream",
                                     "description": [
                                       {
-                                        "language": "en",
+                                        "language": "ko",
                                         "text": "Input 자원 SolderCream — SMTMaterials.<MODEL>.SolderCream 매칭."
                                       }
                                     ],
@@ -17040,7 +17076,7 @@
                                     "idShort": "SolderPastedPCB",
                                     "description": [
                                       {
-                                        "language": "en",
+                                        "language": "ko",
                                         "text": "Output 자원 SolderPastedPCB — SMTMaterials.<MODEL>.SolderPastedPCB 매칭."
                                       }
                                     ],
@@ -17077,7 +17113,7 @@
                           "idShort": "SPIProcess",
                           "description": [
                             {
-                              "language": "en",
+                              "language": "ko",
                               "text": "SPIProcess — DepPrev / CycleTime / RatedPower(ref) / Materials(Operation). semanticId = 설비 카탈로그 AAS ref."
                             }
                           ],
@@ -17104,7 +17140,7 @@
                               "idShort": "DepPrev",
                               "description": [
                                 {
-                                  "language": "en",
+                                  "language": "ko",
                                   "text": "이전 공정 idShort (\";\"-separated). KG.Node 와 동일 패턴 (string)."
                                 }
                               ],
@@ -17149,7 +17185,7 @@
                               "idShort": "CycleTimeSec",
                               "description": [
                                 {
-                                  "language": "en",
+                                  "language": "ko",
                                   "text": "SPIProcess 의 사이클타임 — catalog AAS 의 같은 semanticId Property 자동 lookup."
                                 }
                               ],
@@ -17178,7 +17214,7 @@
                               "idShort": "RatedPowerKw",
                               "description": [
                                 {
-                                  "language": "en",
+                                  "language": "ko",
                                   "text": "SPIProcess 의 정격전력 — catalog AAS 의 같은 semanticId Property 자동 lookup."
                                 }
                               ],
@@ -17207,7 +17243,7 @@
                               "idShort": "Materials",
                               "description": [
                                 {
-                                  "language": "en",
+                                  "language": "ko",
                                   "text": "SPIProcess 의 1 PCB 처리 IO (AAS Operation SME, idShort=Materials). 자원 ref 의 semanticId 가 SMTMaterials.<MODEL>.<resource> 또는 직전 설비 output 과 매칭."
                                 }
                               ],
@@ -17235,7 +17271,7 @@
                                     "idShort": "SolderPastedPCB",
                                     "description": [
                                       {
-                                        "language": "en",
+                                        "language": "ko",
                                         "text": "Input 자원 SolderPastedPCB — SMTMaterials.<MODEL>.SolderPastedPCB 매칭."
                                       }
                                     ],
@@ -17268,7 +17304,7 @@
                                     "idShort": "SolderPastedPCB",
                                     "description": [
                                       {
-                                        "language": "en",
+                                        "language": "ko",
                                         "text": "Output 자원 SolderPastedPCB — SMTMaterials.<MODEL>.SolderPastedPCB 매칭."
                                       }
                                     ],
@@ -17305,7 +17341,7 @@
                           "idShort": "MounterProcess",
                           "description": [
                             {
-                              "language": "en",
+                              "language": "ko",
                               "text": "MounterProcess — DepPrev / CycleTime / RatedPower(ref) / Materials(Operation). semanticId = 설비 카탈로그 AAS ref."
                             }
                           ],
@@ -17332,7 +17368,7 @@
                               "idShort": "DepPrev",
                               "description": [
                                 {
-                                  "language": "en",
+                                  "language": "ko",
                                   "text": "이전 공정 idShort (\";\"-separated). KG.Node 와 동일 패턴 (string)."
                                 }
                               ],
@@ -17377,7 +17413,7 @@
                               "idShort": "CycleTimeSec",
                               "description": [
                                 {
-                                  "language": "en",
+                                  "language": "ko",
                                   "text": "MounterProcess 의 사이클타임 — catalog AAS 의 같은 semanticId Property 자동 lookup."
                                 }
                               ],
@@ -17406,7 +17442,7 @@
                               "idShort": "RatedPowerKw",
                               "description": [
                                 {
-                                  "language": "en",
+                                  "language": "ko",
                                   "text": "MounterProcess 의 정격전력 — catalog AAS 의 같은 semanticId Property 자동 lookup."
                                 }
                               ],
@@ -17435,7 +17471,7 @@
                               "idShort": "Materials",
                               "description": [
                                 {
-                                  "language": "en",
+                                  "language": "ko",
                                   "text": "MounterProcess 의 1 PCB 처리 IO (AAS Operation SME, idShort=Materials). 자원 ref 의 semanticId 가 SMTMaterials.<MODEL>.<resource> 또는 직전 설비 output 과 매칭."
                                 }
                               ],
@@ -17463,7 +17499,7 @@
                                     "idShort": "SolderPastedPCB",
                                     "description": [
                                       {
-                                        "language": "en",
+                                        "language": "ko",
                                         "text": "Input 자원 SolderPastedPCB — SMTMaterials.<MODEL>.SolderPastedPCB 매칭."
                                       }
                                     ],
@@ -17494,7 +17530,7 @@
                                     "idShort": "Chips",
                                     "description": [
                                       {
-                                        "language": "en",
+                                        "language": "ko",
                                         "text": "Input 자원 Chips — value 가 cd/PCB 를 가리킴 (alias)."
                                       }
                                     ],
@@ -17527,7 +17563,7 @@
                                     "idShort": "ChipMountedPCB",
                                     "description": [
                                       {
-                                        "language": "en",
+                                        "language": "ko",
                                         "text": "Output 자원 ChipMountedPCB — SMTMaterials.<MODEL>.ChipMountedPCB 매칭."
                                       }
                                     ],
@@ -17564,7 +17600,7 @@
                           "idShort": "ReflowProcess",
                           "description": [
                             {
-                              "language": "en",
+                              "language": "ko",
                               "text": "ReflowProcess — DepPrev / CycleTime / RatedPower(ref) / Materials(Operation). semanticId = 설비 카탈로그 AAS ref."
                             }
                           ],
@@ -17591,7 +17627,7 @@
                               "idShort": "DepPrev",
                               "description": [
                                 {
-                                  "language": "en",
+                                  "language": "ko",
                                   "text": "이전 공정 idShort (\";\"-separated). KG.Node 와 동일 패턴 (string)."
                                 }
                               ],
@@ -17636,7 +17672,7 @@
                               "idShort": "CycleTimeSec",
                               "description": [
                                 {
-                                  "language": "en",
+                                  "language": "ko",
                                   "text": "ReflowProcess 의 사이클타임 — catalog AAS 의 같은 semanticId Property 자동 lookup."
                                 }
                               ],
@@ -17665,7 +17701,7 @@
                               "idShort": "RatedPowerKw",
                               "description": [
                                 {
-                                  "language": "en",
+                                  "language": "ko",
                                   "text": "ReflowProcess 의 정격전력 — catalog AAS 의 같은 semanticId Property 자동 lookup."
                                 }
                               ],
@@ -17694,7 +17730,7 @@
                               "idShort": "Materials",
                               "description": [
                                 {
-                                  "language": "en",
+                                  "language": "ko",
                                   "text": "ReflowProcess 의 1 PCB 처리 IO (AAS Operation SME, idShort=Materials). 자원 ref 의 semanticId 가 SMTMaterials.<MODEL>.<resource> 또는 직전 설비 output 과 매칭."
                                 }
                               ],
@@ -17722,7 +17758,7 @@
                                     "idShort": "ChipMountedPCB",
                                     "description": [
                                       {
-                                        "language": "en",
+                                        "language": "ko",
                                         "text": "Input 자원 ChipMountedPCB — SMTMaterials.<MODEL>.ChipMountedPCB 매칭."
                                       }
                                     ],
@@ -17755,7 +17791,7 @@
                                     "idShort": "ReflowedPCB",
                                     "description": [
                                       {
-                                        "language": "en",
+                                        "language": "ko",
                                         "text": "Output 자원 ReflowedPCB — SMTMaterials.<MODEL>.ReflowedPCB 매칭."
                                       }
                                     ],
@@ -17792,7 +17828,7 @@
                           "idShort": "UnloaderProcess",
                           "description": [
                             {
-                              "language": "en",
+                              "language": "ko",
                               "text": "UnloaderProcess — DepPrev / CycleTime / RatedPower(ref) / Materials(Operation). semanticId = 설비 카탈로그 AAS ref."
                             }
                           ],
@@ -17819,7 +17855,7 @@
                               "idShort": "DepPrev",
                               "description": [
                                 {
-                                  "language": "en",
+                                  "language": "ko",
                                   "text": "이전 공정 idShort (\";\"-separated). KG.Node 와 동일 패턴 (string)."
                                 }
                               ],
@@ -17864,7 +17900,7 @@
                               "idShort": "CycleTimeSec",
                               "description": [
                                 {
-                                  "language": "en",
+                                  "language": "ko",
                                   "text": "UnloaderProcess 의 사이클타임 — catalog AAS 의 같은 semanticId Property 자동 lookup."
                                 }
                               ],
@@ -17893,7 +17929,7 @@
                               "idShort": "RatedPowerKw",
                               "description": [
                                 {
-                                  "language": "en",
+                                  "language": "ko",
                                   "text": "UnloaderProcess 의 정격전력 — catalog AAS 의 같은 semanticId Property 자동 lookup."
                                 }
                               ],
@@ -17922,7 +17958,7 @@
                               "idShort": "Materials",
                               "description": [
                                 {
-                                  "language": "en",
+                                  "language": "ko",
                                   "text": "UnloaderProcess 의 1 PCB 처리 IO (AAS Operation SME, idShort=Materials). 자원 ref 의 semanticId 가 SMTMaterials.<MODEL>.<resource> 또는 직전 설비 output 과 매칭."
                                 }
                               ],
@@ -17950,7 +17986,7 @@
                                     "idShort": "ReflowedPCB",
                                     "description": [
                                       {
-                                        "language": "en",
+                                        "language": "ko",
                                         "text": "Input 자원 ReflowedPCB — SMTMaterials.<MODEL>.ReflowedPCB 매칭."
                                       }
                                     ],
@@ -17983,7 +18019,7 @@
                                     "idShort": "ReflowedPCB",
                                     "description": [
                                       {
-                                        "language": "en",
+                                        "language": "ko",
                                         "text": "Output 자원 ReflowedPCB — SMTMaterials.<MODEL>.ReflowedPCB 매칭."
                                       }
                                     ],
@@ -18020,7 +18056,7 @@
                           "idShort": "AOIProcess",
                           "description": [
                             {
-                              "language": "en",
+                              "language": "ko",
                               "text": "AOIProcess — DepPrev / CycleTime / RatedPower(ref) / Materials(Operation). semanticId = 설비 카탈로그 AAS ref."
                             }
                           ],
@@ -18047,7 +18083,7 @@
                               "idShort": "DepPrev",
                               "description": [
                                 {
-                                  "language": "en",
+                                  "language": "ko",
                                   "text": "이전 공정 idShort (\";\"-separated). KG.Node 와 동일 패턴 (string)."
                                 }
                               ],
@@ -18092,7 +18128,7 @@
                               "idShort": "CycleTimeSec",
                               "description": [
                                 {
-                                  "language": "en",
+                                  "language": "ko",
                                   "text": "AOIProcess 의 사이클타임 — catalog AAS 의 같은 semanticId Property 자동 lookup."
                                 }
                               ],
@@ -18121,7 +18157,7 @@
                               "idShort": "RatedPowerKw",
                               "description": [
                                 {
-                                  "language": "en",
+                                  "language": "ko",
                                   "text": "AOIProcess 의 정격전력 — catalog AAS 의 같은 semanticId Property 자동 lookup."
                                 }
                               ],
@@ -18150,7 +18186,7 @@
                               "idShort": "Materials",
                               "description": [
                                 {
-                                  "language": "en",
+                                  "language": "ko",
                                   "text": "AOIProcess 의 1 PCB 처리 IO (AAS Operation SME, idShort=Materials). 자원 ref 의 semanticId 가 SMTMaterials.<MODEL>.<resource> 또는 직전 설비 output 과 매칭."
                                 }
                               ],
@@ -18178,7 +18214,7 @@
                                     "idShort": "ReflowedPCB",
                                     "description": [
                                       {
-                                        "language": "en",
+                                        "language": "ko",
                                         "text": "Input 자원 ReflowedPCB — SMTMaterials.<MODEL>.ReflowedPCB 매칭."
                                       }
                                     ],
@@ -18211,7 +18247,7 @@
                                     "idShort": "GoodPCB",
                                     "description": [
                                       {
-                                        "language": "en",
+                                        "language": "ko",
                                         "text": "Output 자원 GoodPCB — SMTMaterials.<MODEL>.GoodPCB 매칭."
                                       }
                                     ],
@@ -18242,7 +18278,7 @@
                                     "idShort": "DefectPCB",
                                     "description": [
                                       {
-                                        "language": "en",
+                                        "language": "ko",
                                         "text": "Output 자원 DefectPCB — SMTMaterials.<MODEL>.DefectPCB 매칭."
                                       }
                                     ],
@@ -18282,7 +18318,7 @@
                       "idShort": "Line_2",
                       "description": [
                         {
-                          "language": "en",
+                          "language": "ko",
                           "text": "SMT Line_2 라인 — 설비 Process SMC 7개 직렬."
                         }
                       ],
@@ -18309,7 +18345,7 @@
                           "idShort": "LoaderProcess",
                           "description": [
                             {
-                              "language": "en",
+                              "language": "ko",
                               "text": "LoaderProcess — DepPrev / CycleTime / RatedPower(ref) / Materials(Operation). semanticId = 설비 카탈로그 AAS ref."
                             }
                           ],
@@ -18336,7 +18372,7 @@
                               "idShort": "DepPrev",
                               "description": [
                                 {
-                                  "language": "en",
+                                  "language": "ko",
                                   "text": "이전 공정 idShort (\";\"-separated). KG.Node 와 동일 패턴 (string)."
                                 }
                               ],
@@ -18381,7 +18417,7 @@
                               "idShort": "CycleTimeSec",
                               "description": [
                                 {
-                                  "language": "en",
+                                  "language": "ko",
                                   "text": "LoaderProcess 의 사이클타임 — catalog AAS 의 같은 semanticId Property 자동 lookup."
                                 }
                               ],
@@ -18410,7 +18446,7 @@
                               "idShort": "RatedPowerKw",
                               "description": [
                                 {
-                                  "language": "en",
+                                  "language": "ko",
                                   "text": "LoaderProcess 의 정격전력 — catalog AAS 의 같은 semanticId Property 자동 lookup."
                                 }
                               ],
@@ -18439,7 +18475,7 @@
                               "idShort": "Materials",
                               "description": [
                                 {
-                                  "language": "en",
+                                  "language": "ko",
                                   "text": "LoaderProcess 의 1 PCB 처리 IO (AAS Operation SME, idShort=Materials). 자원 ref 의 semanticId 가 SMTMaterials.<MODEL>.<resource> 또는 직전 설비 output 과 매칭."
                                 }
                               ],
@@ -18467,7 +18503,7 @@
                                     "idShort": "PCB",
                                     "description": [
                                       {
-                                        "language": "en",
+                                        "language": "ko",
                                         "text": "Input 자원 PCB — SMTMaterials.<MODEL>.PCB 매칭."
                                       }
                                     ],
@@ -18500,7 +18536,7 @@
                                     "idShort": "PCB",
                                     "description": [
                                       {
-                                        "language": "en",
+                                        "language": "ko",
                                         "text": "Output 자원 PCB — SMTMaterials.<MODEL>.PCB 매칭."
                                       }
                                     ],
@@ -18537,7 +18573,7 @@
                           "idShort": "ScreenPrinterProcess",
                           "description": [
                             {
-                              "language": "en",
+                              "language": "ko",
                               "text": "ScreenPrinterProcess — DepPrev / CycleTime / RatedPower(ref) / Materials(Operation). semanticId = 설비 카탈로그 AAS ref."
                             }
                           ],
@@ -18564,7 +18600,7 @@
                               "idShort": "DepPrev",
                               "description": [
                                 {
-                                  "language": "en",
+                                  "language": "ko",
                                   "text": "이전 공정 idShort (\";\"-separated). KG.Node 와 동일 패턴 (string)."
                                 }
                               ],
@@ -18609,7 +18645,7 @@
                               "idShort": "CycleTimeSec",
                               "description": [
                                 {
-                                  "language": "en",
+                                  "language": "ko",
                                   "text": "ScreenPrinterProcess 의 사이클타임 — catalog AAS 의 같은 semanticId Property 자동 lookup."
                                 }
                               ],
@@ -18638,7 +18674,7 @@
                               "idShort": "RatedPowerKw",
                               "description": [
                                 {
-                                  "language": "en",
+                                  "language": "ko",
                                   "text": "ScreenPrinterProcess 의 정격전력 — catalog AAS 의 같은 semanticId Property 자동 lookup."
                                 }
                               ],
@@ -18667,7 +18703,7 @@
                               "idShort": "Materials",
                               "description": [
                                 {
-                                  "language": "en",
+                                  "language": "ko",
                                   "text": "ScreenPrinterProcess 의 1 PCB 처리 IO (AAS Operation SME, idShort=Materials). 자원 ref 의 semanticId 가 SMTMaterials.<MODEL>.<resource> 또는 직전 설비 output 과 매칭."
                                 }
                               ],
@@ -18695,7 +18731,7 @@
                                     "idShort": "PCB",
                                     "description": [
                                       {
-                                        "language": "en",
+                                        "language": "ko",
                                         "text": "Input 자원 PCB — SMTMaterials.<MODEL>.PCB 매칭."
                                       }
                                     ],
@@ -18726,7 +18762,7 @@
                                     "idShort": "SolderCream",
                                     "description": [
                                       {
-                                        "language": "en",
+                                        "language": "ko",
                                         "text": "Input 자원 SolderCream — SMTMaterials.<MODEL>.SolderCream 매칭."
                                       }
                                     ],
@@ -18759,7 +18795,7 @@
                                     "idShort": "SolderPastedPCB",
                                     "description": [
                                       {
-                                        "language": "en",
+                                        "language": "ko",
                                         "text": "Output 자원 SolderPastedPCB — SMTMaterials.<MODEL>.SolderPastedPCB 매칭."
                                       }
                                     ],
@@ -18796,7 +18832,7 @@
                           "idShort": "SPIProcess",
                           "description": [
                             {
-                              "language": "en",
+                              "language": "ko",
                               "text": "SPIProcess — DepPrev / CycleTime / RatedPower(ref) / Materials(Operation). semanticId = 설비 카탈로그 AAS ref."
                             }
                           ],
@@ -18823,7 +18859,7 @@
                               "idShort": "DepPrev",
                               "description": [
                                 {
-                                  "language": "en",
+                                  "language": "ko",
                                   "text": "이전 공정 idShort (\";\"-separated). KG.Node 와 동일 패턴 (string)."
                                 }
                               ],
@@ -18868,7 +18904,7 @@
                               "idShort": "CycleTimeSec",
                               "description": [
                                 {
-                                  "language": "en",
+                                  "language": "ko",
                                   "text": "SPIProcess 의 사이클타임 — catalog AAS 의 같은 semanticId Property 자동 lookup."
                                 }
                               ],
@@ -18897,7 +18933,7 @@
                               "idShort": "RatedPowerKw",
                               "description": [
                                 {
-                                  "language": "en",
+                                  "language": "ko",
                                   "text": "SPIProcess 의 정격전력 — catalog AAS 의 같은 semanticId Property 자동 lookup."
                                 }
                               ],
@@ -18926,7 +18962,7 @@
                               "idShort": "Materials",
                               "description": [
                                 {
-                                  "language": "en",
+                                  "language": "ko",
                                   "text": "SPIProcess 의 1 PCB 처리 IO (AAS Operation SME, idShort=Materials). 자원 ref 의 semanticId 가 SMTMaterials.<MODEL>.<resource> 또는 직전 설비 output 과 매칭."
                                 }
                               ],
@@ -18954,7 +18990,7 @@
                                     "idShort": "SolderPastedPCB",
                                     "description": [
                                       {
-                                        "language": "en",
+                                        "language": "ko",
                                         "text": "Input 자원 SolderPastedPCB — SMTMaterials.<MODEL>.SolderPastedPCB 매칭."
                                       }
                                     ],
@@ -18987,7 +19023,7 @@
                                     "idShort": "SolderPastedPCB",
                                     "description": [
                                       {
-                                        "language": "en",
+                                        "language": "ko",
                                         "text": "Output 자원 SolderPastedPCB — SMTMaterials.<MODEL>.SolderPastedPCB 매칭."
                                       }
                                     ],
@@ -19024,7 +19060,7 @@
                           "idShort": "MounterProcess",
                           "description": [
                             {
-                              "language": "en",
+                              "language": "ko",
                               "text": "MounterProcess — DepPrev / CycleTime / RatedPower(ref) / Materials(Operation). semanticId = 설비 카탈로그 AAS ref."
                             }
                           ],
@@ -19051,7 +19087,7 @@
                               "idShort": "DepPrev",
                               "description": [
                                 {
-                                  "language": "en",
+                                  "language": "ko",
                                   "text": "이전 공정 idShort (\";\"-separated). KG.Node 와 동일 패턴 (string)."
                                 }
                               ],
@@ -19096,7 +19132,7 @@
                               "idShort": "CycleTimeSec",
                               "description": [
                                 {
-                                  "language": "en",
+                                  "language": "ko",
                                   "text": "MounterProcess 의 사이클타임 — catalog AAS 의 같은 semanticId Property 자동 lookup."
                                 }
                               ],
@@ -19125,7 +19161,7 @@
                               "idShort": "RatedPowerKw",
                               "description": [
                                 {
-                                  "language": "en",
+                                  "language": "ko",
                                   "text": "MounterProcess 의 정격전력 — catalog AAS 의 같은 semanticId Property 자동 lookup."
                                 }
                               ],
@@ -19154,7 +19190,7 @@
                               "idShort": "Materials",
                               "description": [
                                 {
-                                  "language": "en",
+                                  "language": "ko",
                                   "text": "MounterProcess 의 1 PCB 처리 IO (AAS Operation SME, idShort=Materials). 자원 ref 의 semanticId 가 SMTMaterials.<MODEL>.<resource> 또는 직전 설비 output 과 매칭."
                                 }
                               ],
@@ -19182,7 +19218,7 @@
                                     "idShort": "SolderPastedPCB",
                                     "description": [
                                       {
-                                        "language": "en",
+                                        "language": "ko",
                                         "text": "Input 자원 SolderPastedPCB — SMTMaterials.<MODEL>.SolderPastedPCB 매칭."
                                       }
                                     ],
@@ -19213,7 +19249,7 @@
                                     "idShort": "Chips",
                                     "description": [
                                       {
-                                        "language": "en",
+                                        "language": "ko",
                                         "text": "Input 자원 Chips — value 가 cd/PCB 를 가리킴 (alias)."
                                       }
                                     ],
@@ -19246,7 +19282,7 @@
                                     "idShort": "ChipMountedPCB",
                                     "description": [
                                       {
-                                        "language": "en",
+                                        "language": "ko",
                                         "text": "Output 자원 ChipMountedPCB — SMTMaterials.<MODEL>.ChipMountedPCB 매칭."
                                       }
                                     ],
@@ -19283,7 +19319,7 @@
                           "idShort": "ReflowProcess",
                           "description": [
                             {
-                              "language": "en",
+                              "language": "ko",
                               "text": "ReflowProcess — DepPrev / CycleTime / RatedPower(ref) / Materials(Operation). semanticId = 설비 카탈로그 AAS ref."
                             }
                           ],
@@ -19310,7 +19346,7 @@
                               "idShort": "DepPrev",
                               "description": [
                                 {
-                                  "language": "en",
+                                  "language": "ko",
                                   "text": "이전 공정 idShort (\";\"-separated). KG.Node 와 동일 패턴 (string)."
                                 }
                               ],
@@ -19355,7 +19391,7 @@
                               "idShort": "CycleTimeSec",
                               "description": [
                                 {
-                                  "language": "en",
+                                  "language": "ko",
                                   "text": "ReflowProcess 의 사이클타임 — catalog AAS 의 같은 semanticId Property 자동 lookup."
                                 }
                               ],
@@ -19384,7 +19420,7 @@
                               "idShort": "RatedPowerKw",
                               "description": [
                                 {
-                                  "language": "en",
+                                  "language": "ko",
                                   "text": "ReflowProcess 의 정격전력 — catalog AAS 의 같은 semanticId Property 자동 lookup."
                                 }
                               ],
@@ -19413,7 +19449,7 @@
                               "idShort": "Materials",
                               "description": [
                                 {
-                                  "language": "en",
+                                  "language": "ko",
                                   "text": "ReflowProcess 의 1 PCB 처리 IO (AAS Operation SME, idShort=Materials). 자원 ref 의 semanticId 가 SMTMaterials.<MODEL>.<resource> 또는 직전 설비 output 과 매칭."
                                 }
                               ],
@@ -19441,7 +19477,7 @@
                                     "idShort": "ChipMountedPCB",
                                     "description": [
                                       {
-                                        "language": "en",
+                                        "language": "ko",
                                         "text": "Input 자원 ChipMountedPCB — SMTMaterials.<MODEL>.ChipMountedPCB 매칭."
                                       }
                                     ],
@@ -19474,7 +19510,7 @@
                                     "idShort": "ReflowedPCB",
                                     "description": [
                                       {
-                                        "language": "en",
+                                        "language": "ko",
                                         "text": "Output 자원 ReflowedPCB — SMTMaterials.<MODEL>.ReflowedPCB 매칭."
                                       }
                                     ],
@@ -19511,7 +19547,7 @@
                           "idShort": "UnloaderProcess",
                           "description": [
                             {
-                              "language": "en",
+                              "language": "ko",
                               "text": "UnloaderProcess — DepPrev / CycleTime / RatedPower(ref) / Materials(Operation). semanticId = 설비 카탈로그 AAS ref."
                             }
                           ],
@@ -19538,7 +19574,7 @@
                               "idShort": "DepPrev",
                               "description": [
                                 {
-                                  "language": "en",
+                                  "language": "ko",
                                   "text": "이전 공정 idShort (\";\"-separated). KG.Node 와 동일 패턴 (string)."
                                 }
                               ],
@@ -19583,7 +19619,7 @@
                               "idShort": "CycleTimeSec",
                               "description": [
                                 {
-                                  "language": "en",
+                                  "language": "ko",
                                   "text": "UnloaderProcess 의 사이클타임 — catalog AAS 의 같은 semanticId Property 자동 lookup."
                                 }
                               ],
@@ -19612,7 +19648,7 @@
                               "idShort": "RatedPowerKw",
                               "description": [
                                 {
-                                  "language": "en",
+                                  "language": "ko",
                                   "text": "UnloaderProcess 의 정격전력 — catalog AAS 의 같은 semanticId Property 자동 lookup."
                                 }
                               ],
@@ -19641,7 +19677,7 @@
                               "idShort": "Materials",
                               "description": [
                                 {
-                                  "language": "en",
+                                  "language": "ko",
                                   "text": "UnloaderProcess 의 1 PCB 처리 IO (AAS Operation SME, idShort=Materials). 자원 ref 의 semanticId 가 SMTMaterials.<MODEL>.<resource> 또는 직전 설비 output 과 매칭."
                                 }
                               ],
@@ -19669,7 +19705,7 @@
                                     "idShort": "ReflowedPCB",
                                     "description": [
                                       {
-                                        "language": "en",
+                                        "language": "ko",
                                         "text": "Input 자원 ReflowedPCB — SMTMaterials.<MODEL>.ReflowedPCB 매칭."
                                       }
                                     ],
@@ -19702,7 +19738,7 @@
                                     "idShort": "ReflowedPCB",
                                     "description": [
                                       {
-                                        "language": "en",
+                                        "language": "ko",
                                         "text": "Output 자원 ReflowedPCB — SMTMaterials.<MODEL>.ReflowedPCB 매칭."
                                       }
                                     ],
@@ -19739,7 +19775,7 @@
                           "idShort": "AOIProcess",
                           "description": [
                             {
-                              "language": "en",
+                              "language": "ko",
                               "text": "AOIProcess — DepPrev / CycleTime / RatedPower(ref) / Materials(Operation). semanticId = 설비 카탈로그 AAS ref."
                             }
                           ],
@@ -19766,7 +19802,7 @@
                               "idShort": "DepPrev",
                               "description": [
                                 {
-                                  "language": "en",
+                                  "language": "ko",
                                   "text": "이전 공정 idShort (\";\"-separated). KG.Node 와 동일 패턴 (string)."
                                 }
                               ],
@@ -19811,7 +19847,7 @@
                               "idShort": "CycleTimeSec",
                               "description": [
                                 {
-                                  "language": "en",
+                                  "language": "ko",
                                   "text": "AOIProcess 의 사이클타임 — catalog AAS 의 같은 semanticId Property 자동 lookup."
                                 }
                               ],
@@ -19840,7 +19876,7 @@
                               "idShort": "RatedPowerKw",
                               "description": [
                                 {
-                                  "language": "en",
+                                  "language": "ko",
                                   "text": "AOIProcess 의 정격전력 — catalog AAS 의 같은 semanticId Property 자동 lookup."
                                 }
                               ],
@@ -19869,7 +19905,7 @@
                               "idShort": "Materials",
                               "description": [
                                 {
-                                  "language": "en",
+                                  "language": "ko",
                                   "text": "AOIProcess 의 1 PCB 처리 IO (AAS Operation SME, idShort=Materials). 자원 ref 의 semanticId 가 SMTMaterials.<MODEL>.<resource> 또는 직전 설비 output 과 매칭."
                                 }
                               ],
@@ -19897,7 +19933,7 @@
                                     "idShort": "ReflowedPCB",
                                     "description": [
                                       {
-                                        "language": "en",
+                                        "language": "ko",
                                         "text": "Input 자원 ReflowedPCB — SMTMaterials.<MODEL>.ReflowedPCB 매칭."
                                       }
                                     ],
@@ -19930,7 +19966,7 @@
                                     "idShort": "GoodPCB",
                                     "description": [
                                       {
-                                        "language": "en",
+                                        "language": "ko",
                                         "text": "Output 자원 GoodPCB — SMTMaterials.<MODEL>.GoodPCB 매칭."
                                       }
                                     ],
@@ -19961,7 +19997,7 @@
                                     "idShort": "DefectPCB",
                                     "description": [
                                       {
-                                        "language": "en",
+                                        "language": "ko",
                                         "text": "Output 자원 DefectPCB — SMTMaterials.<MODEL>.DefectPCB 매칭."
                                       }
                                     ],
@@ -20004,7 +20040,7 @@
                   "idShort": "SMTMaterials",
                   "description": [
                     {
-                      "language": "en",
+                      "language": "ko",
                       "text": "SMT 라인이 사용하는 재료. 모델별 자식 SMC 안에 PCB ref. chip 은 PCB entity 의 HasPart relationship 에 있어 별도 안 둠. Mounter 의 input PCB ref 가 PCB.HasPart 따라가 chip 자동 lookup."
                     }
                   ],
@@ -20031,7 +20067,7 @@
                       "idShort": "MODEL_A",
                       "description": [
                         {
-                          "language": "en",
+                          "language": "ko",
                           "text": "MODEL_A 의 SMT 자원 (PCB only — chip 은 PCB.HasPart)."
                         }
                       ],
@@ -20058,7 +20094,7 @@
                           "idShort": "PCB",
                           "description": [
                             {
-                              "language": "en",
+                              "language": "ko",
                               "text": "MODEL_A 의 SMT_PCB CD list. chip 은 각 PCB entity 의 HasPart 에 있음."
                             }
                           ],
@@ -20098,7 +20134,7 @@
                       "idShort": "MODEL_B",
                       "description": [
                         {
-                          "language": "en",
+                          "language": "ko",
                           "text": "MODEL_B 의 SMT 자원 (PCB only — chip 은 PCB.HasPart)."
                         }
                       ],
@@ -20125,7 +20161,7 @@
                           "idShort": "PCB",
                           "description": [
                             {
-                              "language": "en",
+                              "language": "ko",
                               "text": "MODEL_B 의 SMT_PCB CD list. chip 은 각 PCB entity 의 HasPart 에 있음."
                             }
                           ],
@@ -20185,7 +20221,7 @@
                       "idShort": "MODEL_C",
                       "description": [
                         {
-                          "language": "en",
+                          "language": "ko",
                           "text": "MODEL_C 의 SMT 자원 (PCB only — chip 은 PCB.HasPart)."
                         }
                       ],
@@ -20212,7 +20248,7 @@
                           "idShort": "PCB",
                           "description": [
                             {
-                              "language": "en",
+                              "language": "ko",
                               "text": "MODEL_C 의 SMT_PCB CD list. chip 은 각 PCB entity 의 HasPart 에 있음."
                             }
                           ],
@@ -20249,6 +20285,144 @@
                     }
                   ],
                   "modelType": "SubmodelElementCollection"
+                }
+              ],
+              "modelType": "SubmodelElementCollection"
+            },
+            {
+              "category": "PARAMETER",
+              "idShort": "PurchaseOrder",
+              "description": [
+                {
+                  "language": "en",
+                  "text": "Customer purchase orders (PO). One Property per model: idShort=model_id, semanticId=cd/OrderQuantity, value=order quantity, qualifiers=DueDay/RegisteredDay (xs:int, days from t=0). Models A/B/C."
+                }
+              ],
+              "semanticId": {
+                "type": "ModelReference",
+                "keys": [
+                  {
+                    "type": "ConceptDescription",
+                    "value": "https://www.smart-factory.kr/ids/cd/PurchaseOrder/1/0"
+                  }
+                ]
+              },
+              "qualifiers": [
+                {
+                  "kind": "TemplateQualifier",
+                  "type": "Multiplicity",
+                  "valueType": "xs:string",
+                  "value": "One"
+                }
+              ],
+              "value": [
+                {
+                  "category": "PARAMETER",
+                  "idShort": "MODEL_A",
+                  "description": [
+                    {
+                      "language": "en",
+                      "text": "MODEL_A order quantity (value=quantity, qualifiers=DueDay/RegisteredDay, days from t=0)."
+                    }
+                  ],
+                  "semanticId": {
+                    "type": "ModelReference",
+                    "keys": [
+                      {
+                        "type": "ConceptDescription",
+                        "value": "https://www.smart-factory.kr/ids/cd/OrderQuantity/1/0"
+                      }
+                    ]
+                  },
+                  "qualifiers": [
+                    {
+                      "kind": "ValueQualifier",
+                      "type": "DueDay",
+                      "valueType": "xs:int",
+                      "value": "22"
+                    },
+                    {
+                      "kind": "ValueQualifier",
+                      "type": "RegisteredDay",
+                      "valueType": "xs:int",
+                      "value": "0"
+                    }
+                  ],
+                  "valueType": "xs:int",
+                  "value": "100",
+                  "modelType": "Property"
+                },
+                {
+                  "category": "PARAMETER",
+                  "idShort": "MODEL_B",
+                  "description": [
+                    {
+                      "language": "en",
+                      "text": "MODEL_B order quantity (value=quantity, qualifiers=DueDay/RegisteredDay, days from t=0)."
+                    }
+                  ],
+                  "semanticId": {
+                    "type": "ModelReference",
+                    "keys": [
+                      {
+                        "type": "ConceptDescription",
+                        "value": "https://www.smart-factory.kr/ids/cd/OrderQuantity/1/0"
+                      }
+                    ]
+                  },
+                  "qualifiers": [
+                    {
+                      "kind": "ValueQualifier",
+                      "type": "DueDay",
+                      "valueType": "xs:int",
+                      "value": "22"
+                    },
+                    {
+                      "kind": "ValueQualifier",
+                      "type": "RegisteredDay",
+                      "valueType": "xs:int",
+                      "value": "0"
+                    }
+                  ],
+                  "valueType": "xs:int",
+                  "value": "100",
+                  "modelType": "Property"
+                },
+                {
+                  "category": "PARAMETER",
+                  "idShort": "MODEL_C",
+                  "description": [
+                    {
+                      "language": "en",
+                      "text": "MODEL_C order quantity (value=quantity, qualifiers=DueDay/RegisteredDay, days from t=0)."
+                    }
+                  ],
+                  "semanticId": {
+                    "type": "ModelReference",
+                    "keys": [
+                      {
+                        "type": "ConceptDescription",
+                        "value": "https://www.smart-factory.kr/ids/cd/OrderQuantity/1/0"
+                      }
+                    ]
+                  },
+                  "qualifiers": [
+                    {
+                      "kind": "ValueQualifier",
+                      "type": "DueDay",
+                      "valueType": "xs:int",
+                      "value": "22"
+                    },
+                    {
+                      "kind": "ValueQualifier",
+                      "type": "RegisteredDay",
+                      "valueType": "xs:int",
+                      "value": "0"
+                    }
+                  ],
+                  "valueType": "xs:int",
+                  "value": "100",
+                  "modelType": "Property"
                 }
               ],
               "modelType": "SubmodelElementCollection"
@@ -54355,7 +54529,7 @@
       "idShort": "MODEL_C_NVD1",
       "displayName": [
         {
-          "language": "en",
+          "language": "ko",
           "text": "NVD1 CPRO향 미니돔 IP 카메라 (NO LOGO)"
         }
       ],
@@ -55032,6 +55206,40 @@
       "modelType": "ConceptDescription"
     },
     {
+      "idShort": "W7_DueDate",
+      "id": "https://www.smart-factory.kr/ids/cd/W7_DueDate/1/0",
+      "embeddedDataSpecifications": [
+        {
+          "dataSpecification": {
+            "type": "ExternalReference",
+            "keys": [
+              {
+                "type": "GlobalReference",
+                "value": "https://admin-shell.io/DataSpecificationTemplates/DataSpecificationIec61360/3/0"
+              }
+            ]
+          },
+          "dataSpecificationContent": {
+            "preferredName": [
+              {
+                "language": "en",
+                "text": "W7_DueDate"
+              }
+            ],
+            "dataType": "REAL_MEASURE",
+            "definition": [
+              {
+                "language": "en",
+                "text": "Scalar weight coefficient applied to the due-date pace penalty component of the PPO agent reward function. Penalizes cumulative production that lags the linear pace required to meet each model's purchase-order DueDay, accumulated per work tick, driving anticipatory prioritization of models behind their delivery schedule."
+              }
+            ],
+            "modelType": "DataSpecificationIec61360"
+          }
+        }
+      ],
+      "modelType": "ConceptDescription"
+    },
+    {
       "idShort": "IdleWorkerThreshold",
       "id": "https://www.smart-factory.kr/ids/cd/IdleWorkerThreshold/1/0",
       "embeddedDataSpecifications": [
@@ -55189,7 +55397,7 @@
             "definition": [
               {
                 "language": "en",
-                "text": "Computation-graph grammar field. The fully-qualified import path of the library class or function this op-node instantiates (e.g., torch_geometric.nn.GCNConv, torch.nn.Linear, simulation_ver1.op_concat_state). The generic interpreter (cpro_factory build_agent) resolves it via importlib; swapping the architecture means editing this value, with no code change."
+                "text": "Computation-graph grammar field. The fully-qualified import path of the library class or function this op-node instantiates (e.g., torch_geometric.nn.GCNConv, torch.nn.Linear, simulation.op_concat_state). The generic interpreter (cpro_factory build_agent) resolves it via importlib; swapping the architecture means editing this value, with no code change."
               }
             ],
             "modelType": "DataSpecificationIec61360"
@@ -62910,6 +63118,74 @@
               {
                 "language": "en",
                 "text": "The identifier of the predecessor process or processes that must be completed before the current manufacturing process step can begin execution. When DepType is SEQUENCE, a single process identifier is specified. When DepType is JOIN, multiple process identifiers are specified as a semicolon-separated list, indicating that all listed predecessors must complete before execution begins."
+              }
+            ],
+            "modelType": "DataSpecificationIec61360"
+          }
+        }
+      ],
+      "modelType": "ConceptDescription"
+    },
+    {
+      "idShort": "PurchaseOrder",
+      "id": "https://www.smart-factory.kr/ids/cd/PurchaseOrder/1/0",
+      "embeddedDataSpecifications": [
+        {
+          "dataSpecification": {
+            "type": "ExternalReference",
+            "keys": [
+              {
+                "type": "GlobalReference",
+                "value": "https://admin-shell.io/DataSpecificationTemplates/DataSpecificationIec61360/3/0"
+              }
+            ]
+          },
+          "dataSpecificationContent": {
+            "preferredName": [
+              {
+                "language": "en",
+                "text": "PurchaseOrder"
+              }
+            ],
+            "dataType": "STRING",
+            "definition": [
+              {
+                "language": "en",
+                "text": "Customer purchase orders (PO). SMC with one Property per model: idShort=model_id, semanticId=cd/OrderQuantity, value=order quantity, qualifiers=DueDay/RegisteredDay (xs:int, days from t=0)."
+              }
+            ],
+            "modelType": "DataSpecificationIec61360"
+          }
+        }
+      ],
+      "modelType": "ConceptDescription"
+    },
+    {
+      "idShort": "OrderQuantity",
+      "id": "https://www.smart-factory.kr/ids/cd/OrderQuantity/1/0",
+      "embeddedDataSpecifications": [
+        {
+          "dataSpecification": {
+            "type": "ExternalReference",
+            "keys": [
+              {
+                "type": "GlobalReference",
+                "value": "https://admin-shell.io/DataSpecificationTemplates/DataSpecificationIec61360/3/0"
+              }
+            ]
+          },
+          "dataSpecificationContent": {
+            "preferredName": [
+              {
+                "language": "en",
+                "text": "OrderQuantity"
+              }
+            ],
+            "dataType": "INTEGER_COUNT",
+            "definition": [
+              {
+                "language": "en",
+                "text": "Order quantity of a customer PO. Value of the per-model Property under PurchaseOrder."
               }
             ],
             "modelType": "DataSpecificationIec61360"
