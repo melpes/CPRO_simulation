@@ -164,11 +164,6 @@ if __name__ == '__main__':
                'MODEL_A.json', 'MODEL_B.json', 'MODEL_C.json']:
         path_extractor.load(os.path.join(_ROOT, 'aas_data', _f))
 
-    SimulationModel = path_extractor.ProvisionofSimulationModelsAAS.SimulationModels.SimulationModel
-    MaxEpisodes     = int(SimulationModel.SimulationConfig.MaxEpisodes.value)
-    target_qty      = {mp.model_id: int(input(f'{mp.model_id} 목표 생산 수량을 입력하세요: '))
-                       for mp in SimulationModel.Warehouse.InputBOM.target}
-
-    env   = build_simulation(target_qty=target_qty, MaxEpisodes=MaxEpisodes)
+    env   = build_simulation()                 # 수량·납기일·에피소드 모두 AAS(PurchaseOrder·SimulationConfig)에서
     agent = build_agent(env)
-    simulation.train(env, agent, MaxEpisodes)
+    simulation.train(env, agent, env.MaxEpisodes)

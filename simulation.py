@@ -357,18 +357,17 @@ class CproSimEnv:
 
 def train(env, agent, MaxEpisodes, run_name=None, episode_max_sec=EPISODE_DURATION_SEC):
     import os, sys, time
-    _ROOT    = os.path.dirname(os.path.abspath(__file__))
-    _MOD_RUN = os.path.join(_ROOT, 'mod_run')
-    _UTIL    = os.path.join(_ROOT, 'util')
+    _ROOT = os.path.dirname(os.path.abspath(__file__))
+    _UTIL = os.path.join(_ROOT, 'util')
     if _UTIL not in sys.path:
         sys.path.insert(0, _UTIL)
     from rl_logger import RLLogger
 
     if run_name is None:
         run_name = 'run_' + time.strftime('%Y-%m-%d_%H-%M-%S')
-    _OUT = os.path.join(_MOD_RUN, 'result', 'runs', run_name)
+    _OUT = os.path.join(_ROOT, 'result', 'runs', run_name)
     os.makedirs(_OUT, exist_ok=True)
-    print(f'[train] outputs → mod_run/result/runs/{run_name}/', flush=True)
+    print(f'[train] outputs → result/runs/{run_name}/', flush=True)
     logger = RLLogger(os.path.join(_OUT, 'rl_log.jsonl'))
     ckpt   = os.path.join(_OUT, 'agent_mod.pt')
 

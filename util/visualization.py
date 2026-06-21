@@ -150,7 +150,7 @@ def _disp_segments(makespan, disp_end):
 
 def render_video(name: str, env, mode: str, agent=None, out_dir: Optional[str] = None) -> Optional[str]:
     events, stock_ts = (drive_run(env, agent) if mode == 'run' else drive_serial(env))
-    out_dir = out_dir or os.path.join(_ROOT, 'result')
+    out_dir = out_dir or os.path.join(_ROOT, 'result', 'viz')
     os.makedirs(out_dir, exist_ok=True)
     out = os.path.join(out_dir, f'factory_{name}.mp4')
     if not events:
@@ -541,4 +541,4 @@ if __name__ == '__main__':
     elif cmd == 'trained':
         render_trained(checkpoint=sys.argv[2], StateDim=int(sys.argv[3]) if len(sys.argv) > 3 else 0)
     elif cmd == 'gantt':
-        capture_compare(os.path.join(_ROOT, 'result'), {'greedy': None}, max_sec=86400)
+        capture_compare(os.path.join(_ROOT, 'result', 'viz'), {'greedy': None}, max_sec=86400)
