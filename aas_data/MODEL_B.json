@@ -5296,7 +5296,7 @@
        "idShort": "PCB_03902608",
        "displayName": [
         {
-         "language": "en",
+         "language": "ko",
          "text": "SMT CV74_6IR-R1 *03902607 결합사용*"
         }
        ],
@@ -6045,7 +6045,7 @@
        "idShort": "PCB_03902727",
        "displayName": [
         {
-         "language": "en",
+         "language": "ko",
          "text": "SMT MSL-R42-3-R1(S5L66) *재고 소진 후 03903358 사용*"
         }
        ],
@@ -21398,7 +21398,7 @@
        "idShort": "PCB_03902835",
        "displayName": [
         {
-         "language": "en",
+         "language": "ko",
          "text": "SMT BT5_IP_JOY *03903208와 결합사용*"
         }
        ],
@@ -22593,7 +22593,7 @@
        "idShort": "PCB_03903208",
        "displayName": [
         {
-         "language": "en",
+         "language": "ko",
          "text": "SMT BT5_IP_SD *03902835와 결합사용*"
         }
        ],
@@ -22976,7 +22976,7 @@
          "value": "SMT_PCB"
         }
        ],
-       "entityType": "CoManagedEntity",
+       "entityType": "SelfManagedEntity",
        "modelType": "Entity"
       },
       {
@@ -52805,7 +52805,7 @@
    "idShort": "PCB_03903208",
    "displayName": [
     {
-     "language": "en",
+     "language": "ko",
      "text": "SMT BT5_IP_SD *03902835와 결합사용*"
     }
    ],

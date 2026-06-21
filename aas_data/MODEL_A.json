@@ -103,7 +103,7 @@
               "text": "VD7(IP-SB)-MBR5600(S3L)-TDN7-H2IR-WH-N(R1)"
             },
             {
-              "language": "en",
+              "language": "ko",
               "text": "VD7 방수 케이블 카메라 (방수 CABLE)"
             }
           ],
@@ -3489,7 +3489,7 @@
                   "idShort": "HasPart_11200647",
                   "description": [
                     {
-                      "language": "en",
+                      "language": "ko",
                       "text": "HasPart relationship. PCB 03203204 contains a ferrite bead chip (MMZ1005Y301C / CIM05J241NC). Used for EMI suppression and high-frequency noise filtering on power and signal lines. Item spec: 도급(BEAD CHIP)."
                     }
                   ],
@@ -3699,7 +3699,7 @@
                   "idShort": "HasPart_11200757",
                   "description": [
                     {
-                      "language": "en",
+                      "language": "ko",
                       "text": "HasPart relationship. PCB 03203204 contains a 13.3k ohm precision chip resistor (13.3K 1%(CR1005-1332-F)). Used for accurate voltage division in sensor and control circuits. Item spec: 도급(RES CHIP/1005)."
                     }
                   ],
@@ -4014,7 +4014,7 @@
                   "idShort": "HasPart_11102327",
                   "description": [
                     {
-                      "language": "en",
+                      "language": "ko",
                       "text": "HasPart relationship. PCB 03203204 contains a sub sensor PCB (MBR5600_IP-R2). Used as a daughter board for image sensor mounting and signal routing. Item spec: SENSOR PCB/2X3[20.06.03]/정배열/1.6T(+10% 공차) /4LY/블랙무광."
                     }
                   ],
@@ -5868,7 +5868,7 @@
                   "idShort": "HasPart_11700024",
                   "description": [
                     {
-                      "language": "en",
+                      "language": "ko",
                       "text": "HasPart relationship. PCB 03203204 contains an IR cut filter sensor (NJL7302L-F3). Used for infrared cut filtering in camera modules. Item spec: SENSOR (수삽) *IR CUT 필터 기능 내장형*."
                     }
                   ],
@@ -6078,7 +6078,7 @@
                   "idShort": "HasPart_21600553",
                   "description": [
                     {
-                      "language": "en",
+                      "language": "ko",
                       "text": "HasPart relationship. PCB 03203204 contains a micro CR dome IR wire harness (TMT5P-50-5PWS). Used for connecting infrared components. Item spec: (CP12WIR020-A) MICRO CR DOME IR (MEGA용)."
                     }
                   ],
@@ -6288,7 +6288,7 @@
                   "idShort": "HasPart_10500281",
                   "description": [
                     {
-                      "language": "en",
+                      "language": "ko",
                       "text": "HasPart relationship. PCB 03203204 contains an LED driver diode (XPEIFR-L). Used for high-brightness LED applications. Item spec: DIODE CHIP/LED SMD/1000mA 1.9V/60도."
                     }
                   ],
@@ -6393,7 +6393,7 @@
                   "idShort": "HasPart_11400215",
                   "description": [
                     {
-                      "language": "en",
+                      "language": "ko",
                       "text": "HasPart relationship. PCB 03203204 contains a switch DIP (YSS-1202/06P). Used for configuration and mode selection on the board. Item spec: SWITCH DIP (수삽)."
                     }
                   ],
@@ -6498,7 +6498,7 @@
                   "idShort": "HasPart_11102146",
                   "description": [
                     {
-                      "language": "en",
+                      "language": "ko",
                       "text": "HasPart relationship. PCB 03203204 contains an LED sub PCB (VD7_H2IR-R1). Used as a daughter board for LED mounting. Item spec: LED PCB/3X4[20.03.24]/엇배열/1.2T/4LV/블랙무광."
                     }
                   ],
@@ -8117,7 +8117,7 @@
                   "idShort": "HasPart_10300222",
                   "description": [
                     {
-                      "language": "en",
+                      "language": "ko",
                       "text": "HasPart relationship. PCB 03203204 contains a 4-pin 1.25mm pitch SMT connector (53398-0471 / TM1252S-04 / MH-4AB). Used for compact wire-to-board connection, specifically for Molex PicoBlade series. Item spec: CONNECTOR SMD/1.25mm-04P/ST/SMD (MOLEX 커넥터 사용함)."
                     }
                   ],
@@ -8222,7 +8222,7 @@
                   "idShort": "HasPart_10300274",
                   "description": [
                     {
-                      "language": "en",
+                      "language": "ko",
                       "text": "HasPart relationship. PCB 03203204 contains a 4-pin 1.0mm pitch SMT connector (1.0T-1-04A). Used for high-density board-to-cable or board-to-board connections. Item spec: CONNECTOR SMD/1.0mm-04P/ST SMD(티앤텍)."
                     }
                   ],
@@ -15242,7 +15242,7 @@
                   "idShort": "HasPart_11200259",
                   "description": [
                     {
-                      "language": "en",
+                      "language": "ko",
                       "text": "HasPart relationship. PCB 03203204 contains a 27k ohm chip resistor (27KR(3216)/CR3216-273). Used for voltage division. Item spec: 도급(RESISTOR CHIP)."
                     }
                   ],
@@ -15347,7 +15347,7 @@
                   "idShort": "HasPart_11200334",
                   "description": [
                     {
-                      "language": "en",
+                      "language": "ko",
                       "text": "HasPart relationship. PCB 03203204 contains a 510 ohm chip resistor (510R(2012)/CR2012-511-J). Used for current limiting. Item spec: 도급(RESISTOR CHIP)."
                     }
                   ],
@@ -15767,7 +15767,7 @@
                   "idShort": "HasPart_11200712",
                   "description": [
                     {
-                      "language": "en",
+                      "language": "ko",
                       "text": "HasPart relationship. PCB 03203204 contains a 0.2 ohm chip resistor (0.2R(CR3216-R20J)). Used for current sensing. Item spec: 도급(RESISTOR CHIP)."
                     }
                   ],
@@ -16281,7 +16281,7 @@
               "idShort": "P30300125",
               "description": [
                 {
-                  "language": "en",
+                  "language": "ko",
                   "text": "Cross-head machine screw used in SENSOR BOARD integration assembly (Process 20-1) for fastening the lens holder sub-assembly onto the main board PCB. Type: M/S CH(#0)+ M2.0x4.0, black finish, head height 3.5mm. Spec: BOLT 공용, LENS HOLDER STANDARD. Torque spec: 1.5~2 kgf·cm (confirmed periodically using torque meter). Quantity per unit: 2."
                 }
               ],
@@ -22717,7 +22717,7 @@
           "idShort": "VD7FwInput",
           "description": [
             {
-              "language": "en",
+              "language": "ko",
               "text": "Firmware input process group for MODEL_A VD7(IP-SB)-MBR5600(S3L)-TDN7-H2IR-WH-N(R1)(방수 CABLE). Contains four sequential steps: IP F/W loading (10), F/W verification (10-1), secondary confirmation (10-2), and MAC/model name programming (10-3). Each step shares worker group WORKER_FW (2 persons), equipment NO44-FW_JIG (capacity 6, rated power 0 kW), and cycle time 25 s per step. Total cycle time: 100 s. Input material per unit: PCB 03903424 (SMT NVD7_S3L-2-R2, qty 1). Revision 2.0 issued 2025-08-21."
             }
           ],
@@ -23865,7 +23865,7 @@
           "idShort": "VD7SensorBoardAssembly",
           "description": [
             {
-              "language": "en",
+              "language": "ko",
               "text": "Sensor board assembly process group for MODEL_A VD7(IP-SB)-MBR5600(S3L)-TDN7-H2IR-WH-N(R1)(방수 CABLE). Contains two sequential steps: SENSOR BOARD assembly (20) and SENSOR BOARD integration onto main board (20-1). Step 20 assembles M12 CNC-machined lens holder (20502140) and TDN actuator (50100541) onto the sensor board. Step 20-1 mounts the completed sensor board sub-assembly onto main board PCB (03203124). Both steps share worker group WORKER_LENS_HOLDER (4 persons). Total cycle time: 215 s. Sub-assemblies are transferred to the next line via CART (transfer qty: 80 units). Revision 1.4 issued 2021-04-07: lens holder post-processing changed to CNC machining (ECO514)."
             }
           ],
@@ -24783,7 +24783,7 @@
           "idShort": "VD7FocusAdjustment",
           "description": [
             {
-              "language": "en",
+              "language": "ko",
               "text": "Focus adjustment process group for MODEL_A VD7(IP-SB)-MBR5600(S3L)-TDN7-H2IR-WH-N(R1)(방수 CABLE). Contains one step: FOCUS SETTING (30). Focus is adjusted using dome cover during inspection. Lens protrusion measured at 15 mm using vernier caliper. Absence of foreign matter and connector integrity confirmed visually. Worker group: WORKER_SENSOR_FOCUS (3 persons). Cycle time: 100 s. Predecessor: VD7_10-3_MAC (Process 10-3)."
             }
           ],
@@ -25088,7 +25088,7 @@
           "idShort": "VD7GimbalAssembly",
           "description": [
             {
-              "language": "en",
+              "language": "ko",
               "text": "Gimbal assembly process group for MODEL_A VD7(IP-SB)-MBR5600(S3L)-TDN7-H2IR-WH-N(R1)(방수 CABLE). Contains two steps: GIMBAL ASS'Y (40) and GIMBAL ASS'Y integration (40-1). Step 40 assembles gimbal front housing, IR PCB (03902715), IR rubber, and screws onto the gimbal unit. Step 40-1 is a JOIN step that merges the completed gimbal sub-assembly (40) with the sensor board sub-assembly (20-1), mounting gimbal module bracket and tilt bracket. Both steps share worker group WORKER_SET (16 persons). Total cycle time: 45 s. Revision 1.1 issued 2020-07-28: LED bracket changed (ECO467)."
             }
           ],
@@ -25981,7 +25981,7 @@
           "idShort": "VD7BottomAssembly",
           "description": [
             {
-              "language": "en",
+              "language": "ko",
               "text": "Bottom case assembly process group for MODEL_A VD7(IP-SB)-MBR5600(S3L)-TDN7-H2IR-WH-N(R1)(방수 CABLE). Contains three steps: BOTTOM ASSY (50), BOTTOM ASSY integration with focus sub-assembly (50-1), and BOTTOM ASSY completion with gimbal support bracket (50-2). Step 50 is an independent SEMI process assembling bottom case, cable rubber, waterproof cable, and cable tie. Step 50-1 is a JOIN step merging VD7_50_BOTTOM and VD7_30_FOCUS, integrating thermal pad and micro coax harness. Step 50-2 continues SET assembly adding gimbal support bracket and rotation limits bracket. Total cycle time: 190 s. Sub-assemblies transferred via CART (transfer qty: 80 units per batch)."
             }
           ],
@@ -27287,7 +27287,7 @@
           "idShort": "VD7CombinedAssembly",
           "description": [
             {
-              "language": "en",
+              "language": "ko",
               "text": "Combined assembly process group for MODEL_A VD7(IP-SB)-MBR5600(S3L)-TDN7-H2IR-WH-N(R1)(방수 CABLE). Contains one step: GIMBAL + BOTTOM ASS'Y (60). JOIN step merging gimbal sub-assembly (VD7_40-1_GIMBAL) and bottom case sub-assembly (VD7_50-2_BOTTOM). Cross-head screws (30300124, qty 2) are used to fasten the combined assembly. MCX cable connection, gimbal assembly orientation, and connector integrity confirmed visually. Worker group: WORKER_SET (16 persons). Cycle time: 144 s. Sub-assemblies transferred via CART (transfer qty: 80 units per batch)."
             }
           ],
@@ -27652,7 +27652,7 @@
           "idShort": "VD7Inspection",
           "description": [
             {
-              "language": "en",
+              "language": "ko",
               "text": "Camera inspection process group for MODEL_A VD7(IP-SB)-MBR5600(S3L)-TDN7-H2IR-WH-N(R1)(방수 CABLE). Contains three sequential steps: Camera Test inspection (70), Camera Test inspection (70-1), and Camera Test inspection (70-2). All three steps are performed by the inspection-dedicated sub-group within WORKER_SET. No input materials consumed across any step. Total cycle time: 240 s. Defect rate: 0.003 per step."
             }
           ],
@@ -28414,7 +28414,7 @@
           "idShort": "VD7UpperHousingAssembly",
           "description": [
             {
-              "language": "en",
+              "language": "ko",
               "text": "Upper housing assembly process group for MODEL_A VD7(IP-SB)-MBR5600(S3L)-TDN7-H2IR-WH-N(R1)(방수 CABLE). Contains two sequential steps: UPPER ASS'Y (80) and UPPER ASS'Y completion (80-1). Step 80 assembles adhesive vent (21200533), upper case (20501148), dome cover (외주20901858), bubble gasket (21200496), dome stopper (21100701), and screws (30300540, qty 4) into the upper housing sub-assembly. Step 80-1 integrates main gasket (21200511) and Torx screws (30301017, qty 3). Both steps share worker group WORKER_SEMI (11 persons). Total cycle time: 100 s. Sub-assemblies transferred via CART (transfer qty: 80 units per batch). Revision history: ECO438 (Rev1.1, 2020-02-03) upper case press changed; ECO656 (Rev1.8, 2023-05-24) bubble changed; ECO754 (Rev1.9, 2024-10-25) bubble gasket and upper case changed."
             }
           ],
@@ -29314,7 +29314,7 @@
           "idShort": "VD7SetAssembly",
           "description": [
             {
-              "language": "en",
+              "language": "ko",
               "text": "SET assembly process group for MODEL_A VD7(IP-SB)-MBR5600(S3L)-TDN7-H2IR-WH-N(R1)(방수 CABLE). Contains one step: SET ASS'Y (90). JOIN step merging VD7_70-2_INSP (inspection completed camera sub-assembly) and VD7_80-1_UPPER (upper housing completed sub-assembly). IR sponge (21200901) cleaned with methyl alcohol and assembled. Dome cover protective film (21201365) attached per ECO630 (Rev1.7, 2023-01-02). Absence of foreign matter and housing surface scratches confirmed visually. Torque spec: 4~5 kgf·cm. Sub-assemblies transferred via CART (transfer qty: 80 units per batch). Worker group: WORKER_SET (16 persons). Cycle time: 10 s."
             }
           ],
@@ -29716,7 +29716,7 @@
           "idShort": "VD7AgingTest",
           "description": [
             {
-              "language": "en",
+              "language": "ko",
               "text": "Aging test process group for MODEL_A VD7(IP-SB)-MBR5600(S3L)-TDN7-H2IR-WH-N(R1)(방수 CABLE). Contains one step: AGING (100). Assembled camera units are subjected to an aging test to identify early-stage failures under operating conditions. Worker group: WORKER_AGING (6 persons). Cycle time: 240 s. No input materials consumed. Sub-assemblies transferred via CART (transfer qty: 80 units per batch)."
             }
           ],
@@ -30004,7 +30004,7 @@
           "idShort": "VD7Packaging",
           "description": [
             {
-              "language": "en",
+              "language": "ko",
               "text": "Packaging process group for MODEL_A VD7(IP-SB)-MBR5600(S3L)-TDN7-H2IR-WH-N(R1)(방수 CABLE). Contains four sequential steps: accessory packaging (110), unit box packaging (110-1), label attachment (110-2), and carton box packaging (110-3). Step 110 packages mounting nuts, bolts, L-wrench, tapping screw, antistatic bags, and waterproof cap. Step 110-1 places unit in individual box with PE foam bottom and silica gel. Step 110-2 attaches product label performed by WORKER_PACK_LABEL (2 persons). Step 110-3 inserts mount template, CD manual, and carton box closure. Total cycle time: 150 s. Revision history: ECO550 (Rev1.5, 2021-08-27): IP cable waterproof cap rubber added."
             }
           ],
@@ -30052,7 +30052,7 @@
               "idShort": "VD7_110",
               "description": [
                 {
-                  "language": "en",
+                  "language": "ko",
                   "text": "Process 110 — 포장 (accessory packaging). Mounting nuts (20900925, qty 2), mounting bolts (21000790, qty 2), L-wrench Torx T20 (21000072, qty 1), tapping screw (30300614, qty 1), antistatic bags (30500003, 30500004, qty 1 each), and RJ45 waterproof cap (21201287, qty 1) are prepared and packaged as accessories. Accessory completeness confirmed by visual inspection before proceeding to unit boxing. Revision history: ECO550 (Rev1.5, 2021-08-27): RJ45 cable waterproof cap added."
                 }
               ],
@@ -30588,7 +30588,7 @@
               "idShort": "VD7_110_1",
               "description": [
                 {
-                  "language": "en",
+                  "language": "ko",
                   "text": "Process 110-1 — 포장(박스) (unit box packaging). Camera unit and accessories placed into unit box (30200916) with PE foam bottom insert (21400282) and silica gel desiccant (30400105). Box and PE foam moulding defects confirmed absent by visual inspection. Accessory completeness confirmed before box closure. Quantity per unit: 1 box."
                 }
               ],
@@ -30976,7 +30976,7 @@
               "idShort": "VD7_110_2",
               "description": [
                 {
-                  "language": "en",
+                  "language": "ko",
                   "text": "Process 110-2 — 포장(라벨부착) (label attachment). PE foam top insert (21400283) placed over camera unit inside unit box. Product label attached to unit box surface. Label print specification and serial number confirmed free of duplication by visual inspection. PE foam top moulding defects confirmed absent. Performed by WORKER_PACK_LABEL (2 persons)."
                 }
               ],
@@ -31290,7 +31290,7 @@
               "idShort": "VD7_110_3",
               "description": [
                 {
-                  "language": "en",
+                  "language": "ko",
                   "text": "Process 110-3 — 포장(카톤박스) (carton box packaging). Mount template (30600066), CD manual (30401009), and carton box (30201152, qty 0.125, 1 carton per 8 units) complete the final packaging stage. Packaging material completeness confirmed by visual inspection. Label specification and attachment position confirmed before carton closure. This is the final process step of the MODEL_A VD7 assembly and packaging sequence."
                 }
               ],
@@ -31813,7 +31813,7 @@
           "dataSpecificationContent": {
             "preferredName": [
               {
-                "language": "en",
+                "language": "ko",
                 "text": "VD7 방수 케이블 카메라 (방수 CABLE)"
               }
             ],
@@ -31909,7 +31909,7 @@
           "dataSpecificationContent": {
             "preferredName": [
               {
-                "language": "en",
+                "language": "ko",
                 "text": "포함 관계 : PCB 03203204 -> 커패시터 10200037"
               }
             ],

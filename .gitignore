@@ -23,3 +23,23 @@ rl_log*.jsonl
 scratch/
 # 빌드 캐시 디렉토리
 __pycache__/
+# 발표 덱·바이너리 산출물 (커밋 제외)
+*.pptx
+aas_template/
+# 시각화·학습 산출물 (루트 result/ — visualization.py 출력)
+result/
+# 추적 해제 — 로컬 보관, repo 제외
+CLAUDE.md
+/LIBRARY_ARCHITECTURE.md
+/UML.md
+ml_viz/
+mod_run/
+# aas_data 참조 바이너리·템플릿 (시뮬 직접 미사용)
+aas_data/ProvisionOfSimulationModel_skeleton.json
+aas_data/AAS_스키마_데이터.xlsx
+aas_data/IDTA 02026-1-0-1_Template_ProvisionOf3DModels.json
+aas_data/IDTA_02026-1-0_Submodel_ProvisionOf3DModels.pdf
+# docs — CODE_NOTES·SMT_IDEF0 만 추적
+docs/*
+!docs/CODE_NOTES.md
+!docs/SMT_IDEF0.xlsx
