@@ -355,8 +355,9 @@ def train(env, agent, MaxEpisodes, run_name=None, episode_max_sec=EPISODE_DURATI
     import os, sys, time
     _ROOT    = os.path.dirname(os.path.abspath(__file__))
     _MOD_RUN = os.path.join(_ROOT, 'mod_run')
-    if _MOD_RUN not in sys.path:
-        sys.path.insert(0, _MOD_RUN)
+    _UTIL    = os.path.join(_ROOT, 'util')
+    if _UTIL not in sys.path:
+        sys.path.insert(0, _UTIL)
     from rl_logger import RLLogger
 
     if run_name is None:
