@@ -265,6 +265,14 @@ class RuntimeVariables(SubmodelElementCollection):
             deficit += max(0.0, required - progress)
         return DuePaceDeficit + deficit
 
+    def DuePaceDeficitByModel(self, Throughput, target_qty, DueDay, now, DuePaceDeficitByModel) -> dict:
+        result = {}
+        for model_id in target_qty:
+            required = min(now / DueDay[model_id], 1.0)
+            progress = Throughput[model_id] / target_qty[model_id]
+            result[model_id] = DuePaceDeficitByModel[model_id] + max(0.0, required - progress)
+        return result
+
     def EpisodeReturns(self, rewards, Gamma) -> list:
         EpisodeReturns, G = [], 0.0
         for reward in reversed(rewards):

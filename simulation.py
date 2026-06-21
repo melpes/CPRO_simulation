@@ -56,6 +56,7 @@ class CproSimEnv:
         self.StockOverflowCount   = 0
         self.IdleViolationCount   = 0
         self.DuePaceDeficit       = 0.0
+        self.DuePaceDeficitByModel = {model_id: 0.0 for model_id in self.target_qty}
         self.completed            = set()
         self.in_progress          = {}
         self.idle_time            = {}
@@ -278,6 +279,9 @@ class CproSimEnv:
                     self.DuePaceDeficit = self.RuntimeVariables.DuePaceDeficit(
                         self.Throughput, self.target_qty, self.DueDay, self.env.now,
                         self.DuePaceDeficit)
+                    self.DuePaceDeficitByModel = self.RuntimeVariables.DuePaceDeficitByModel(
+                        self.Throughput, self.target_qty, self.DueDay, self.env.now,
+                        self.DuePaceDeficitByModel)
                 if (all(self.Throughput[m] >= self.target_qty[m] for m in self.target_qty)
                         or self.env.now >= max_sec):
                     if not stop.triggered:
@@ -385,7 +389,9 @@ def train(env, agent, MaxEpisodes, run_name=None, episode_max_sec=EPISODE_DURATI
             violations={'stock_shortage': env.StockShortageCount,
                         'stock_overflow': env.StockOverflowCount,
                         'idle_violation': env.IdleViolationCount,
-                        'due_pace_deficit': env.DuePaceDeficit})
+                        'due_pace_deficit': env.DuePaceDeficit,
+                        **{f'due_pace/{model_id}': value
+                           for model_id, value in env.DuePaceDeficitByModel.items()}})
         if is_best:
             torch.save(agent.state_dict(), ckpt)
         thru = ' '.join(f'{m}:{env.Throughput[m]}/{env.target_qty[m]}' for m in env.target_qty)
