@@ -18,7 +18,7 @@ class CproSimEnv:
                  WarehouseManagedBOM, BOMCategory,
                  WorkStartTime, WorkEndTime, break_start_sec, break_end_sec,
                  IdleWorkerThreshold, RuntimeVariables,
-                 IdleProcessRatedPowerKw, IdlePowerRatio=0.10, SelfManagedBOM=None,
+                 IdleProcessRatedPowerKw, SelfManagedBOM=None,
                  SMTLines=None, SmtArrayPcb=6, SmtBatchArrays=40, DueDay=None):
         self.KnowledgeGraph       = KnowledgeGraph
         self.warehouse            = warehouse
@@ -38,8 +38,7 @@ class CproSimEnv:
         self.break_start_sec      = break_start_sec
         self.break_end_sec        = break_end_sec
         self.IdleWorkerThreshold  = IdleWorkerThreshold
-        self.IdleProcessRatedPowerKw = IdleProcessRatedPowerKw
-        self.IdlePowerRatio       = IdlePowerRatio
+        self.IdleProcessRatedPowerKw       = IdleProcessRatedPowerKw
         self.RuntimeVariables     = RuntimeVariables
         self.SMTLines             = SMTLines
         self.SmtArrayPcb          = SmtArrayPcb
@@ -68,15 +67,8 @@ class CproSimEnv:
         if self.SelfManagedBOM:
             self._pcb_warehouse   = Warehouse.build(self.SelfManagedBOM, self.BOMCategory)
             self.warehouse        = _StockRouter(self.warehouse, self._pcb_warehouse)
-            pcb_codes = [code for items in self._pcb_warehouse.inventory.values() for code in items]
-            if self.SMTLines:
-                n_lines = len(self.SMTLines)
-                for line_index, (line_id, equipment) in enumerate(self.SMTLines.items()):
-                    line_codes = pcb_codes[line_index::n_lines]
-                    self.env.process(self.smt_line(line_id, equipment, line_codes))
-            else:
-                import smt
-                self.env.process(smt.pcb_supply(self.env, self._pcb_warehouse))
+            import smt
+            smt.start(self)
         self.worker_resources     = {
             WorkstationId: simpy.Resource(self.env,
                                           capacity=info['worker_count'] * info['UnitsPerWorker'])
@@ -92,9 +84,9 @@ class CproSimEnv:
         self._idle_violation_norm  = max(1.0, sum(info['worker_count'] for info in self.workers.values())
                                                * nominal_work_ticks)
         self._due_violation_norm   = max(1.0, len(self.target_qty) * nominal_work_ticks)
-        self._max_episode_premium = self.RuntimeVariables.MaxEpisodeEnergyKwh(
+        self.MaxEpisodeEnergyKwh = self.RuntimeVariables.MaxEpisodeEnergyKwh(
             self.KnowledgeGraph, self.target_qty,
-            self.IdleProcessRatedPowerKw, self.IdlePowerRatio)
+            self.IdleProcessRatedPowerKw)
     
     def _is_work_time(self) -> bool:
         seconds_in_day  = self.env.now % 86400
@@ -118,7 +110,7 @@ class CproSimEnv:
             yield req
             yield self.env.timeout(node.CycleTimeSec)
         self.EpisodeEnergyKwh = self.RuntimeVariables.EpisodeEnergyKwh(
-            node, self.EpisodeEnergyKwh, self.IdleProcessRatedPowerKw, self.IdlePowerRatio)
+            node, self.EpisodeEnergyKwh, self.IdleProcessRatedPowerKw)
         if node.InputBOM:
             ordered = self.warehouse.consume(node.InputBOM)
             if ordered:
@@ -185,7 +177,7 @@ class CproSimEnv:
         yield self.env.timeout(node.CycleTimeSec)
         self.worker_resources[ws].release(req)
         self.EpisodeEnergyKwh = self.RuntimeVariables.EpisodeEnergyKwh(
-            node, self.EpisodeEnergyKwh, self.IdleProcessRatedPowerKw, self.IdlePowerRatio)
+            node, self.EpisodeEnergyKwh, self.IdleProcessRatedPowerKw)
         if node.InputBOM:
             ordered = self.warehouse.consume(node.InputBOM)
             if ordered:
@@ -241,21 +233,6 @@ class CproSimEnv:
             yield simpy.AnyOf(self.env, outstanding)
             outstanding = [e for e in outstanding if not e.triggered]
 
-    def smt_line(self, line_id, equipment, pcb_codes):
-        if not pcb_codes or not equipment:
-            return
-        array_cycle  = sum(cycle for _, cycle, _ in equipment)
-        array_energy = sum(power * cycle for _, cycle, power in equipment) / 3600
-        while True:
-            for code in pcb_codes:
-                for _ in range(self.SmtBatchArrays):
-                    while not self._is_work_time():
-                        yield self.env.timeout(self._off_hours_delta())
-                    yield self.env.timeout(array_cycle)
-                    self.SMTEnergyKwh += array_energy
-                    self.warehouse.produce({code: self.SmtArrayPcb})
-                    self._wake_stock()
-
     def run(self, agent=None, max_sec: float = 60 * 86400):
         self.reset()
         stop = self.env.event()
@@ -299,7 +276,7 @@ class CproSimEnv:
     def total_energy_kwh(self) -> float:
         idle_base = self.RuntimeVariables.IdleBaselineKwh(
             self.KnowledgeGraph, self.env.now,
-            self.IdleProcessRatedPowerKw, self.IdlePowerRatio)
+            self.IdleProcessRatedPowerKw)
         return idle_base + self.EpisodeEnergyKwh + self.SMTEnergyKwh
 
     @property
@@ -313,7 +290,7 @@ class CproSimEnv:
         for model_id in self.target_qty:
             feats.append(self.Throughput[model_id] / self.target_qty[model_id])
         feats.append(self.env.now / max(work_day * total_target, 1.0))
-        feats.append(self.EpisodeEnergyKwh / self._max_episode_premium)
+        feats.append(self.EpisodeEnergyKwh / self.MaxEpisodeEnergyKwh)
         for ws, info in self.workers.items():
             feats.append(self.in_progress.get(ws, 0) / info['worker_count'])
         stock_short = 0.0
@@ -339,29 +316,26 @@ class CproSimEnv:
         return torch.tensor(feats, dtype=torch.float32)
 
     def potential(self) -> float:
-        w = self.RewardWeights
+        RewardWeights = self.RewardWeights
         total_target = sum(self.target_qty.values())
         work_day = self.WorkEndTime - self.WorkStartTime - (self.break_end_sec - self.break_start_sec)
         return (
-            + (sum(self.Throughput.values()) / total_target)        * w['W5_Throughput']
-            - (self.env.now / (work_day * total_target))            * w['W1_TimeElapsed']
-            - (carbon.total(self.EpisodeEnergyKwh) / carbon.total(self._max_episode_premium)) * w['W2_Energy']
-            - (self.StockOverflowCount / self._stock_violation_norm) * w['W3_StockOverflow']
-            - (self.StockShortageCount / self._stock_violation_norm) * w['W4_StockShortage']
-            - (self.IdleViolationCount / self._idle_violation_norm)  * w['W6_IdleWorker']
-            - (self.DuePaceDeficit / self._due_violation_norm)       * w['W7_DueDate']
+            + (sum(self.Throughput.values()) / total_target)                                    * RewardWeights['W5_Throughput']
+            - (self.env.now / (work_day * total_target))                                        * RewardWeights['W1_TimeElapsed']
+            - (carbon.total(self.EpisodeEnergyKwh) / carbon.total(self.MaxEpisodeEnergyKwh))    * RewardWeights['W2_Energy']
+            - (self.StockOverflowCount / self._stock_violation_norm)                            * RewardWeights['W3_StockOverflow']
+            - (self.StockShortageCount / self._stock_violation_norm)                            * RewardWeights['W4_StockShortage']
+            - (self.IdleViolationCount / self._idle_violation_norm)                             * RewardWeights['W6_IdleWorker']
+            - (self.DuePaceDeficit / self._due_violation_norm)                                  * RewardWeights['W7_DueDate']
         )
 
     def episode_reward(self) -> float:
         return self.potential()
 
 def train(env, agent, MaxEpisodes, run_name=None, episode_max_sec=EPISODE_DURATION_SEC):
-    import os, sys, time
+    import os, time
+    from util.rl_logger import RLLogger
     _ROOT = os.path.dirname(os.path.abspath(__file__))
-    _UTIL = os.path.join(_ROOT, 'util')
-    if _UTIL not in sys.path:
-        sys.path.insert(0, _UTIL)
-    from rl_logger import RLLogger
 
     if run_name is None:
         run_name = 'run_' + time.strftime('%Y-%m-%d_%H-%M-%S')

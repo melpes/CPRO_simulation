@@ -9,8 +9,6 @@ from path_extractor import AssetAdministrationShell, ProvisionofSimulationModels
 DEFAULT_AAS_FILES     = ('ProvisionOfSimulationModel.json', 'WorkstationWorkerMatchingDataAAS.json',
                          'MODEL_A.json', 'MODEL_B.json', 'MODEL_C.json',
                          'SMTEquipmentCatalog.json')
-DEFAULT_SHARED_GROUPS = ('ProcessOQC',)
-IDLE_POWER_RATIO      = 0.10
 
 
 def load_aas(aas_dir: str, *, files=DEFAULT_AAS_FILES) -> AssetAdministrationShell:
@@ -23,13 +21,11 @@ def build_simulation(aas_dir: Optional[str] = None, *,
                      target_qty: Optional[Dict[str, int]] = None,
                      MaxEpisodes: Optional[int] = None,
                      env_cls: Optional[Type] = None,
-                     shared_group_names=DEFAULT_SHARED_GROUPS,
-                     IdlePowerRatio: float = IDLE_POWER_RATIO,
                      enable_smt: bool = True,
                      files=DEFAULT_AAS_FILES):
-    import simulation as sv
-    import knowledge_graph as kg_mod
-    import warehouse as warehouse_mod
+    import simulation
+    import knowledge_graph
+    import warehouse as code_warehouse
 
     if aas_dir is not None and not ProvisionofSimulationModelsAAS.submodels:
         load_aas(aas_dir, files=files)
@@ -39,18 +35,21 @@ def build_simulation(aas_dir: Optional[str] = None, *,
     Action            = SimulationModel.KnowledgeGraph.Action
     DefaultParameters = SimulationModel.DefaultParameters
     RewardWeights     = SimulationModel.RewardWeights
+    DueDay, target_from_po = {}, {}
+    for model_id, (quantity, day, registered) in SimulationModel.PurchaseOrder.items():
+        target_from_po[model_id] = quantity
+        DueDay[model_id]         = day * 86400
     if target_qty is None:
-        target_qty = SimulationModel.PurchaseOrder.target_qty()
-    DueDay = {model_id: day * 86400
-              for model_id, (quantity, day, registered) in SimulationModel.PurchaseOrder.items()}
+        target_qty = target_from_po
 
     ManufacturingProcesses = {mp.model_id: mp for mp in SimulationModel.Warehouse.InputBOM.target}
     shared_groups          = {name: group
                               for name, group in SimulationModel.KnowledgeGraph.Node.value.items()
-                              if name in shared_group_names}
+                              if not name.startswith('SIM_')
+                              and any(node.SamplingRate is not None for node in group.value.values())}
     NodeFeatureAttrs = SimulationModel.ModelArchitecture.Observation.ObservationNodeFeatures.attrs()
-    KnowledgeGraph   = kg_mod.KnowledgeGraph.build(ManufacturingProcesses, PSM.workers, shared_groups, node_feature_attrs=NodeFeatureAttrs)
-    warehouse      = warehouse_mod.Warehouse.build(PSM.CoManagedBOM, SimulationModel.Warehouse.MinStock.target)
+    KnowledgeGraph   = knowledge_graph.KnowledgeGraph.build(ManufacturingProcesses, PSM.workers, shared_groups, node_feature_attrs=NodeFeatureAttrs)
+    warehouse      = code_warehouse.Warehouse.build(PSM.CoManagedBOM, SimulationModel.Warehouse.MinStock.target)
 
     if MaxEpisodes is None:
         MaxEpisodes = int(SimulationModel.SimulationConfig.MaxEpisodes.value)
@@ -67,7 +66,7 @@ def build_simulation(aas_dir: Optional[str] = None, *,
                 for line_id, line in lines.items()
             }
 
-    env_cls = env_cls or sv.CproSimEnv
+    env_cls = env_cls or simulation.CproSimEnv
     return env_cls(
         KnowledgeGraph          = KnowledgeGraph,
         warehouse               = warehouse,
@@ -78,10 +77,7 @@ def build_simulation(aas_dir: Optional[str] = None, *,
                                                  for node in ref.target if node is not None],
         DependentJoin           = [node.idShort for ref in Action.DependentJoin
                                                  for node in ref.target if node is not None],
-        RewardWeights           = {weight: float(RewardWeights[weight].value) for weight in
-                                   ('W1_TimeElapsed', 'W2_Energy', 'W3_StockOverflow',
-                                    'W4_StockShortage', 'W5_Throughput', 'W6_IdleWorker',
-                                    'W7_DueDate')},
+        RewardWeights           = {name: float(prop.value) for name, prop in RewardWeights.value.items()},
         ReplenishLeadDay        = int(DefaultParameters.ReplenishLeadDay.value) * 86400,
         target_qty              = dict(target_qty),
         MaxEpisodes             = MaxEpisodes,
@@ -93,8 +89,7 @@ def build_simulation(aas_dir: Optional[str] = None, *,
         break_end_sec           = DefaultParameters.BreakDurationMin.target.max,
         IdleWorkerThreshold     = int(DefaultParameters.IdleWorkerThreshold.value),
         RuntimeVariables        = SimulationModel.RuntimeVariables,
-        IdleProcessRatedPowerKw = float(DefaultParameters.IdleProcessRatedPowerKw.value),
-        IdlePowerRatio          = IdlePowerRatio,
+        IdleProcessRatedPowerKw          = float(DefaultParameters.IdleProcessRatedPowerKw.value),
         SelfManagedBOM          = PSM.SelfManagedBOM,
         SMTLines                = SMTLines,
         DueDay                  = DueDay,
@@ -103,7 +98,7 @@ def build_simulation(aas_dir: Optional[str] = None, *,
 
 def build_agent(env=None, *, StateDim: Optional[int] = None, checkpoint: Optional[str] = None):
     import torch
-    import simulation as sv
+    import simulation
 
     SimulationModel   = ProvisionofSimulationModelsAAS.SimulationModels.SimulationModel
     ModelArchitecture = SimulationModel.ModelArchitecture
@@ -128,14 +123,14 @@ def build_agent(env=None, *, StateDim: Optional[int] = None, checkpoint: Optiona
         return spec
 
     NodeFeatureDim = len(ModelArchitecture.Observation.ObservationNodeFeatures)
-    encoder = sv.GraphModule(_graph_spec(ModelArchitecture.Encoder),
+    encoder = simulation.GraphModule(_graph_spec(ModelArchitecture.Encoder),
                              source_dims={'NodeFeatures': NodeFeatureDim, 'GraphTopology': None})
     embedding_dim = next(node['Arguments']['out_channels'] for node in reversed(encoder.spec)
                          if 'out_channels' in node.get('Arguments', {}))
-    actor   = sv.GraphModule(_graph_spec(Algorithm.Actor),  source_dims={'ReadyNodeEmbeddings':  embedding_dim, 'StateVector': StateDim})
-    critic  = sv.GraphModule(_graph_spec(Algorithm.Critic), source_dims={'PooledNodeEmbedding': embedding_dim, 'StateVector': StateDim})
+    actor   = simulation.GraphModule(_graph_spec(Algorithm.Actor),  source_dims={'ReadyNodeEmbeddings':  embedding_dim, 'StateVector': StateDim})
+    critic  = simulation.GraphModule(_graph_spec(Algorithm.Critic), source_dims={'PooledNodeEmbedding': embedding_dim, 'StateVector': StateDim})
 
-    algo_cls = sv.import_callable(Algorithm.Operation.value)
+    algo_cls = simulation.import_callable(Algorithm.Operation.value)
     agent = algo_cls(
         encoder=encoder, actor=actor, critic=critic, StateDim=StateDim,
         LearningRate     = float(Arguments.LearningRate.value),

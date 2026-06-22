@@ -1237,3 +1237,19 @@ PO 납기일(DueDay)을 생산성 보상에 반영. **페이스 기반** — 매
 
 ### AAS idShort
 - W2 idShort는 `W2_Energy` 유지(에너지가 탄소 기반, 현 동작 동일). ECO 실모델 결합 시 `W2_Carbon` 개명 검토.
+
+
+## run.py 설계 노트 (공유그룹·idle·PO)
+
+### 공유그룹(shared) 판별 — 하드코딩 제거
+`build_simulation`의 `shared_groups`는 `KnowledgeGraph.Node` 그룹 중 **모델 공유**(KG에서 model_id='ALL'로 1회 생성) 노드를 고른다. 과거엔 `DEFAULT_SHARED_GROUPS=('ProcessOQC',)` 하드코딩이었음.
+
+- Node 5그룹 = `SIM_MODEL_A/B/C`(모델별 — 실제 per-model 노드는 `MP.groups`에서 오므로 **중복·미사용**) + `ProcessOQC`(활성 공유, `SamplingRate=0.05`) + `ProcessRMA`(**비활성**: `SamplingRate=None`, `WWM_RMALine` 워커 6·예측자 11개(주공정) → 포함 시 전 유닛이 RMA로 라우팅·활성화됨. 미완 모델이라 의도적 off).
+- 현재 규칙(코드만, AAS 무변경): `if not name.startswith('SIM_') and any(node.SamplingRate is not None for node in group.value.values())` → SIM_* 제외 + RMA(미샘플) 제외 = **OQC만**.
+- ⚠️ **SamplingRate를 "활성 공유" 프록시로 전용한 휴리스틱**이라 취약: 샘플링 없는 활성 공유공정이 생기면 누락, 샘플링 있는 비활성 공정이 생기면 오포함. 견고한 대안 = AAS Node 그룹에 명시 `Scope/Active` Qualifier, 또는 `ProcessRMA`를 Node+Action에서 제거. RMA 정식 모델링 시 재검토.
+
+### idle 전력 — AAS 상수 사용 (ratio 하드코딩 제거)
+`IdlePowerKw = IdleProcessRatedPowerKw`(AAS `DefaultParameters`, 0.0993kW **flat**, 공정 무관). 과거 `max(RatedPowerKw × IdlePowerRatio, floor)`에서 `IdlePowerRatio=0.10`(`IDLE_POWER_RATIO`) 하드코딩을 제거하고 AAS 상수만 적용. → 유휴전력이 정격 비례가 아님. 정격 비례가 필요하면 AAS에 ratio 항을 신설해야 함.
+
+### PO 단일 순회
+`target_qty`·`DueDay`를 `PurchaseOrder.items()`의 `(quantity, day, registered)` 한 번 순회로 산출. 과거 `PurchaseOrder.target_qty()` 별도 메서드 + `items()` 이중 순회 → 메서드 제거하고 통합.
