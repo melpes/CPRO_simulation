@@ -193,29 +193,26 @@ class RuntimeVariables(SubmodelElementCollection):
         ('SimulationModels', 'SimulationModel', 'RuntimeVariables'),
     ]
 
-    def IdlePowerKw(self, GraphNode, IdleProcessRatedPowerKw, IdlePowerRatio) -> float:
-        return max(GraphNode.RatedPowerKw * IdlePowerRatio, IdleProcessRatedPowerKw)
+    def IdlePowerKw(self, GraphNode, IdleProcessRatedPowerKw) -> float:
+        return IdleProcessRatedPowerKw
 
-    def IdleBaselineKwh(self, KnowledgeGraph, now,
-                        IdleProcessRatedPowerKw, IdlePowerRatio) -> float:
+    def IdleBaselineKwh(self, KnowledgeGraph, now, IdleProcessRatedPowerKw) -> float:
         return now * sum(
-            self.IdlePowerKw(node, IdleProcessRatedPowerKw, IdlePowerRatio)
+            self.IdlePowerKw(node, IdleProcessRatedPowerKw)
             for node in KnowledgeGraph.nodes.values()
         ) / 3600
 
-    def MaxEpisodeEnergyKwh(self, KnowledgeGraph, target_qty,
-                            IdleProcessRatedPowerKw, IdlePowerRatio) -> float:
+    def MaxEpisodeEnergyKwh(self, KnowledgeGraph, target_qty, IdleProcessRatedPowerKw) -> float:
         total = sum(target_qty.values())
         return max(1e-6, sum(
             target_qty.get(node.model_id, total)
             * node.CycleTimeSec
-            * max(node.RatedPowerKw - self.IdlePowerKw(node, IdleProcessRatedPowerKw, IdlePowerRatio), 0.0)
+            * max(node.RatedPowerKw - self.IdlePowerKw(node, IdleProcessRatedPowerKw), 0.0)
             for node in KnowledgeGraph.nodes.values()
         ) / 3600)
 
-    def EpisodeEnergyKwh(self, GraphNode, EpisodeEnergyKwh,
-                         IdleProcessRatedPowerKw, IdlePowerRatio) -> float:
-        idle_kw = self.IdlePowerKw(GraphNode, IdleProcessRatedPowerKw, IdlePowerRatio)
+    def EpisodeEnergyKwh(self, GraphNode, EpisodeEnergyKwh, IdleProcessRatedPowerKw) -> float:
+        idle_kw = self.IdlePowerKw(GraphNode, IdleProcessRatedPowerKw)
         return EpisodeEnergyKwh + GraphNode.CycleTimeSec * (GraphNode.RatedPowerKw - idle_kw) / 3600
 
     def CycleCompleted(self, ProcessCode, KnowledgeGraph) -> bool:
@@ -341,8 +338,6 @@ class PurchaseOrder(SubmodelElementCollection):
     def __getitem__(self, model_id: str):
         order = self.value[model_id]
         return (order.value, order.Qualifier['DueDay'], order.Qualifier['RegisteredDay'])
-    def target_qty(self) -> Dict[str, int]:
-        return {model_id: order.value for model_id, order in self.value.items()}
 
 
 @dataclass(kw_only=True)

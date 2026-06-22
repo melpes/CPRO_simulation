@@ -201,7 +201,7 @@ def render_video(name: str, env, mode: str, agent=None, out_dir: Optional[str] =
     lines, line_x, pos = layout(env)
     KG = env.KnowledgeGraph
     idle_kw  = {pc: env.RuntimeVariables.IdlePowerKw(
-                    KG.nodes[pc], env.IdleProcessRatedPowerKw, env.IdlePowerRatio)
+                    KG.nodes[pc], env.IdleProcessRatedPowerKw)
                 for pc in KG.nodes}
     rated_kw = {pc: KG.nodes[pc].RatedPowerKw for pc in KG.nodes}
     line_pcs = {ln: [pc for pc in env.workers[ln]['ProcessCode'] if pc in KG.nodes]

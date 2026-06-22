@@ -16,4 +16,4 @@ def build_payload(env, summary: Dict[str, Any]) -> Dict[str, Any]:
 
 
 def send(payload: Dict[str, Any]) -> None:
-    raise NotImplementedError('export.send: 외부 API 계약 미정 — Task 5 에서 구현')
+    raise NotImplementedError('export.send: 외부 API 계약 미정')
