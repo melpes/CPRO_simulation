@@ -426,12 +426,15 @@ def render_gantt(label: str, events_path: str, out_png: str, xmax_disp_h: Option
         ax.axvline(d * 8, color='0.85', lw=0.7)
     ax.axvline(own_disp_h, color='#444', lw=1.2, ls='--', alpha=0.7)
 
-    major = [t for t in range(0, int(xmax) + 1, 2)]
-    def _lab(t):
-        day, hr = divmod(t, 8)
-        return f'D{day+1}' if hr == 0 else f'+{hr}h'
-    ax.set_xticks(major); ax.set_xticklabels([_lab(t) for t in major], fontsize=9)
-    minor = [i * 0.5 for i in range(int(xmax / 0.5) + 1) if (i * 0.5) % 2 != 0]
+    if ndays > 10:                                                 # 긴 run: 날짜 경계만 Dn 라벨 (중간 시각은 minor 눈금만)
+        major  = [d * 8 for d in range(ndays + 1) if d * 8 <= xmax]
+        labels = [f'D{d+1}' for d in range(len(major))]
+        minor  = [d * 8 + h for d in range(ndays + 1) for h in (2, 4, 6) if d * 8 + h <= xmax]
+    else:                                                          # 짧은 run: 2h 간격 상세 (Dn / +2h / +4h / +6h)
+        major  = [t for t in range(0, int(xmax) + 1, 2)]
+        labels = [f'D{t//8+1}' if t % 8 == 0 else f'+{t%8}h' for t in major]
+        minor  = [i * 0.5 for i in range(int(xmax / 0.5) + 1) if (i * 0.5) % 2 != 0]
+    ax.set_xticks(major); ax.set_xticklabels(labels, fontsize=9)
     ax.set_xticks(minor, minor=True)
     ax.tick_params(axis='x', which='major', length=7)
     ax.tick_params(axis='x', which='minor', length=3)
@@ -534,11 +537,83 @@ def capture_compare(out_dir: str, agents: Dict[str, object], max_sec: int = 60 *
 
 
 if __name__ == '__main__':
-    import sys
-    cmd = sys.argv[1] if len(sys.argv) > 1 else 'greedy'
-    if cmd == 'greedy':
-        render_greedy()
-    elif cmd == 'trained':
-        render_trained(checkpoint=sys.argv[2], StateDim=int(sys.argv[3]) if len(sys.argv) > 3 else 0)
-    elif cmd == 'gantt':
-        capture_compare(os.path.join(_ROOT, 'result', 'viz'), {'greedy': None}, max_sec=86400)
+    import argparse, glob
+    p = argparse.ArgumentParser(
+        prog='visualization.py',
+        formatter_class=argparse.RawDescriptionHelpFormatter,
+        description='CPRO 시뮬레이션 시각화 — 모드별로 원하는 산출물만 생성',
+        epilog="""모드
+  video    공장 흐름 애니메이션 mp4
+  gantt    간트차트 png(+누적완료)   — 새로 구동하거나 --events 로 기존 jsonl만 렌더
+  events   이벤트 로그 events_*.jsonl 만 저장 (렌더 없음)
+  compare  그리디 vs 학습정책 동시 구동 → 공통 x축 간트 비교
+
+정책은 -c 로 정해진다: -c <ckpt.pt> 주면 학습정책, 없으면 그리디.
+출력은 -o, 생략 시 학습정책=체크포인트 폴더 / 그리디=result/viz.
+
+예시
+  python util/visualization.py gantt -c result/runs/<run>/best.pt   # 학습정책 → run 폴더에 간트
+  python util/visualization.py gantt                                # 그리디 → result/viz
+  python util/visualization.py gantt --events result/runs/<run>     # 기존 jsonl 폴더 → 간트만 재렌더
+  python util/visualization.py video -c result/runs/<run>/best.pt
+  python util/visualization.py compare -c result/runs/<run>/best.pt
+""")
+    p.add_argument('mode', nargs='?', default='gantt',
+                   choices=['video', 'gantt', 'events', 'compare'],
+                   help='산출물 종류 (기본 gantt)')
+    p.add_argument('-c', '--checkpoint',
+                   help='학습정책 체크포인트(.pt). 주면 학습정책, 없으면 그리디')
+    p.add_argument('-o', '--out-dir',
+                   help='출력 폴더 (기본: 학습정책=체크포인트 폴더, 그리디=result/viz)')
+    p.add_argument('--state-dim', type=int, default=0,
+                   help='학습정책 StateDim (기본 0=env에서 자동 추론)')
+    p.add_argument('-n', '--name', help='산출물 라벨 (기본=정책명)')
+    p.add_argument('--max-sec', type=int, default=60 * 86400,
+                   help='구동 상한 초 (기본 60일; 주문 완료 시 자동 종료되므로 보통 그대로)')
+    p.add_argument('--events', dest='events_src',
+                   help='gantt 모드: 기존 events.jsonl 파일/폴더를 렌더 (시뮬 생략)')
+    args = p.parse_args()
+
+    trained = bool(args.checkpoint)
+    label   = args.name or ('trained' if trained else 'greedy')
+    out_dir = (args.out_dir or
+               (os.path.dirname(os.path.abspath(args.checkpoint)) if trained
+                else os.path.join(_ROOT, 'result', 'viz')))
+    os.makedirs(out_dir, exist_ok=True)
+
+    def _agent():                                                      # -c 있으면 학습정책, 없으면 None(그리디)
+        if not trained:
+            return None
+        import build as cf
+        sd = args.state_dim or _recording_env().state_dim             # 미지정 시 env에서 자동
+        return cf.build_agent(StateDim=sd, checkpoint=args.checkpoint)
+
+    if args.mode == 'video':
+        if trained:
+            render_trained(args.checkpoint, StateDim=args.state_dim,
+                           out_dir=out_dir, name=args.name or 'trained_det')
+        else:
+            render_greedy(out_dir=out_dir, name=args.name or 'greedy')
+
+    elif args.mode == 'gantt':
+        if args.events_src:                                            # 기존 jsonl만 렌더 (구동 안 함)
+            srcs = ([args.events_src] if os.path.isfile(args.events_src)
+                    else sorted(glob.glob(os.path.join(args.events_src, 'events_*.jsonl'))))
+            if not srcs:
+                raise SystemExit(f'events.jsonl 을 찾지 못함: {args.events_src}')
+            for src in srcs:
+                lab = os.path.splitext(os.path.basename(src))[0].replace('events_', '') or label
+                render_gantt(lab, src, os.path.join(out_dir, f'gantt_{lab}.png'))
+        else:                                                          # 새로 구동 후 간트
+            capture_compare(out_dir, {label: _agent()}, max_sec=args.max_sec, render=True)
+
+    elif args.mode == 'events':
+        env = _recording_env()
+        _, path = capture(env, label, out_dir, agent=_agent(), max_sec=args.max_sec)
+        print(f'  saved {path}')
+
+    elif args.mode == 'compare':
+        if not trained:
+            print('[compare] -c 체크포인트가 없어 그리디만 렌더합니다 (비교는 -c 필요)')
+        agents = {'greedy': None} if not trained else {'greedy': None, 'trained': _agent()}
+        capture_compare(out_dir, agents, max_sec=args.max_sec, render=True)
