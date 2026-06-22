@@ -10,6 +10,13 @@ DEFAULT_AAS_FILES     = ('ProvisionOfSimulationModel.json', 'WorkstationWorkerMa
                          'MODEL_A.json', 'MODEL_B.json', 'MODEL_C.json',
                          'SMTEquipmentCatalog.json')
 
+# 학습이 실제로 로드하는 5파일 (SMTEquipmentCatalog 제외). 추론(run_trained)은 학습과
+# 동일 파일셋이어야 .pt regime·KPI가 일치하므로 train.py·run_trained.py 가 이 상수를 공유한다.
+# SMTEquipmentCatalog 를 더하면 SMT 라인 설비의 CycleTimeSec/RatedPowerKw 참조가 카탈로그에서
+# 해결돼 smt_line 이 실가동(SMT 에너지 가산) → 학습(폴백)과 동작이 달라진다.
+TRAINING_AAS_FILES    = ('ProvisionOfSimulationModel.json', 'WorkstationWorkerMatchingDataAAS.json',
+                         'MODEL_A.json', 'MODEL_B.json', 'MODEL_C.json')
+
 
 def load_aas(aas_dir: str, *, files=DEFAULT_AAS_FILES) -> AssetAdministrationShell:
     for file_name in files:
@@ -19,6 +26,7 @@ def load_aas(aas_dir: str, *, files=DEFAULT_AAS_FILES) -> AssetAdministrationShe
 
 def build_simulation(aas_dir: Optional[str] = None, *,
                      target_qty: Optional[Dict[str, int]] = None,
+                     due_day: Optional[Dict[str, int]] = None,
                      MaxEpisodes: Optional[int] = None,
                      env_cls: Optional[Type] = None,
                      enable_smt: bool = True,
@@ -41,6 +49,12 @@ def build_simulation(aas_dir: Optional[str] = None, *,
         DueDay[model_id]         = day * 86400
     if target_qty is None:
         target_qty = target_from_po
+    if due_day is not None:                         # 납기일(일 단위) 오버라이드 — 지정 모델만 덮어쓰고 나머지는 PO 유지
+        unknown = set(due_day) - set(target_qty)
+        if unknown:
+            raise ValueError(f'due_day override references unknown models: {sorted(unknown)} (target: {sorted(target_qty)})')
+        for model_id, day in due_day.items():
+            DueDay[model_id] = day * 86400
 
     ManufacturingProcesses = {mp.model_id: mp for mp in SimulationModel.Warehouse.InputBOM.target}
     shared_groups          = {name: group
@@ -148,17 +162,3 @@ def build_agent(env=None, *, StateDim: Optional[int] = None, checkpoint: Optiona
         agent.eval()
         agent.reset_buffer()
     return agent
-
-
-if __name__ == '__main__':
-    import path_extractor
-    import simulation
-
-    _ROOT = os.path.dirname(os.path.abspath(__file__))
-    for _f in ['ProvisionOfSimulationModel.json', 'WorkstationWorkerMatchingDataAAS.json',
-               'MODEL_A.json', 'MODEL_B.json', 'MODEL_C.json']:
-        path_extractor.load(os.path.join(_ROOT, 'aas_data', _f))
-
-    env   = build_simulation()                 # 수량·납기일·에피소드 모두 AAS(PurchaseOrder·SimulationConfig)에서
-    agent = build_agent(env)
-    simulation.train(env, agent, env.MaxEpisodes)

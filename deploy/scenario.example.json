@@ -1,0 +1,12 @@
+{
+  "po": {
+    "MODEL_A": { "qty": 6,  "due_day": 22 },
+    "MODEL_B": { "qty": 12, "due_day": 22 },
+    "MODEL_C": { "qty": 24, "due_day": 22 }
+  },
+  "overrides": {
+    "ReplenishLeadDay": 3,
+    "IdleWorkerThreshold": 1800,
+    "seed": 42
+  }
+}

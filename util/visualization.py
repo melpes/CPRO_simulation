@@ -65,7 +65,7 @@ for _pc, _node in _KG.nodes.items():
 def _recording_env(target_qty: Optional[Dict[str, int]] = None, seed: int = 42, **policy):
     import random
     import simulation as sv
-    import run as cf
+    import build as cf
     random.seed(seed)
 
     class RecEnv(sv.CproSimEnv):
@@ -496,7 +496,7 @@ def render_greedy(target_qty: Optional[Dict[str, int]] = None,
 def render_trained(checkpoint: str, StateDim: int = 0,
                    target_qty: Optional[Dict[str, int]] = None,
                    out_dir: Optional[str] = None, name: str = 'trained_det') -> Optional[str]:
-    import run as cf
+    import build as cf
     agent = cf.build_agent(StateDim=StateDim, checkpoint=checkpoint)
     env = _recording_env(target_qty)
     return render_video(name, env, 'run', agent=agent, out_dir=out_dir)

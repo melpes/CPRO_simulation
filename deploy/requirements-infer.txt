@@ -1,0 +1,10 @@
+# 추론 런타임 의존 (CPU torch). run_trained → build → simulation → 도메인 폐포.
+#   pip install -r deploy/requirements-infer.txt
+# matplotlib·rl_logger·scipy·sklearn 불필요. numpy 는 torch 전이 의존이라 별도 핀 안 함.
+--extra-index-url https://download.pytorch.org/whl/cpu
+torch==2.9.1
+torch_geometric==2.7.0
+simpy==4.1.1
+
+# 빌드 전용(런타임 아님): 번들 만들 때만 추가 설치
+#   pip install pyinstaller
