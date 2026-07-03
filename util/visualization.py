@@ -200,9 +200,12 @@ def render_video(name: str, env, mode: str, agent=None, out_dir: Optional[str] =
 
     lines, line_x, pos = layout(env)
     KG = env.KnowledgeGraph
-    idle_kw  = {pc: env.RuntimeVariables.IdlePowerKw(
-                    KG.nodes[pc], env.IdleProcessRatedPowerKw)
-                for pc in KG.nodes}
+    base_kw  = env.RuntimeVariables.BaselinePowerKw(               # 근무시간 기저(kW, 워크스테이션 단위)
+                   env.workers, env.DefaultProcessConsumedPowerKw)
+    def _in_work(t):
+        sid = t % 86400.0
+        return (env.WorkStartTime <= sid < env.WorkEndTime
+                and not (env.break_start_sec <= sid < env.break_end_sec))
     rated_kw = {pc: KG.nodes[pc].RatedPowerKw for pc in KG.nodes}
     line_pcs = {ln: [pc for pc in env.workers[ln]['ProcessCode'] if pc in KG.nodes]
                 for ln in lines}
@@ -213,10 +216,10 @@ def render_video(name: str, env, mode: str, agent=None, out_dir: Optional[str] =
     tot_pow  = []
     for _T in frame_T:
         _act = {pc for (m, pc, ln, t0, _tc, t1) in evs if t0 <= _T < t1}
-        tot_pow.append(sum(rated_kw[pc] if pc in _act else idle_kw[pc]
-                           for pc in all_pcs))
+        tot_pow.append((base_kw if _in_work(_T) else 0.0)
+                       + sum(rated_kw[pc] for pc in all_pcs if pc in _act))
     tot_peak   = max(tot_pow) if tot_pow else 1.0
-    idle_floor = sum(idle_kw.values())
+    idle_floor = base_kw
     models = list(env.target_qty)
     cmap = {m: c for m, c in zip(models, ['tab:blue', 'tab:orange', 'tab:green'])}
     reg_cats  = list(stock_ts[0][1]['reg'])
@@ -302,8 +305,8 @@ def render_video(name: str, env, mode: str, agent=None, out_dir: Optional[str] =
         axP.set_yticks([])
         axP.axvline(0, color='black', lw=0.6)
         axP.set_title(f'PCB stock / item — model color ({len(pcb_codes)})', fontsize=9)
-        line_pow = [sum(rated_kw[pc] if pc in active else idle_kw[pc]
-                        for pc in line_pcs[ln]) for ln in lines]
+        line_pow = [sum(rated_kw[pc] for pc in line_pcs[ln] if pc in active)   # 기저는 공장 전체 1회 — 라인별 표시 없음
+                    for ln in lines]
         bar_color = ['orangered' if any(pc in active for pc in line_pcs[ln])
                      else 'slategray' for ln in lines]
         axPow.barh(range(len(lines)), line_pow, color=bar_color)
@@ -453,9 +456,6 @@ def render_gantt(label: str, events_path: str, out_png: str, xmax_disp_h: Option
     used_h  = used_disp_sec / 3600
     idle_h  = avail_disp_sec / 3600 - used_h
 
-    ax.set_title(f'{label}   makespan={own_ms_h:.1f}h   idle={idle_h:.0f} worker·h',
-                 fontsize=12)
-
     ax.text(own_disp_h / xmax, 1.005, f'↓ makespan',
             transform=ax.transAxes, fontsize=9, color='#444', va='bottom', ha='center')
     ax.legend(handles=[mpatches.Patch(color=c, label=m) for m, c in GANTT_COLOR.items()],
@@ -479,13 +479,41 @@ def render_gantt(label: str, events_path: str, out_png: str, xmax_disp_h: Option
     ax_b.set_xlim(0, xmax)
     ax_b.set_ylim(0, max(len(ts) for ts in completions.values()) * 1.05)
     ax_b.set_ylabel('cumulative\ncompleted', fontsize=10)
-    ax_b.legend(loc='lower right', fontsize=9, frameon=False)
     ax_b.grid(axis='y', alpha=0.3)
 
     fig.subplots_adjust(left=0.06, right=0.985, top=0.945, bottom=0.06, hspace=0.04)
     fig.savefig(out_png, dpi=130); plt.close(fig)
     print(f'  saved {out_png}  (used={used_h:.0f}h idle={idle_h:.0f}h, '
           f'completed={ {m: len(ts) for m, ts in completions.items()} })')
+    return out_png
+
+
+def render_production_time(label: str, events_path: str, out_png: str, legend_loc: str = 'upper left') -> str:
+    """모델별 '누적 수량 → 도달 시간' 곡선. x=누적 생산 수량, y=생산 시간(h). 세 모델을 한 축에 겹쳐 그린다.
+    각 수량 k 에 도달하기까지 걸린 시간 = 그 모델 k 번째 완성품의 종료 시각."""
+    rows = [json.loads(l) for l in open(events_path, encoding='utf-8')]
+    completions = {m: [] for m in TERM_PER_MODEL}
+    for r in rows:
+        if r['pc'] in TERM_PER_MODEL.get(r['model'], set()):
+            completions[r['model']].append(t_to_disp(r.get('t_total', r.get('t1'))) / 3600)
+
+    fig, ax = plt.subplots(figsize=(9, 6))
+    for m, ts in completions.items():
+        ts.sort()
+        if not ts:
+            continue
+        xs = list(range(1, len(ts) + 1))                       # 누적 생산 수량 (1..n)
+        ax.plot(xs, ts, label=f'{m} ({len(ts)} units, {ts[-1]:.1f}h)',
+                color=GANTT_COLOR[m], lw=1.8)
+    ax.set_xlabel('cumulative quantity (units)')
+    ax.set_ylabel('production time (work h)')
+    ax.set_title(label)
+    ax.grid(alpha=0.3)
+    ax.legend(loc=legend_loc, frameon=False)
+    fig.tight_layout()
+    fig.savefig(out_png, dpi=130)
+    plt.close(fig)
+    print(f'  saved {out_png}  (completed={ {m: len(v) for m, v in completions.items()} })')
     return out_png
 
 
@@ -545,6 +573,7 @@ if __name__ == '__main__':
         epilog="""모드
   video    공장 흐름 애니메이션 mp4
   gantt    간트차트 png(+누적완료)   — 새로 구동하거나 --events 로 기존 jsonl만 렌더
+  prodtime 수량→도달시간 곡선 png (세 모델 한 축, x=수량 y=생산시간) — --events 로 기존 jsonl 렌더
   events   이벤트 로그 events_*.jsonl 만 저장 (렌더 없음)
   compare  그리디 vs 학습정책 동시 구동 → 공통 x축 간트 비교
 
@@ -559,7 +588,7 @@ if __name__ == '__main__':
   python util/visualization.py compare -c result/runs/<run>/best.pt
 """)
     p.add_argument('mode', nargs='?', default='gantt',
-                   choices=['video', 'gantt', 'events', 'compare'],
+                   choices=['video', 'gantt', 'prodtime', 'events', 'compare'],
                    help='산출물 종류 (기본 gantt)')
     p.add_argument('-c', '--checkpoint',
                    help='학습정책 체크포인트(.pt). 주면 학습정책, 없으면 그리디')
@@ -606,6 +635,20 @@ if __name__ == '__main__':
                 render_gantt(lab, src, os.path.join(out_dir, f'gantt_{lab}.png'))
         else:                                                          # 새로 구동 후 간트
             capture_compare(out_dir, {label: _agent()}, max_sec=args.max_sec, render=True)
+
+    elif args.mode == 'prodtime':
+        if args.events_src:                                            # 기존 jsonl만 렌더 (구동 안 함)
+            srcs = ([args.events_src] if os.path.isfile(args.events_src)
+                    else sorted(glob.glob(os.path.join(args.events_src, 'events_*.jsonl'))))
+            if not srcs:
+                raise SystemExit(f'events.jsonl 을 찾지 못함: {args.events_src}')
+            for src in srcs:
+                lab = os.path.splitext(os.path.basename(src))[0].replace('events_', '') or label
+                render_production_time(lab, src, os.path.join(out_dir, f'prodtime_{lab}.png'))
+        else:                                                          # 새로 구동 후 곡선
+            env = _recording_env()
+            _, path = capture(env, label, out_dir, agent=_agent(), max_sec=args.max_sec)
+            render_production_time(label, path, os.path.join(out_dir, f'prodtime_{label}.png'))
 
     elif args.mode == 'events':
         env = _recording_env()
