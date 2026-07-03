@@ -18,7 +18,7 @@ import build   # TRAINING_AAS_FILES 단일 출처 (path_extractor 만 끌어옴 
 _ROOT = os.path.dirname(os.path.abspath(__file__))
 
 # 추론 import 폐포 (run_trained → build → simulation → 도메인). util/train/rl_logger 는 불포함.
-CODE_MODULES = ['run_trained.py', 'build.py', 'simulation.py',
+CODE_MODULES = ['run_trained.py', 'build.py', 'simulation.py', 'export.py',
                 'knowledge_graph.py', 'warehouse.py', 'smt.py', 'carbon.py', 'path_extractor.py']
 
 # deploy/ 의 정적 템플릿 — 각 패키지에 그대로 복사

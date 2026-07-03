@@ -36,17 +36,33 @@ def _resource_path(*parts) -> str:
 AAS_DIR_DEFAULT = _resource_path('aas_data')
 CKPT_DEFAULT    = _resource_path('agent_mod.pt')   # 동결 번들에선 루트에 동봉. dev 에선 --ckpt 로 지정.
 
-ALLOWED_OVERRIDES = {'ReplenishLeadDay', 'IdleWorkerThreshold'}
+ALLOWED_OVERRIDES = {'ReplenishLeadDay', 'IdleWorkerThreshold',
+                     'WorkStartTime', 'WorkEndTime', 'BreakStart', 'BreakDuration',
+                     'DefaultProcessConsumedPowerKw', 'initial_state',
+                     'ScenarioMode', 'MaxEpisodeSec', 'InfiniteStock'}
 
 
 # ── 워커 스케줄 캡처 (util.visualization 안 끌어옴 — matplotlib 회피) ─────────
 def _schedule_env_cls():
     import simulation as sim
+    import export
 
     class _ScheduleEnv(sim.CproSimEnv):
+        """추론 계측 env(배포 전용). 시뮬 본체 무수정: 스케줄 이벤트 기록 + warehouse 기록 프록시
+        설치 + SMT 설비 가동 훅. export.build_payload 가 이 기록들로 산출물을 가공한다."""
         def reset(self):
             super().reset()
-            self.events = []
+            self.events = []                       # 스케줄(워커) 이벤트
+            self.smt_events = []                   # 설비(SMT) 가동 이벤트
+            self.smt_op_time = {}                  # {line_id: {equipment: 가동초}}
+            init = getattr(self, '_init_stock', None)   # 카테고리별 초기 재고 오버라이드(프록시 전 적용)
+            if init:
+                for cat, val in init.items():
+                    if cat in self.warehouse.inventory:
+                        for item in self.warehouse.inventory[cat].values():
+                            item.present_stock = float(val)
+            # warehouse 를 기록 프록시로 교체 (SMT produce 도 sim.warehouse 동적참조라 포착됨)
+            self.warehouse = export.RecordingWarehouse(self.warehouse, lambda: self.env.now)
 
         def _run_job(self, ws, job, req):
             t0   = self.env.now
@@ -56,7 +72,22 @@ def _schedule_env_cls():
                                 'model'        : node.model_id,
                                 'process_code' : job['pc'],
                                 'start_sec'    : float(t0),
-                                'end_sec'      : float(t0 + node.CycleTimeSec)})   # 사이클 종료(워커 점유 끝)
+                                'end_sec'      : float(t0 + node.CycleTimeSec),    # 사이클 종료(워커 점유 끝)
+                                'unit_id'      : id(job['done_set'])})             # 유닛 식별(WIP 시계열용)
+
+        def smt_record(self, line_id, equipment, code, t_end, array_cycle, array_energy):
+            """smt.py 훅: 한 array 처리 직후 호출. array 는 설비들을 직렬로 통과(array_cycle=Σcycle)
+            → 설비별 [start,end] 구간·가동시간·전력으로 분해."""
+            cursor = float(t_end) - float(array_cycle)
+            line_op = self.smt_op_time.setdefault(line_id, {})
+            for name, cycle, power in equipment:
+                start, end = cursor, cursor + cycle
+                line_op[name] = line_op.get(name, 0.0) + float(cycle)
+                self.smt_events.append({'equipment': name, 'line': line_id, 'pcb_code': code,
+                                        'start_sec': start, 'end_sec': end,
+                                        'power_kw': float(power),
+                                        'energy_kwh': float(power) * float(cycle) / 3600.0})
+                cursor = end
 
     return _ScheduleEnv
 
@@ -117,6 +148,31 @@ class TrainedModel:
             env.ReplenishLeadDay   = int(overrides['ReplenishLeadDay']) * 86400   # 일 → 초
         if 'IdleWorkerThreshold' in overrides:
             env.IdleWorkerThreshold = int(overrides['IdleWorkerThreshold'])       # 초
+        if 'WorkStartTime' in overrides:
+            env.WorkStartTime = float(overrides['WorkStartTime']) * 3600          # 시(hour) → 초-of-day
+        if 'WorkEndTime' in overrides:
+            env.WorkEndTime   = float(overrides['WorkEndTime']) * 3600            # 시(hour) → 초-of-day
+        if 'BreakStart' in overrides or 'BreakDuration' in overrides:
+            bs  = (float(overrides['BreakStart']) * 3600 if 'BreakStart' in overrides
+                   else env.break_start_sec)                                       # 시(hour) → 초-of-day
+            dur = (float(overrides['BreakDuration']) * 60 if 'BreakDuration' in overrides
+                   else env.break_end_sec - env.break_start_sec)                   # 분(min) → 초
+            env.break_start_sec = bs
+            env.break_end_sec   = bs + dur
+        if 'DefaultProcessConsumedPowerKw' in overrides:
+            env.DefaultProcessConsumedPowerKw = float(overrides['DefaultProcessConsumedPowerKw'])
+        if 'initial_state' in overrides:
+            init = overrides['initial_state'] or {}
+            env._init_stock = dict(init.get('initial_stock') or {})              # {카테고리: 초기재고} — reset 에서 적용
+        if 'ScenarioMode' in overrides:
+            mode = str(overrides['ScenarioMode']).upper()
+            if mode not in ('FINITE', 'STEADY'):
+                raise ValueError(f"ScenarioMode must be FINITE|STEADY, got {overrides['ScenarioMode']!r}")
+            env.ScenarioMode = mode                                              # FINITE(PO 완료) | STEADY(무한생산, MaxEpisodeSec 중단)
+        if 'MaxEpisodeSec' in overrides:
+            env.MaxEpisodeSec = int(overrides['MaxEpisodeSec'])                  # STEADY 종료 시각(초)
+        if 'InfiniteStock' in overrides:
+            env.InfiniteStock = bool(overrides['InfiniteStock'])                 # True=자재 무한(소비 스킵)
 
         summary = env.run(agent=self.agent)
 
@@ -144,7 +200,16 @@ class TrainedModel:
             },
             'seed'             : seed,
         }
-        return {'kpi': kpi, 'schedule': env.events}
+        import export
+        payload = export.build_payload(env, summary)            # 생산성/탄소 구조화 산출물
+        prod, carb = payload['productivity'], payload['carbon']
+        kpi['actual_due_day'] = prod['kpi'].get('actual_due_day')   # 고유 필드만 최상위 kpi(정본)로 흡수
+        kpi['idle_power_kwh'] = carb['kpi'].get('idle_power_kwh')
+        prod.pop('kpi', None)                                   # productivity.kpi·carbon.kpi 는 최상위 kpi 와 중복 → 제거
+        carb.pop('kpi', None)
+        return {'kpi': kpi, 'schedule': env.events,
+                'productivity': prod, 'carbon': carb,
+                'meta': payload['meta']}
 
 
 def main(argv=None):
