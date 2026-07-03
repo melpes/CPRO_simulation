@@ -10,7 +10,7 @@ best(A 부분) 를 한 줄(JSON) 로 누적 append. 별도 eval rollout/baseline
 순수 표준 라이브러리만 사용 (json/time/statistics). torch 의존 없음.
 """
 from __future__ import annotations
-import json, math, time, statistics
+import json, math, os, time, statistics
 from typing import Optional
 
 
@@ -20,19 +20,40 @@ def _finite(v):
 
 
 class RLLogger:
-    def __init__(self, path: str, entropy_window: int = 10):
+    def __init__(self, path: str, entropy_window: int = 10, resume: bool = False):
         self.path           = path
         self.entropy_window = entropy_window
         self._R_hist        = []        # 에피소드별 train rollout reward
         self._len_hist      = []        # 에피소드별 결정점 수
         self._ent_hist      = []        # 에피소드별 policy entropy
         self._best_R        = None
-        open(self.path, 'w', encoding='utf-8').close()    # 새 run = 새 파일
+        self.next_episode   = 0         # 다음 에피소드 번호 (resume 시 기존 로그 뒤부터)
+        if resume and os.path.exists(path):               # 이어달리기: 로그 유지 + 통계/번호 복원, append
+            for line in open(path, encoding='utf-8'):
+                try: d = json.loads(line)
+                except Exception: continue
+                if 'train/rollout_reward' in d:  self._R_hist.append(float(d['train/rollout_reward']))
+                if 'sanity/episode_length' in d: self._len_hist.append(int(d['sanity/episode_length']))
+                if d.get('exploration/entropy') is not None: self._ent_hist.append(float(d['exploration/entropy']))
+                if d.get('eval/return_best_so_far') is not None:
+                    b = float(d['eval/return_best_so_far'])
+                    self._best_R = b if self._best_R is None else max(self._best_R, b)
+                self.next_episode = int(d.get('episode', self.next_episode - 1)) + 1
+        else:
+            open(self.path, 'w', encoding='utf-8').close()    # 새 run = 새 파일
 
     def log_episode(self, episode: int, *, R: float, makespan: float,
                      energy: float, throughput: dict, target_qty: dict,
                      decisions: int, metrics: Optional[dict],
-                     violations: Optional[dict] = None) -> bool:
+                     violations: Optional[dict] = None,
+                     reward_terms: Optional[dict] = None,
+                     line_energy: Optional[dict] = None,
+                     idle_energy: Optional[float] = None,
+                     smt_energy: Optional[float] = None,
+                     smt_equip_energy: Optional[dict] = None,
+                     completion_sec: Optional[dict] = None,
+                     idle_time_total: Optional[float] = None,
+                     line_idle_time: Optional[dict] = None) -> bool:
         """한 에피소드 기록 후 is_best 반환 (best 갱신 시 train 이 .pt 저장)."""
         self._R_hist.append(float(R))
         self._len_hist.append(int(decisions))
@@ -66,9 +87,27 @@ class RLLogger:
             'task/throughput'             : produced,
             'task/throughput_ratio'       : produced / ordered,
             'task/feasibility_rate'       : 1.0 if feasible else produced / ordered,
+            **{f'task/throughput/{m}': throughput[m] for m in throughput},   # 모델별 생산량
         }
         if violations:                                       # W3/W4/W6 누적 카운터 (보상 구성요소 — 학습 추세 추적용)
             row.update({f'task/{k}': v for k, v in violations.items()})
+        if reward_terms:                                     # 항별(W1~W8) 가중·정규화 보상 기여도 (합 = R)
+            row.update({f'reward/{k}': v for k, v in reward_terms.items()})
+        if line_energy:                                      # 라인(워크스테이션·SMT)별 active 에너지 kWh
+            row.update({f'energy/line/{k}': v for k, v in line_energy.items()})
+        if idle_energy is not None:
+            row['energy/idle'] = idle_energy                 # 에피소드 내 유휴(대기) 에너지 kWh
+        if smt_energy is not None:
+            row['energy/smt'] = smt_energy
+        if smt_equip_energy:                                 # SMT 세부공정(Loader~AOI)별 에너지 kWh
+            row.update({f'energy/smt/{line}/{eq}': v
+                        for line, eqs in smt_equip_energy.items() for eq, v in eqs.items()})
+        if completion_sec:                                   # 모델별 PO 수량 충족 시각(초, 미완=null)
+            row.update({f'task/completion_sec/{m}': v for m, v in completion_sec.items()})
+        if idle_time_total is not None:
+            row['idle_sec/total'] = idle_time_total          # 작업자 총 유휴 시간 (worker-초 합, 나누지 않음)
+        if line_idle_time:                                   # 라인별 작업자당 평균 유휴 시간 (초)
+            row.update({f'idle_sec/line/{k}': v for k, v in line_idle_time.items()})
 
         # [B] CRITIC / [C] STABILITY / [D] EXPLORATION — learn() 진단 dict
         if metrics:

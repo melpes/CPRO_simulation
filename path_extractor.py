@@ -193,27 +193,62 @@ class RuntimeVariables(SubmodelElementCollection):
         ('SimulationModels', 'SimulationModel', 'RuntimeVariables'),
     ]
 
-    def IdlePowerKw(self, GraphNode, IdleProcessRatedPowerKw) -> float:
-        return IdleProcessRatedPowerKw
+    def BaselinePowerKw(self, workers, DefaultProcessConsumedPowerKw) -> float:
+        """근무시간 상시 기저전력(kW) = 공장 전체 기저부하(대기전력) 1회 적용.
+        DefaultProcessConsumedPowerKw 는 라인별이 아니라 공장 전체의 상시 소모를 표현
+        (workers 는 시그니처 유지용 — 계산에 사용하지 않음). SMT 가동 에너지는 별도 적산."""
+        return DefaultProcessConsumedPowerKw
 
-    def IdleBaselineKwh(self, KnowledgeGraph, now, IdleProcessRatedPowerKw) -> float:
-        return now * sum(
-            self.IdlePowerKw(node, IdleProcessRatedPowerKw)
-            for node in KnowledgeGraph.nodes.values()
-        ) / 3600
+    def IdleBaselineKwh(self, workers, WorkElapsedSec, DefaultProcessConsumedPowerKw) -> float:
+        """기저 에너지(kWh) — 근무시간(휴게 제외) 경과분에만 적산. 야간·휴게엔 소모 없음."""
+        return WorkElapsedSec * self.BaselinePowerKw(workers, DefaultProcessConsumedPowerKw) / 3600
 
-    def MaxEpisodeEnergyKwh(self, KnowledgeGraph, target_qty, IdleProcessRatedPowerKw) -> float:
+    def ExpectedMakespanSec(self, KnowledgeGraph, target_qty, workers,
+                            MarginFactor=1.5) -> float:
+        """예상 makespan(근무초) = 병목 라인 하한 × 여유계수.
+        라인별 총 작업량(Σ target × CycleTimeSec)을 병렬 슬롯(worker_count × UnitsPerWorker)으로
+        나눈 값의 최대 — 자재 대기·블로킹은 안 세는 하한이라 MarginFactor 로 보수화.
+        W2 분모의 시간항 지평: 실 makespan 이 이를 넘으면 비율 > 1 (의도적으로 허용)."""
         total = sum(target_qty.values())
-        return max(1e-6, sum(
+        bottleneck = 0.0
+        for info in workers.values():
+            slots = info['worker_count'] * info.get('UnitsPerWorker', 1)
+            if slots <= 0:
+                continue
+            load = sum(target_qty.get(node.model_id, total) * node.CycleTimeSec
+                       for pc in info.get('ProcessCode', [])
+                       if (node := KnowledgeGraph.nodes.get(pc)) is not None)
+            bottleneck = max(bottleneck, load / slots)
+        return MarginFactor * bottleneck
+
+    def MaxEpisodeEnergyKwh(self, KnowledgeGraph, target_qty, workers, WorkDaySec,
+                            DefaultProcessConsumedPowerKw, SmtPowerKw=0.0,
+                            HorizonMode='bottleneck') -> float:
+        """W2 분모(정규화 상수) = 가동 최대(전 노드 target 회 × 정격)
+        + 기저 + SMT(라인 정격 합 — 근무시간 연속 소모라 시간 비례) × 지평.
+        HorizonMode: 'bottleneck'=병목 기반 예상 makespan(기본) /
+        'serial'=하루 근무초 × 총 target(구 방식, 직렬 가정 — 비교실험용:
+        지평이 실제의 수십 배라 기저·SMT 항이 자기상쇄돼 D 증감이 신호에 안 잡힘)."""
+        total = sum(target_qty.values())
+        horizon_sec = (self.ExpectedMakespanSec(KnowledgeGraph, target_qty, workers)
+                       if HorizonMode == 'bottleneck' else 0.0)
+        if horizon_sec <= 0:
+            horizon_sec = WorkDaySec * total            # serial 모드 + 폴백(워커·노드 매칭 실패 시)
+        active_max = sum(
             target_qty.get(node.model_id, total)
             * node.CycleTimeSec
-            * max(node.RatedPowerKw - self.IdlePowerKw(node, IdleProcessRatedPowerKw), 0.0)
+            * node.RatedPowerKw
             for node in KnowledgeGraph.nodes.values()
-        ) / 3600)
+        ) / 3600
+        baseline_max = self.IdleBaselineKwh(workers, horizon_sec,
+                                            DefaultProcessConsumedPowerKw)
+        smt_max = SmtPowerKw * horizon_sec / 3600
+        return max(1e-6, active_max + baseline_max + smt_max)
 
-    def EpisodeEnergyKwh(self, GraphNode, EpisodeEnergyKwh, IdleProcessRatedPowerKw) -> float:
-        idle_kw = self.IdlePowerKw(GraphNode, IdleProcessRatedPowerKw)
-        return EpisodeEnergyKwh + GraphNode.CycleTimeSec * (GraphNode.RatedPowerKw - idle_kw) / 3600
+    def EpisodeEnergyKwh(self, GraphNode, EpisodeEnergyKwh) -> float:
+        """가동 에너지 적산 — 공정 1회 수행분 CycleTimeSec × RatedPowerKw.
+        기저는 워크스테이션 단위(IdleBaselineKwh)라 노드별 차감 없음."""
+        return EpisodeEnergyKwh + GraphNode.CycleTimeSec * GraphNode.RatedPowerKw / 3600
 
     def CycleCompleted(self, ProcessCode, KnowledgeGraph) -> bool:
         return (ProcessCode in KnowledgeGraph.nodes

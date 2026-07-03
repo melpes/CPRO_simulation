@@ -95,13 +95,13 @@ class KnowledgeGraph:
         return self._pred_cache.get(ProcessCode, [])
 
     def ready_queue(self, IndependentSequence, DependentSequence, DependentJoin,
-                    completed: set, warehouse: Warehouse) -> list:
+                    completed: set, warehouse: Warehouse, infinite_stock: bool = False) -> list:
         ready = []
 
         for ProcessCode in IndependentSequence:
             if ProcessCode in completed:
                 continue
-            if self._bom_satisfied(ProcessCode, warehouse):
+            if infinite_stock or self._bom_satisfied(ProcessCode, warehouse):
                 ready.append(ProcessCode)
 
         for ProcessCode in DependentSequence:
@@ -109,7 +109,7 @@ class KnowledgeGraph:
                 continue
             DepPrev_list = self._predecessors(ProcessCode)
             if any(d in completed for d in DepPrev_list):
-                if self._bom_satisfied(ProcessCode, warehouse):
+                if infinite_stock or self._bom_satisfied(ProcessCode, warehouse):
                     ready.append(ProcessCode)
 
         for ProcessCode in DependentJoin:
@@ -117,7 +117,7 @@ class KnowledgeGraph:
                 continue
             DepPrev_list = self._predecessors(ProcessCode)
             if all(d in completed for d in DepPrev_list):
-                if self._bom_satisfied(ProcessCode, warehouse):
+                if infinite_stock or self._bom_satisfied(ProcessCode, warehouse):
                     ready.append(ProcessCode)
 
         return ready

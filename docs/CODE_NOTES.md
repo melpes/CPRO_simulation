@@ -1256,8 +1256,8 @@ PO 납기일(DueDay)을 생산성 보상에 반영. **페이스 기반** — 매
 - 현재 규칙(코드만, AAS 무변경): `if not name.startswith('SIM_') and any(node.SamplingRate is not None for node in group.value.values())` → SIM_* 제외 + RMA(미샘플) 제외 = **OQC만**.
 - ⚠️ **SamplingRate를 "활성 공유" 프록시로 전용한 휴리스틱**이라 취약: 샘플링 없는 활성 공유공정이 생기면 누락, 샘플링 있는 비활성 공정이 생기면 오포함. 견고한 대안 = AAS Node 그룹에 명시 `Scope/Active` Qualifier, 또는 `ProcessRMA`를 Node+Action에서 제거. RMA 정식 모델링 시 재검토.
 
-### idle 전력 — AAS 상수 사용 (ratio 하드코딩 제거)
-`IdlePowerKw = IdleProcessRatedPowerKw`(AAS `DefaultParameters`, 0.0993kW **flat**, 공정 무관). 과거 `max(RatedPowerKw × IdlePowerRatio, floor)`에서 `IdlePowerRatio=0.10`(`IDLE_POWER_RATIO`) 하드코딩을 제거하고 AAS 상수만 적용. → 유휴전력이 정격 비례가 아님. 정격 비례가 필요하면 AAS에 ratio 항을 신설해야 함.
+### 기저 전력 — 설비(워크스테이션) 단위·근무시간 게이팅 (구 idle 전력 모델 대체)
+`DefaultProcessConsumedPowerKw`(AAS `DefaultParameters`, 구 `IdleProcessRatedPowerKw`): 공장 공통 주기 소모 + 설비 켜둠 소모를 퉁친 기저값. 기저 에너지 = **워크스테이션 수** × kW × **근무시간 경과**(`_work_elapsed`, 휴게 제외) — 과거 "KG 노드 수 × env.now(24h)"에서 변경(노드 단위는 모델×공정 중복 카운트였음). 가동 에너지는 공정별 `CycleTimeSec × RatedPowerKw` **전액**(과거 `Rated − idle` 차감 제거 — 기저가 노드 단위가 아니게 되어 차감 근거 소멸, 기저를 정격보다 높여도 클램프로 신호가 죽지 않음). W2_Energy 분자 = `total_energy_kwh()`(기저+조립 가동+SMT 가동, 실 전력 총 적산) — state 관측도 동일. 분모 = 가동 최대 + (기저 + SMT 정격 합, SMT 실가동일 때만) × 지평. 지평 = `ExpectedMakespanSec`(병목 라인 하한 × 1.5): 라인별 Σ target×CycleTime ÷ (worker_count×UnitsPerWorker)의 최대 — 과거 `work_day_sec × 총 target`(직렬 가정, 실제의 ~40배)은 시간항을 자기상쇄시켜 기저값을 키워도 W2 신호가 안 컸음(상한 = W1의 1/3). 실 makespan 이 지평을 넘으면 비율 > 1 허용(의도). 소규모 PO 는 고정 지연(SMT flush·에이징) 때문에 비율이 크게 나옴 — q180 스케일에서 ~1 근방. SMT 는 기저(DefaultProcessConsumedPowerKw) 부과 대상에선 제외 — smt.py 가 근무시간 정격 연속 소모로 이미 시간 비례 적산. 과거 `IdlePowerRatio=0.10` 하드코딩 제거 이력은 동일.
 
 ### PO 단일 순회
 `target_qty`·`DueDay`를 `PurchaseOrder.items()`의 `(quantity, day, registered)` 한 번 순회로 산출. 과거 `PurchaseOrder.target_qty()` 별도 메서드 + `items()` 이중 순회 → 메서드 제거하고 통합.

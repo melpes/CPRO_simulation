@@ -68,6 +68,13 @@ def build_simulation(aas_dir: Optional[str] = None, *,
     if MaxEpisodes is None:
         MaxEpisodes = int(SimulationModel.SimulationConfig.MaxEpisodes.value)
 
+    _sc = SimulationModel.SimulationConfig.value
+    _dp = DefaultParameters.value
+    _flag = lambda d, k: (str(d[k].value).strip().lower() in ('true', '1')) if k in d else False
+    ScenarioMode     = _sc['ScenarioMode'].value if 'ScenarioMode' in _sc else 'FINITE'
+    InfiniteStock    = _flag(_dp, 'InfiniteStock')                          # DefaultParameters
+    MaxEpisodeSec    = int(_sc['MaxEpisodeSec'].value)                      # AAS 단일 소스 (SimulationConfig 필수)
+
     SMTLines = None
     SMTProcess = SimulationModel.value.get('SMTProcess') if enable_smt else None
     if SMTProcess is not None:
@@ -103,10 +110,13 @@ def build_simulation(aas_dir: Optional[str] = None, *,
         break_end_sec           = DefaultParameters.BreakDurationMin.target.max,
         IdleWorkerThreshold     = int(DefaultParameters.IdleWorkerThreshold.value),
         RuntimeVariables        = SimulationModel.RuntimeVariables,
-        IdleProcessRatedPowerKw          = float(DefaultParameters.IdleProcessRatedPowerKw.value),
+        DefaultProcessConsumedPowerKw    = float(DefaultParameters.DefaultProcessConsumedPowerKw.value),
         SelfManagedBOM          = PSM.SelfManagedBOM,
         SMTLines                = SMTLines,
         DueDay                  = DueDay,
+        InfiniteStock           = InfiniteStock,
+        ScenarioMode            = ScenarioMode,
+        MaxEpisodeSec           = MaxEpisodeSec,
     )
 
 
@@ -158,7 +168,13 @@ def build_agent(env=None, *, StateDim: Optional[int] = None, checkpoint: Optiona
         RuntimeVariables = SimulationModel.RuntimeVariables,
     )
     if checkpoint is not None:
-        agent.load_state_dict(torch.load(checkpoint))
+        _ckpt = torch.load(checkpoint)
+        if isinstance(_ckpt, dict) and 'model' in _ckpt:          # 신버전: 가중치 + Adam 옵티마이저 상태
+            agent.load_state_dict(_ckpt['model'])
+            if _ckpt.get('optim') is not None:
+                agent.optimizer.load_state_dict(_ckpt['optim'])
+        else:
+            agent.load_state_dict(_ckpt)                           # 구버전 호환(가중치만)
         agent.eval()
         agent.reset_buffer()
     return agent

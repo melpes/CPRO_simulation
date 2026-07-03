@@ -14,7 +14,7 @@ from util.rl_logger import RLLogger
 from simulation import EPISODE_DURATION_SEC
 
 
-def train(env, agent, MaxEpisodes, run_name=None, episode_max_sec=EPISODE_DURATION_SEC):
+def train(env, agent, MaxEpisodes, run_name=None, episode_max_sec=EPISODE_DURATION_SEC, resume=False):
     _ROOT = os.path.dirname(os.path.abspath(__file__))
 
     if run_name is None:
@@ -22,10 +22,10 @@ def train(env, agent, MaxEpisodes, run_name=None, episode_max_sec=EPISODE_DURATI
     _OUT = os.path.join(_ROOT, 'result', 'runs', run_name)
     os.makedirs(_OUT, exist_ok=True)
     print(f'[train] outputs → result/runs/{run_name}/', flush=True)
-    logger = RLLogger(os.path.join(_OUT, 'rl_log.jsonl'))
+    logger = RLLogger(os.path.join(_OUT, 'rl_log.jsonl'), resume=resume)
     ckpt   = os.path.join(_OUT, 'agent_mod.pt')
 
-    for episode in range(MaxEpisodes):
+    for episode in range(logger.next_episode, logger.next_episode + MaxEpisodes):
         if os.path.exists(os.path.join(_OUT, 'STOP')):
             print(f'[ep {episode}] STOP sentinel — graceful exit', flush=True)
             break
@@ -44,14 +44,22 @@ def train(env, agent, MaxEpisodes, run_name=None, episode_max_sec=EPISODE_DURATI
                         'idle_violation': env.IdleViolationCount,
                         'due_pace_deficit': env.DuePaceDeficit,
                         **{f'due_pace/{model_id}': value
-                           for model_id, value in env.DuePaceDeficitByModel.items()}})
+                           for model_id, value in env.DuePaceDeficitByModel.items()}},
+            reward_terms=summary.get('RewardTerms'),
+            line_energy=summary.get('LineEnergy'),
+            idle_energy=summary.get('IdleEnergyKwh'),
+            smt_energy=summary.get('SMTEnergyKwh'),
+            smt_equip_energy=summary.get('SMTEquipEnergy'),
+            completion_sec=summary.get('CompletionSec'),
+            idle_time_total=summary.get('TotalIdleTime'),
+            line_idle_time=summary.get('LineIdleTime'))
         if is_best:
-            torch.save(agent.state_dict(), ckpt)
+            torch.save({'model': agent.state_dict(), 'optim': agent.optimizer.state_dict()}, ckpt)
         thru = ' '.join(f'{m}:{env.Throughput[m]}/{env.target_qty[m]}' for m in env.target_qty)
         ev = (metrics or {}).get('critic/explained_variance')
         print(f'[ep {episode:>4}] R={R:+.4f} decisions={decisions} '
               f'makespan={summary["makespan_sec"]:.0f} E={summary["EpisodeEnergyKwh"]:.2f} '
-              f'thru=[{thru}] ev={ev} {"BEST↑" if is_best else ""}')
+              f'thru=[{thru}] ev={ev} {"BEST↑" if is_best else ""}', flush=True)
 
     # 학습 종료 → best 체크포인트로 자족 추론 패키지 자동 생성 (result/runs/<run>/deploy/)
     if os.path.exists(ckpt):
@@ -70,4 +78,4 @@ if __name__ == '__main__':
 
     env   = build.build_simulation()                   # 수량·납기일·에피소드 모두 AAS(PurchaseOrder·SimulationConfig)에서
     agent = build.build_agent(env)
-    train(env, agent, env.MaxEpisodes)
+    train(env, agent, env.MaxEpisodes, episode_max_sec=env.MaxEpisodeSec)   # 모드 무관 공통 상한
