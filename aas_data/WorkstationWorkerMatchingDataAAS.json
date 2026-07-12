@@ -3836,10 +3836,6 @@
                },
                {
                 "type": "GlobalReference",
-                "value": "https://www.smart-factory.kr/ids/cd/BT5_90/1/0"
-               },
-               {
-                "type": "GlobalReference",
                 "value": "https://www.smart-factory.kr/ids/cd/BT5_60/1/0"
                }
               ]
@@ -6474,7 +6470,7 @@
            "description": [
             {
              "language": "en",
-             "text": "Number of product units one worker monitors concurrently on this line. Absent = 1 (one unit per worker, default for hands-on lines). AGING line = 10: an aging operator watches many chambers in parallel during the 3h test (CycleTimeSec=10800), so effective line capacity = worker_count x UnitsPerWorker = 6 x 10 = 60. Chamber count is ~30 but equipment is abundant so concurrency is treated as effectively unconstrained."
+             "text": "Number of product units one worker handles concurrently on this line. Absent = 1 (one unit per worker, default for hands-on lines). AGING line = 45: each unit occupies one aging slot independently for the full 3h test (CycleTimeSec=10800), and every worker accepts additional units at any time while others are still aging — effective line capacity = worker_count x UnitsPerWorker = 6 x 45 = 270 concurrent units."
             }
            ],
            "semanticId": {
@@ -6487,7 +6483,7 @@
             ]
            },
            "valueType": "xs:int",
-           "value": "10",
+           "value": "45",
            "modelType": "Property"
           },
           {

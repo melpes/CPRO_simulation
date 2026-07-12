@@ -1,0 +1,23 @@
+{
+  "po": {
+    "MODEL_A": { "qty": 6,  "registered_day": 0, "due_day": 22 },
+    "MODEL_B": { "qty": 12, "registered_day": 0, "due_day": 22 },
+    "MODEL_C": { "qty": 24, "registered_day": 0, "due_day": 22 }
+  },
+  "overrides": {
+    "ReplenishLeadDay": 3,
+    "WorkStartTime": 9,
+    "WorkEndTime": 18,
+    "BreakStart": 12,
+    "BreakDuration": 60,
+    "IdleWorkerThreshold": 1800,
+    "DefaultProcessConsumedPowerKw": 10.0,
+    "initial_state": {
+      "initial_stock": { "LENS": 100, "PCB": 200 }
+    },
+    "ScenarioMode": "FINITE",
+    "MaxEpisodeSec": 1900800,
+    "InfiniteStock": false,
+    "seed": 42
+  }
+}

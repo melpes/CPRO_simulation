@@ -1,0 +1,29 @@
+{
+  "_doc": "통합 실험 러너 세팅 예시 — 필드 설명은 util/exp_run.py docstring 참조. '_'로 시작하는 키는 무시됨.",
+  "run_name": "q180_example",
+  "mode": "fifo",
+  "_mode_choices": "train | fifo | trained",
+  "fileset": "default",
+  "_fileset_choices": "default(6파일, SMT 실가동) | training(5파일, SMT 제외)",
+  "seed": 1,
+  "target_qty": {"MODEL_A": 180, "MODEL_B": 180, "MODEL_C": 180},
+  "due_day": 3,
+  "max_sec": 2592000,
+  "episodes": 50,
+  "checkpoint": null,
+  "record_events": true,
+  "env_overrides": {
+    "_doc": "null 값은 무시. 예: IdleRewardMode time|count, DueRewardMode sparse|pace, W2HorizonMode bottleneck|serial",
+    "IdleRewardMode": null,
+    "DueRewardMode": null,
+    "InfiniteStock": null
+  },
+  "sw_realloc": {
+    "enabled": false,
+    "src": "WWM_SemiAssemblyLine",
+    "moves": {"WWM_FwInputLine": 2, "WWM_LensHolderLine": 2, "WWM_FocusLine": 2,
+              "WWM_SetAssemblyLine": 2, "WWM_InspectionLine": 2},
+    "idle_trigger_sec": 600,
+    "tick_sec": 30
+  }
+}

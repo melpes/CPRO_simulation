@@ -29885,7 +29885,7 @@
                   "description": [
                     {
                       "language": "en",
-                      "text": "Cycle time of process VD7_100_AGING in seconds. Duration for which each assembled camera unit is operated under aging test conditions to detect latent defects before packaging."
+                      "text": "Cycle time of process VD7_100_AGING in seconds. Duration for which each assembled camera unit is operated under aging test conditions to detect latent defects before packaging. Each unit occupies one aging slot independently; a worker handles up to UnitsPerWorker units concurrently."
                     }
                   ],
                   "semanticId": {
@@ -30164,7 +30164,7 @@
                     }
                   ],
                   "valueType": "xs:string",
-                  "value": "VD7_100;VD7_RMA;VD7_OQC",
+                  "value": "VD7_100",
                   "modelType": "Property"
                 },
                 {

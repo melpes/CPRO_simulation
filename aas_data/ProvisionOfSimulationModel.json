@@ -216,6 +216,50 @@
                   "valueType": "xs:int",
                   "value": "5000",
                   "modelType": "Property"
+                },
+                {
+                  "category": "PARAMETER",
+                  "idShort": "ScenarioMode",
+                  "description": [
+                    {
+                      "language": "en",
+                      "text": "Simulation scenario mode. FINITE = PO-driven finite production (target_qty/DueDay, ends on target or max_sec). STEADY = infinite steady-state production (WIP refill, ends on time limit)."
+                    }
+                  ],
+                  "semanticId": {
+                    "type": "ModelReference",
+                    "keys": [
+                      {
+                        "type": "ConceptDescription",
+                        "value": "https://www.smart-factory.kr/ids/cd/ScenarioMode/1/0"
+                      }
+                    ]
+                  },
+                  "valueType": "xs:string",
+                  "value": "FINITE",
+                  "modelType": "Property"
+                },
+                {
+                  "category": "PARAMETER",
+                  "idShort": "MaxEpisodeSec",
+                  "description": [
+                    {
+                      "language": "en",
+                      "text": "Maximum episode length in seconds. In STEADY mode the episode ends when simulation time reaches this value; in FINITE mode the episode ends on target_qty completion (this acts as a safety cap). For valid steady-state throughput set it to at least 2-3x the longest model lead time (MODEL_B includes a 24h cure at BT5_42, ~27h lead)."
+                    }
+                  ],
+                  "semanticId": {
+                    "type": "ModelReference",
+                    "keys": [
+                      {
+                        "type": "ConceptDescription",
+                        "value": "https://www.smart-factory.kr/ids/cd/MaxEpisodeSec/1/0"
+                      }
+                    ]
+                  },
+                  "valueType": "xs:int",
+                  "value": "250000",
+                  "modelType": "Property"
                 }
               ],
               "modelType": "SubmodelElementCollection"
@@ -13606,13 +13650,13 @@
                   "displayName": [
                     {
                       "language": "en",
-                      "text": "Reward Weight — Due-Date Pace Penalty"
+                      "text": "Reward Weight — Due-Date Margin (Sparse)"
                     }
                   ],
                   "description": [
                     {
                       "language": "en",
-                      "text": "Weight applied to the due-date pace penalty. Penalizes the agent when a model's cumulative production lags the linear pace required to meet its purchase-order DueDay, accumulated per work tick, driving anticipatory prioritization of models behind their delivery schedule."
+                      "text": "Weight applied to the sparse due-date margin term. For each model, once its purchase order completes, the margin (DueDay - CompletionSec) / DueDay is credited (positive if early, negative if late); while a model remains unfinished past DueDay, the elapsed overrun accrues as a growing penalty. Averaged over models and scaled by this weight."
                     }
                   ],
                   "semanticId": {
@@ -13634,6 +13678,42 @@
                   ],
                   "valueType": "xs:float",
                   "value": "0.25",
+                  "modelType": "Property"
+                },
+                {
+                  "category": "PARAMETER",
+                  "idShort": "W8_Imbalance",
+                  "displayName": [
+                    {
+                      "language": "en",
+                      "text": "Reward Weight — Production Imbalance Penalty"
+                    }
+                  ],
+                  "description": [
+                    {
+                      "language": "en",
+                      "text": "Weight applied to the production-imbalance penalty. Penalizes an uneven spread of completed units across models, computed as (max - min model completion count) / total completed. Discourages a steady-state (continuous-production) policy from over-producing high-throughput models while neglecting low-throughput ones."
+                    }
+                  ],
+                  "semanticId": {
+                    "type": "ModelReference",
+                    "keys": [
+                      {
+                        "type": "ConceptDescription",
+                        "value": "https://www.smart-factory.kr/ids/cd/W8_Imbalance/1/0"
+                      }
+                    ]
+                  },
+                  "qualifiers": [
+                    {
+                      "kind": "TemplateQualifier",
+                      "type": "Multiplicity",
+                      "valueType": "xs:string",
+                      "value": "One"
+                    }
+                  ],
+                  "valueType": "xs:float",
+                  "value": "0.2",
                   "modelType": "Property"
                 }
               ],
@@ -13879,7 +13959,7 @@
                     },
                     {
                       "category": "PARAMETER",
-                      "idShort": "UnlaoderRepairTime",
+                      "idShort": "UnloaderRepairTime",
                       "semanticId": {
                         "type": "ModelReference",
                         "keys": [
@@ -14082,17 +14162,17 @@
                 },
                 {
                   "category": "PARAMETER",
-                  "idShort": "IdleProcessRatedPowerKw",
+                  "idShort": "DefaultProcessConsumedPowerKw",
                   "displayName": [
                     {
                       "language": "en",
-                      "text": "Idle Process Rated Power(Kw)"
+                      "text": "Default Process Consumed Power(Kw)"
                     }
                   ],
                   "description": [
                     {
                       "language": "en",
-                      "text": "Rated Power when process is idle"
+                      "text": "Factory-wide baseline (standby) power consumed at all times during working hours, applied once for the whole plant regardless of line count or process activity. Accrued into episode energy and the W2_Energy reward alongside per-process rated power during operation."
                     }
                   ],
                   "semanticId": {
@@ -14104,8 +14184,30 @@
                       }
                     ]
                   },
-                  "value": "0.0993",
+                  "value": "10.0",
                   "valueType": "xs:float",
+                  "modelType": "Property"
+                },
+                {
+                  "category": "PARAMETER",
+                  "idShort": "InfiniteStock",
+                  "description": [
+                    {
+                      "language": "en",
+                      "text": "If true, material (InputBOM) availability is ignored: BOM gate always satisfied and stock consume/replenish skipped. Used for steady/throughput scenarios. Default false."
+                    }
+                  ],
+                  "semanticId": {
+                    "type": "ModelReference",
+                    "keys": [
+                      {
+                        "type": "ConceptDescription",
+                        "value": "https://www.smart-factory.kr/ids/cd/InfiniteStock/1/0"
+                      }
+                    ]
+                  },
+                  "valueType": "xs:boolean",
+                  "value": "true",
                   "modelType": "Property"
                 }
               ],
@@ -14262,7 +14364,7 @@
                   "description": [
                     {
                       "language": "en",
-                      "text": "Maximum possible energy consumption in kWh for a single episode, calculated as the sum of (CycleTimeSec * RatedPowerKw) / 3600 across all GraphNode processes. Used as normalisation denominator for EpisodeEnergyKwh in W2_Energy reward calculation."
+                      "text": "W2 normalisation denominator in kWh: active maximum (sum of target_qty * CycleTimeSec * RatedPowerKw / 3600 over all GraphNode processes) plus factory baseline load (DefaultProcessConsumedPowerKw) and SMT line rated power, both integrated over a bottleneck-based expected-makespan horizon (max over lines of total workload / parallel slots, *1.5 margin, work-time only). Set once at episode initialisation."
                     }
                   ],
                   "semanticId": {
@@ -14313,6 +14415,69 @@
                       {
                         "type": "ConceptDescription",
                         "value": "https://www.smart-factory.kr/ids/cd/Advantages/1/0"
+                      }
+                    ]
+                  },
+                  "valueType": "xs:float",
+                  "modelType": "Property"
+                },
+                {
+                  "category": "PARAMETER",
+                  "idShort": "DuePaceDeficit",
+                  "description": [
+                    {
+                      "language": "en",
+                      "text": "Cumulative shortfall between the due-date-implied production pace and actual throughput, summed over models. Higher means further behind schedule."
+                    }
+                  ],
+                  "semanticId": {
+                    "type": "ModelReference",
+                    "keys": [
+                      {
+                        "type": "ConceptDescription",
+                        "value": "https://www.smart-factory.kr/ids/cd/DuePaceDeficit/1/0"
+                      }
+                    ]
+                  },
+                  "valueType": "xs:float",
+                  "modelType": "Property"
+                },
+                {
+                  "category": "PARAMETER",
+                  "idShort": "ElapsedTimeRatio",
+                  "description": [
+                    {
+                      "language": "en",
+                      "text": "Simulation time elapsed normalised by the nominal work span for the total target quantity."
+                    }
+                  ],
+                  "semanticId": {
+                    "type": "ModelReference",
+                    "keys": [
+                      {
+                        "type": "ConceptDescription",
+                        "value": "https://www.smart-factory.kr/ids/cd/ElapsedTimeRatio/1/0"
+                      }
+                    ]
+                  },
+                  "valueType": "xs:float",
+                  "modelType": "Property"
+                },
+                {
+                  "category": "PARAMETER",
+                  "idShort": "LineWorkloadRatio",
+                  "description": [
+                    {
+                      "language": "en",
+                      "text": "Per-line in-progress job count divided by that line's total worker count."
+                    }
+                  ],
+                  "semanticId": {
+                    "type": "ModelReference",
+                    "keys": [
+                      {
+                        "type": "ConceptDescription",
+                        "value": "https://www.smart-factory.kr/ids/cd/LineWorkloadRatio/1/0"
                       }
                     ]
                   },
@@ -16015,7 +16180,6 @@
                       "orderRelevant": true,
                       "value": [
                         {
-                          "idShort": "",
                           "modelType": "ReferenceElement",
                           "value": {
                             "type": "ExternalReference",
@@ -16028,7 +16192,6 @@
                           }
                         },
                         {
-                          "idShort": "",
                           "modelType": "ReferenceElement",
                           "value": {
                             "type": "ExternalReference",
@@ -16041,7 +16204,6 @@
                           }
                         },
                         {
-                          "idShort": "",
                           "modelType": "ReferenceElement",
                           "value": {
                             "type": "ExternalReference",
@@ -16098,19 +16260,110 @@
                       "description": [
                         {
                           "language": "ko",
-                          "text": "관측 카탈로그 소스 — 전역 상태 벡터. RuntimeVariables/DefaultParameters 에서 구성, 정규화는 코드. observe.obs_state_vector 가 런타임 생성(저장값 아님). Actor/Critic 의 state 입력이 이 소스를 참조."
+                          "text": "전역 상태 벡터 8항목 소스(순서=벡터 순서): 모델별진행률(Throughput)·시간경과(ElapsedTimeRatio)·에너지(EpisodeEnergyKwh)·라인부하(LineWorkloadRatio)·재고부족(StockShortageCount)·재고초과(StockOverflowCount)·작업자유휴(IdleViolationCount)·납기페이스(DuePaceDeficit). 정규화·구성은 코드 state_vec. observe.obs_state_vector 가 런타임 생성(저장값 아님)."
                         }
                       ],
-                      "modelType": "ReferenceElement",
-                      "value": {
-                        "type": "ExternalReference",
-                        "keys": [
-                          {
-                            "type": "GlobalReference",
-                            "value": "https://www.smart-factory.kr/ids/cd/RuntimeVariables/1/0"
+                      "modelType": "SubmodelElementList",
+                      "typeValueListElement": "ReferenceElement",
+                      "orderRelevant": true,
+                      "value": [
+                        {
+                          "modelType": "ReferenceElement",
+                          "value": {
+                            "type": "ExternalReference",
+                            "keys": [
+                              {
+                                "type": "GlobalReference",
+                                "value": "https://www.smart-factory.kr/ids/cd/Throughput/1/0"
+                              }
+                            ]
                           }
-                        ]
-                      }
+                        },
+                        {
+                          "modelType": "ReferenceElement",
+                          "value": {
+                            "type": "ExternalReference",
+                            "keys": [
+                              {
+                                "type": "GlobalReference",
+                                "value": "https://www.smart-factory.kr/ids/cd/ElapsedTimeRatio/1/0"
+                              }
+                            ]
+                          }
+                        },
+                        {
+                          "modelType": "ReferenceElement",
+                          "value": {
+                            "type": "ExternalReference",
+                            "keys": [
+                              {
+                                "type": "GlobalReference",
+                                "value": "https://www.smart-factory.kr/ids/cd/EpisodeEnergyKwh/1/0"
+                              }
+                            ]
+                          }
+                        },
+                        {
+                          "modelType": "ReferenceElement",
+                          "value": {
+                            "type": "ExternalReference",
+                            "keys": [
+                              {
+                                "type": "GlobalReference",
+                                "value": "https://www.smart-factory.kr/ids/cd/LineWorkloadRatio/1/0"
+                              }
+                            ]
+                          }
+                        },
+                        {
+                          "modelType": "ReferenceElement",
+                          "value": {
+                            "type": "ExternalReference",
+                            "keys": [
+                              {
+                                "type": "GlobalReference",
+                                "value": "https://www.smart-factory.kr/ids/cd/StockShortageCount/1/0"
+                              }
+                            ]
+                          }
+                        },
+                        {
+                          "modelType": "ReferenceElement",
+                          "value": {
+                            "type": "ExternalReference",
+                            "keys": [
+                              {
+                                "type": "GlobalReference",
+                                "value": "https://www.smart-factory.kr/ids/cd/StockOverflowCount/1/0"
+                              }
+                            ]
+                          }
+                        },
+                        {
+                          "modelType": "ReferenceElement",
+                          "value": {
+                            "type": "ExternalReference",
+                            "keys": [
+                              {
+                                "type": "GlobalReference",
+                                "value": "https://www.smart-factory.kr/ids/cd/IdleViolationCount/1/0"
+                              }
+                            ]
+                          }
+                        },
+                        {
+                          "modelType": "ReferenceElement",
+                          "value": {
+                            "type": "ExternalReference",
+                            "keys": [
+                              {
+                                "type": "GlobalReference",
+                                "value": "https://www.smart-factory.kr/ids/cd/DuePaceDeficit/1/0"
+                              }
+                            ]
+                          }
+                        }
+                      ]
                     }
                   ],
                   "modelType": "SubmodelElementCollection"
@@ -20339,7 +20592,7 @@
                       "kind": "ValueQualifier",
                       "type": "DueDay",
                       "valueType": "xs:int",
-                      "value": "22"
+                      "value": "5"
                     },
                     {
                       "kind": "ValueQualifier",
@@ -20375,7 +20628,7 @@
                       "kind": "ValueQualifier",
                       "type": "DueDay",
                       "valueType": "xs:int",
-                      "value": "22"
+                      "value": "5"
                     },
                     {
                       "kind": "ValueQualifier",
@@ -20411,7 +20664,7 @@
                       "kind": "ValueQualifier",
                       "type": "DueDay",
                       "valueType": "xs:int",
-                      "value": "22"
+                      "value": "5"
                     },
                     {
                       "kind": "ValueQualifier",
@@ -53306,7 +53559,7 @@
       "modelType": "ConceptDescription"
     },
     {
-      "idShort": "Independent Sequence",
+      "idShort": "IndependentSequence",
       "displayName": [
         {
           "language": "en",
@@ -53346,7 +53599,7 @@
       "modelType": "ConceptDescription"
     },
     {
-      "idShort": "Dependent Sequence",
+      "idShort": "DependentSequence",
       "displayName": [
         {
           "language": "en",
@@ -54146,7 +54399,7 @@
       "modelType": "ConceptDescription"
     },
     {
-      "idShort": "UnlaoderRepairTime",
+      "idShort": "UnloaderRepairTime",
       "id": "https://www.smart-factory.kr/ids/cd/UnloaderRepairTime/1/0",
       "embeddedDataSpecifications": [
         {
@@ -54163,7 +54416,7 @@
             "preferredName": [
               {
                 "language": "en",
-                "text": "UnlaoderRepairTime"
+                "text": "UnloaderRepairTime"
               }
             ],
             "unit": "h",
@@ -55230,7 +55483,41 @@
             "definition": [
               {
                 "language": "en",
-                "text": "Scalar weight coefficient applied to the due-date pace penalty component of the PPO agent reward function. Penalizes cumulative production that lags the linear pace required to meet each model's purchase-order DueDay, accumulated per work tick, driving anticipatory prioritization of models behind their delivery schedule."
+                "text": "Scalar weight coefficient applied to the sparse due-date margin component of the PPO agent reward function. Rewards each model's completion margin (DueDay - CompletionSec) / DueDay on purchase-order completion (positive if early, negative if late); unfinished models past due accrue the elapsed overrun as penalty. Averaged over models."
+              }
+            ],
+            "modelType": "DataSpecificationIec61360"
+          }
+        }
+      ],
+      "modelType": "ConceptDescription"
+    },
+    {
+      "idShort": "W8_Imbalance",
+      "id": "https://www.smart-factory.kr/ids/cd/W8_Imbalance/1/0",
+      "embeddedDataSpecifications": [
+        {
+          "dataSpecification": {
+            "type": "ExternalReference",
+            "keys": [
+              {
+                "type": "GlobalReference",
+                "value": "https://admin-shell.io/DataSpecificationTemplates/DataSpecificationIec61360/3/0"
+              }
+            ]
+          },
+          "dataSpecificationContent": {
+            "preferredName": [
+              {
+                "language": "en",
+                "text": "W8_Imbalance"
+              }
+            ],
+            "dataType": "REAL_MEASURE",
+            "definition": [
+              {
+                "language": "en",
+                "text": "Scalar weight coefficient applied to the production-imbalance penalty component of the PPO agent reward function. Penalizes an uneven spread of completed units across models, computed as (max - min model completion count) divided by total completed units. Discourages a steady-state continuous-production policy from concentrating on high-throughput models while neglecting low-throughput ones."
               }
             ],
             "modelType": "DataSpecificationIec61360"
@@ -56193,12 +56480,6 @@
               }
             ],
             "dataType": "STRING",
-            "definition": [
-              {
-                "language": "en",
-                "text": ""
-              }
-            ],
             "modelType": "DataSpecificationIec61360"
           }
         }
@@ -56261,12 +56542,6 @@
               }
             ],
             "dataType": "STRING",
-            "definition": [
-              {
-                "language": "en",
-                "text": ""
-              }
-            ],
             "modelType": "DataSpecificationIec61360"
           }
         }
@@ -56562,7 +56837,7 @@
             "definition": [
               {
                 "language": "en",
-                "text": "Episode-scoped integer counter for workforce underutilisation violations. Used as penalty input for W6_IdleWorker reward calculation. Reset to 0 on env.reset()."
+                "text": "Episode-scoped integer counter for workforce underutilisation violations. Exposed as an observation feature; the W6_IdleWorker penalty itself is computed from threshold-exceeding idle worker-time accumulation. Reset to 0 on env.reset()."
               }
             ],
             "modelType": "DataSpecificationIec61360"
@@ -56596,7 +56871,7 @@
             "definition": [
               {
                 "language": "en",
-                "text": "Episode-scoped float constant set once at initialisation from KnowledgeGraph node data. Does not change during episode."
+                "text": "Episode-scoped float constant set once at initialisation from KnowledgeGraph nodes, worker slot capacities, baseline power (DefaultProcessConsumedPowerKw) and SMT rated power over a bottleneck-based expected-makespan horizon. Does not change during episode."
               }
             ],
             "modelType": "DataSpecificationIec61360"
@@ -63186,6 +63461,247 @@
               {
                 "language": "en",
                 "text": "Order quantity of a customer PO. Value of the per-model Property under PurchaseOrder."
+              }
+            ],
+            "modelType": "DataSpecificationIec61360"
+          }
+        }
+      ],
+      "modelType": "ConceptDescription"
+    },
+    {
+      "idShort": "DuePaceDeficit",
+      "description": [
+        {
+          "language": "en",
+          "text": "Cumulative shortfall between the due-date-implied production pace and actual throughput, summed over models. Higher means further behind schedule."
+        }
+      ],
+      "id": "https://www.smart-factory.kr/ids/cd/DuePaceDeficit/1/0",
+      "embeddedDataSpecifications": [
+        {
+          "dataSpecification": {
+            "type": "ExternalReference",
+            "keys": [
+              {
+                "type": "GlobalReference",
+                "value": "https://admin-shell.io/DataSpecificationTemplates/DataSpecificationIec61360/3/0"
+              }
+            ]
+          },
+          "dataSpecificationContent": {
+            "preferredName": [
+              {
+                "language": "en",
+                "text": "DuePaceDeficit"
+              }
+            ],
+            "dataType": "REAL_MEASURE",
+            "definition": [
+              {
+                "language": "en",
+                "text": "Cumulative shortfall between the due-date-implied production pace and actual throughput, summed over models. Higher means further behind schedule."
+              }
+            ],
+            "modelType": "DataSpecificationIec61360"
+          }
+        }
+      ],
+      "modelType": "ConceptDescription"
+    },
+    {
+      "idShort": "ElapsedTimeRatio",
+      "description": [
+        {
+          "language": "en",
+          "text": "Simulation time elapsed normalised by the nominal work span for the total target quantity. State-vector source; normalisation in code."
+        }
+      ],
+      "id": "https://www.smart-factory.kr/ids/cd/ElapsedTimeRatio/1/0",
+      "embeddedDataSpecifications": [
+        {
+          "dataSpecification": {
+            "type": "ExternalReference",
+            "keys": [
+              {
+                "type": "GlobalReference",
+                "value": "https://admin-shell.io/DataSpecificationTemplates/DataSpecificationIec61360/3/0"
+              }
+            ]
+          },
+          "dataSpecificationContent": {
+            "preferredName": [
+              {
+                "language": "en",
+                "text": "ElapsedTimeRatio"
+              }
+            ],
+            "dataType": "REAL_MEASURE",
+            "definition": [
+              {
+                "language": "en",
+                "text": "Simulation time elapsed normalised by the nominal work span for the total target quantity. State-vector source; normalisation in code."
+              }
+            ],
+            "modelType": "DataSpecificationIec61360"
+          }
+        }
+      ],
+      "modelType": "ConceptDescription"
+    },
+    {
+      "idShort": "LineWorkloadRatio",
+      "description": [
+        {
+          "language": "en",
+          "text": "Per-line in-progress job count divided by that line's total worker count. State-vector source; computed at runtime."
+        }
+      ],
+      "id": "https://www.smart-factory.kr/ids/cd/LineWorkloadRatio/1/0",
+      "embeddedDataSpecifications": [
+        {
+          "dataSpecification": {
+            "type": "ExternalReference",
+            "keys": [
+              {
+                "type": "GlobalReference",
+                "value": "https://admin-shell.io/DataSpecificationTemplates/DataSpecificationIec61360/3/0"
+              }
+            ]
+          },
+          "dataSpecificationContent": {
+            "preferredName": [
+              {
+                "language": "en",
+                "text": "LineWorkloadRatio"
+              }
+            ],
+            "dataType": "REAL_MEASURE",
+            "definition": [
+              {
+                "language": "en",
+                "text": "Per-line in-progress job count divided by that line's total worker count. State-vector source; computed at runtime."
+              }
+            ],
+            "modelType": "DataSpecificationIec61360"
+          }
+        }
+      ],
+      "modelType": "ConceptDescription"
+    },
+    {
+      "idShort": "ScenarioMode",
+      "description": [
+        {
+          "language": "en",
+          "text": "Simulation scenario mode. FINITE = PO-driven finite production (target_qty/DueDay, ends on target or max_sec). STEADY = infinite steady-state production (WIP refill, ends on time limit)."
+        }
+      ],
+      "id": "https://www.smart-factory.kr/ids/cd/ScenarioMode/1/0",
+      "embeddedDataSpecifications": [
+        {
+          "dataSpecification": {
+            "type": "ExternalReference",
+            "keys": [
+              {
+                "type": "GlobalReference",
+                "value": "https://admin-shell.io/DataSpecificationTemplates/DataSpecificationIec61360/3/0"
+              }
+            ]
+          },
+          "dataSpecificationContent": {
+            "preferredName": [
+              {
+                "language": "en",
+                "text": "ScenarioMode"
+              }
+            ],
+            "dataType": "STRING",
+            "definition": [
+              {
+                "language": "en",
+                "text": "Simulation scenario mode. FINITE = PO-driven finite production (target_qty/DueDay, ends on target or max_sec). STEADY = infinite steady-state production (WIP refill, ends on time limit)."
+              }
+            ],
+            "modelType": "DataSpecificationIec61360"
+          }
+        }
+      ],
+      "modelType": "ConceptDescription"
+    },
+    {
+      "idShort": "InfiniteStock",
+      "description": [
+        {
+          "language": "en",
+          "text": "If true, material (InputBOM) availability is ignored: BOM gate always satisfied and stock consume/replenish skipped. Used for steady/throughput scenarios. Default false."
+        }
+      ],
+      "id": "https://www.smart-factory.kr/ids/cd/InfiniteStock/1/0",
+      "embeddedDataSpecifications": [
+        {
+          "dataSpecification": {
+            "type": "ExternalReference",
+            "keys": [
+              {
+                "type": "GlobalReference",
+                "value": "https://admin-shell.io/DataSpecificationTemplates/DataSpecificationIec61360/3/0"
+              }
+            ]
+          },
+          "dataSpecificationContent": {
+            "preferredName": [
+              {
+                "language": "en",
+                "text": "InfiniteStock"
+              }
+            ],
+            "dataType": "BOOLEAN",
+            "definition": [
+              {
+                "language": "en",
+                "text": "If true, material (InputBOM) availability is ignored: BOM gate always satisfied and stock consume/replenish skipped. Used for steady/throughput scenarios. Default false."
+              }
+            ],
+            "modelType": "DataSpecificationIec61360"
+          }
+        }
+      ],
+      "modelType": "ConceptDescription"
+    },
+    {
+      "idShort": "MaxEpisodeSec",
+      "description": [
+        {
+          "language": "en",
+          "text": "Maximum episode length in seconds. In STEADY mode the episode ends when simulation time reaches this value; in FINITE mode the episode ends on target_qty completion (this acts as a safety cap). For valid steady-state throughput set it to at least 2-3x the longest model lead time (MODEL_B includes a 24h cure at BT5_42, ~27h lead)."
+        }
+      ],
+      "id": "https://www.smart-factory.kr/ids/cd/MaxEpisodeSec/1/0",
+      "embeddedDataSpecifications": [
+        {
+          "dataSpecification": {
+            "type": "ExternalReference",
+            "keys": [
+              {
+                "type": "GlobalReference",
+                "value": "https://admin-shell.io/DataSpecificationTemplates/DataSpecificationIec61360/3/0"
+              }
+            ]
+          },
+          "dataSpecificationContent": {
+            "preferredName": [
+              {
+                "language": "en",
+                "text": "Max Episode Seconds"
+              }
+            ],
+            "dataType": "INTEGER_COUNT",
+            "unit": "s",
+            "definition": [
+              {
+                "language": "en",
+                "text": "Maximum episode length in seconds. In STEADY mode the episode ends when simulation time reaches this value; in FINITE mode the episode ends on target_qty completion (this acts as a safety cap). For valid steady-state throughput set it to at least 2-3x the longest model lead time (MODEL_B includes a 24h cure at BT5_42, ~27h lead)."
               }
             ],
             "modelType": "DataSpecificationIec61360"

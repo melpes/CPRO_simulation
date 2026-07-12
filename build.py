@@ -6,9 +6,13 @@ import os
 import path_extractor
 from path_extractor import AssetAdministrationShell, ProvisionofSimulationModelsAAS
 
-DEFAULT_AAS_FILES     = ('ProvisionOfSimulationModel.json', 'WorkstationWorkerMatchingDataAAS.json',
-                         'MODEL_A.json', 'MODEL_B.json', 'MODEL_C.json',
-                         'SMTEquipmentCatalog.json')
+_EQUIPMENT_AAS_FILES  = ('1_Loader.json', '2_SPI.json', '3_ScreenPrinter.json', '4_Mounter.json',
+                         '5_AOI.json', '6_Reflow.json', '7_Unloader.json')
+
+TRAINING_AAS_FILES    = ('ProvisionOfSimulationModel.json', 'WorkstationWorkerMatchingDataAAS.json',
+                         'MODEL_A.json', 'MODEL_B.json', 'MODEL_C.json') + _EQUIPMENT_AAS_FILES
+
+DEFAULT_AAS_FILES     = TRAINING_AAS_FILES
 
 
 def load_aas(aas_dir: str, *, files=DEFAULT_AAS_FILES) -> AssetAdministrationShell:
@@ -19,6 +23,7 @@ def load_aas(aas_dir: str, *, files=DEFAULT_AAS_FILES) -> AssetAdministrationShe
 
 def build_simulation(aas_dir: Optional[str] = None, *,
                      target_qty: Optional[Dict[str, int]] = None,
+                     due_day: Optional[Dict[str, int]] = None,
                      MaxEpisodes: Optional[int] = None,
                      env_cls: Optional[Type] = None,
                      enable_smt: bool = True,
@@ -41,6 +46,12 @@ def build_simulation(aas_dir: Optional[str] = None, *,
         DueDay[model_id]         = day * 86400
     if target_qty is None:
         target_qty = target_from_po
+    if due_day is not None:
+        unknown = set(due_day) - set(target_qty)
+        if unknown:
+            raise ValueError(f'due_day override references unknown models: {sorted(unknown)} (target: {sorted(target_qty)})')
+        for model_id, day in due_day.items():
+            DueDay[model_id] = day * 86400
 
     ManufacturingProcesses = {mp.model_id: mp for mp in SimulationModel.Warehouse.InputBOM.target}
     shared_groups          = {name: group
@@ -53,6 +64,13 @@ def build_simulation(aas_dir: Optional[str] = None, *,
 
     if MaxEpisodes is None:
         MaxEpisodes = int(SimulationModel.SimulationConfig.MaxEpisodes.value)
+
+    _sc = SimulationModel.SimulationConfig.value
+    _dp = DefaultParameters.value
+    _flag = lambda d, k: (str(d[k].value).strip().lower() in ('true', '1')) if k in d else False
+    ScenarioMode     = _sc['ScenarioMode'].value if 'ScenarioMode' in _sc else 'FINITE'
+    InfiniteStock    = _flag(_dp, 'InfiniteStock')
+    MaxEpisodeSec    = int(_sc['MaxEpisodeSec'].value)
 
     SMTLines = None
     SMTProcess = SimulationModel.value.get('SMTProcess') if enable_smt else None
@@ -89,10 +107,13 @@ def build_simulation(aas_dir: Optional[str] = None, *,
         break_end_sec           = DefaultParameters.BreakDurationMin.target.max,
         IdleWorkerThreshold     = int(DefaultParameters.IdleWorkerThreshold.value),
         RuntimeVariables        = SimulationModel.RuntimeVariables,
-        IdleProcessRatedPowerKw          = float(DefaultParameters.IdleProcessRatedPowerKw.value),
+        DefaultProcessConsumedPowerKw    = float(DefaultParameters.DefaultProcessConsumedPowerKw.value),
         SelfManagedBOM          = PSM.SelfManagedBOM,
         SMTLines                = SMTLines,
         DueDay                  = DueDay,
+        InfiniteStock           = InfiniteStock,
+        ScenarioMode            = ScenarioMode,
+        MaxEpisodeSec           = MaxEpisodeSec,
     )
 
 
@@ -144,21 +165,13 @@ def build_agent(env=None, *, StateDim: Optional[int] = None, checkpoint: Optiona
         RuntimeVariables = SimulationModel.RuntimeVariables,
     )
     if checkpoint is not None:
-        agent.load_state_dict(torch.load(checkpoint))
+        _ckpt = torch.load(checkpoint)
+        if isinstance(_ckpt, dict) and 'model' in _ckpt:
+            agent.load_state_dict(_ckpt['model'])
+            if _ckpt.get('optim') is not None:
+                agent.optimizer.load_state_dict(_ckpt['optim'])
+        else:
+            agent.load_state_dict(_ckpt)
         agent.eval()
         agent.reset_buffer()
     return agent
-
-
-if __name__ == '__main__':
-    import path_extractor
-    import simulation
-
-    _ROOT = os.path.dirname(os.path.abspath(__file__))
-    for _f in ['ProvisionOfSimulationModel.json', 'WorkstationWorkerMatchingDataAAS.json',
-               'MODEL_A.json', 'MODEL_B.json', 'MODEL_C.json']:
-        path_extractor.load(os.path.join(_ROOT, 'aas_data', _f))
-
-    env   = build_simulation()                 # 수량·납기일·에피소드 모두 AAS(PurchaseOrder·SimulationConfig)에서
-    agent = build_agent(env)
-    simulation.train(env, agent, env.MaxEpisodes)

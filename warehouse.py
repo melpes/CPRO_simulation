@@ -31,7 +31,9 @@ class Warehouse:
                 )
         return cls(inventory)
     
-    def consume(self, ProcessConsumedBOM: dict) -> list:
+    def consume(self, ProcessConsumedBOM: dict, deduct: bool = True) -> list:
+        if not deduct:
+            return []
         for item_code, Quantity in ProcessConsumedBOM.items():
             for Category in self.inventory:
                 if item_code in self.inventory[Category]:
@@ -77,13 +79,13 @@ class _StockRouter:
     def inventory(self):
         return {**self.main.inventory, **self.pcb.inventory}
 
-    def consume(self, ProcessConsumedBOM: dict) -> list:
+    def consume(self, ProcessConsumedBOM: dict, deduct: bool = True) -> list:
         main_bom, pcb_bom = {}, {}
         for code, qty in ProcessConsumedBOM.items():
             (pcb_bom if code in self._pcb_items else main_bom)[code] = qty
-        ordered = self.main.consume(main_bom) if main_bom else []
+        ordered = self.main.consume(main_bom, deduct) if main_bom else []
         if pcb_bom:
-            self.pcb.consume(pcb_bom)
+            self.pcb.consume(pcb_bom, deduct)
         return ordered
 
     def produce(self, OutputBOM: dict) -> None:

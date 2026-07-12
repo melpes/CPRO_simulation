@@ -157,8 +157,14 @@ class SMTEquipmentProcess(SubmodelElementCollection):
 
     def _catalog_property(self, child_idShort: str) -> 'Property | None':
         reference = self.value[child_idShort]
-        catalog   = _find_submodel_by_id(self.semanticId)
-        return _walk_for_match(catalog, reference.semanticId) if catalog is not None else None
+        equipment = _find_aas_by_id(self.semanticId)
+        if equipment is None:
+            return None
+        for submodel in equipment.submodels.values():
+            found = _walk_for_match(submodel, reference.semanticId)
+            if found is not None:
+                return found
+        return None
 
     @property
     def CycleTimeSec(self) -> 'Property | None':  return self._catalog_property('CycleTimeSec')
@@ -193,27 +199,62 @@ class RuntimeVariables(SubmodelElementCollection):
         ('SimulationModels', 'SimulationModel', 'RuntimeVariables'),
     ]
 
-    def IdlePowerKw(self, GraphNode, IdleProcessRatedPowerKw) -> float:
-        return IdleProcessRatedPowerKw
+    def BaselinePowerKw(self, workers, DefaultProcessConsumedPowerKw) -> float:
+        """근무시간 상시 기저전력(kW) = 공장 전체 기저부하(대기전력) 1회 적용.
+        DefaultProcessConsumedPowerKw 는 라인별이 아니라 공장 전체의 상시 소모를 표현
+        (workers 는 시그니처 유지용 — 계산에 사용하지 않음). SMT 가동 에너지는 별도 적산."""
+        return DefaultProcessConsumedPowerKw
 
-    def IdleBaselineKwh(self, KnowledgeGraph, now, IdleProcessRatedPowerKw) -> float:
-        return now * sum(
-            self.IdlePowerKw(node, IdleProcessRatedPowerKw)
-            for node in KnowledgeGraph.nodes.values()
-        ) / 3600
+    def IdleBaselineKwh(self, workers, WorkElapsedSec, DefaultProcessConsumedPowerKw) -> float:
+        """기저 에너지(kWh) — 근무시간(휴게 제외) 경과분에만 적산. 야간·휴게엔 소모 없음."""
+        return WorkElapsedSec * self.BaselinePowerKw(workers, DefaultProcessConsumedPowerKw) / 3600
 
-    def MaxEpisodeEnergyKwh(self, KnowledgeGraph, target_qty, IdleProcessRatedPowerKw) -> float:
+    def ExpectedMakespanSec(self, KnowledgeGraph, target_qty, workers,
+                            MarginFactor=1.5) -> float:
+        """예상 makespan(근무초) = 병목 라인 하한 × 여유계수.
+        라인별 총 작업량(Σ target × CycleTimeSec)을 병렬 슬롯(worker_count × UnitsPerWorker)으로
+        나눈 값의 최대 — 자재 대기·블로킹은 안 세는 하한이라 MarginFactor 로 보수화.
+        W2 분모의 시간항 지평: 실 makespan 이 이를 넘으면 비율 > 1 (의도적으로 허용)."""
         total = sum(target_qty.values())
-        return max(1e-6, sum(
+        bottleneck = 0.0
+        for info in workers.values():
+            slots = info['worker_count'] * info.get('UnitsPerWorker', 1)
+            if slots <= 0:
+                continue
+            load = sum(target_qty.get(node.model_id, total) * node.CycleTimeSec
+                       for pc in info.get('ProcessCode', [])
+                       if (node := KnowledgeGraph.nodes.get(pc)) is not None)
+            bottleneck = max(bottleneck, load / slots)
+        return MarginFactor * bottleneck
+
+    def MaxEpisodeEnergyKwh(self, KnowledgeGraph, target_qty, workers, WorkDaySec,
+                            DefaultProcessConsumedPowerKw, SmtPowerKw=0.0,
+                            HorizonMode='bottleneck') -> float:
+        """W2 분모(정규화 상수) = 가동 최대(전 노드 target 회 × 정격)
+        + 기저 + SMT(라인 정격 합 — 근무시간 연속 소모라 시간 비례) × 지평.
+        HorizonMode: 'bottleneck'=병목 기반 예상 makespan(기본) /
+        'serial'=하루 근무초 × 총 target(구 방식, 직렬 가정 — 비교실험용:
+        지평이 실제의 수십 배라 기저·SMT 항이 자기상쇄돼 D 증감이 신호에 안 잡힘)."""
+        total = sum(target_qty.values())
+        horizon_sec = (self.ExpectedMakespanSec(KnowledgeGraph, target_qty, workers)
+                       if HorizonMode == 'bottleneck' else 0.0)
+        if horizon_sec <= 0:
+            horizon_sec = WorkDaySec * total
+        active_max = sum(
             target_qty.get(node.model_id, total)
             * node.CycleTimeSec
-            * max(node.RatedPowerKw - self.IdlePowerKw(node, IdleProcessRatedPowerKw), 0.0)
+            * node.RatedPowerKw
             for node in KnowledgeGraph.nodes.values()
-        ) / 3600)
+        ) / 3600
+        baseline_max = self.IdleBaselineKwh(workers, horizon_sec,
+                                            DefaultProcessConsumedPowerKw)
+        smt_max = SmtPowerKw * horizon_sec / 3600
+        return max(1e-6, active_max + baseline_max + smt_max)
 
-    def EpisodeEnergyKwh(self, GraphNode, EpisodeEnergyKwh, IdleProcessRatedPowerKw) -> float:
-        idle_kw = self.IdlePowerKw(GraphNode, IdleProcessRatedPowerKw)
-        return EpisodeEnergyKwh + GraphNode.CycleTimeSec * (GraphNode.RatedPowerKw - idle_kw) / 3600
+    def EpisodeEnergyKwh(self, GraphNode, EpisodeEnergyKwh) -> float:
+        """가동 에너지 적산 — 공정 1회 수행분 CycleTimeSec × RatedPowerKw.
+        기저는 워크스테이션 단위(IdleBaselineKwh)라 노드별 차감 없음."""
+        return EpisodeEnergyKwh + GraphNode.CycleTimeSec * GraphNode.RatedPowerKw / 3600
 
     def CycleCompleted(self, ProcessCode, KnowledgeGraph) -> bool:
         return (ProcessCode in KnowledgeGraph.nodes
@@ -553,6 +594,15 @@ def _find_submodel_by_id(url: str):
     return None
 
 
+def _find_aas_by_id(url: str):
+    for entry in _aas_registry.values():
+        aas_list = entry if isinstance(entry, list) else [entry]
+        for aas in aas_list:
+            if aas.id == url:
+                return aas
+    return None
+
+
 def _find_submodel_by_semantic(url: str):
     for entry in _aas_registry.values():
         aas_list = entry if isinstance(entry, list) else [entry]
@@ -600,6 +650,7 @@ def _idShort_from_cd(identifier: str) -> str:
 @dataclass(kw_only=True)
 class AssetAdministrationShell:
     idShort: str = ''
+    id: str = ''
     submodels: Dict[str, Submodel] = field(default_factory=dict)
 
     def __getattr__(self, name: str) -> Submodel:
@@ -659,10 +710,12 @@ class AssetAdministrationShell:
 ProvisionofSimulationModelsAAS = AssetAdministrationShell()
 WorkstationWorkerMatchingDataAAS = AssetAdministrationShell()
 ProductAAS: List[AssetAdministrationShell] = []
+EquipmentAAS: List[AssetAdministrationShell] = []
 
 
 _aas_registry: Dict[str, AssetAdministrationShell | List[AssetAdministrationShell]] = {
     'ProductAAS': ProductAAS,
+    'EquipmentAAS': EquipmentAAS,
     'WorkstationWorkerMatchingDataAAS': WorkstationWorkerMatchingDataAAS,
     'ProvisionofSimulationModelsAAS': ProvisionofSimulationModelsAAS,
 }
@@ -672,7 +725,8 @@ def load(json_path: str) -> None:
     with open(json_path, encoding='utf-8') as file:
         raw_data = json.load(file)
 
-    aas_idShort = raw_data['assetAdministrationShells'][0]['idShort']
+    shell = raw_data['assetAdministrationShells'][0]
+    aas_idShort = shell['idShort']
 
     if aas_idShort == 'ProvisionofSimulationModelsAAS':
         target_aas = ProvisionofSimulationModelsAAS
@@ -680,9 +734,13 @@ def load(json_path: str) -> None:
         target_aas = WorkstationWorkerMatchingDataAAS
     else:
         target_aas = AssetAdministrationShell()
-        ProductAAS.append(target_aas)
+        if any(sm.get('idShort') == 'HierarchicalStructures' for sm in raw_data.get('submodels', [])):
+            ProductAAS.append(target_aas)
+        else:
+            EquipmentAAS.append(target_aas)
 
     target_aas.idShort = aas_idShort
+    target_aas.id = shell.get('id', '')
     target_aas.submodels = {
         raw_submodel['idShort']: _build_sme(raw_submodel, (raw_submodel['idShort'],))
         for raw_submodel in raw_data.get('submodels', [])
@@ -781,19 +839,22 @@ def _walk_subclasses(root: type):
 
 
 def _cast_value(raw_value, valueType: str | None):
-    if raw_value is None or not valueType:
+    if raw_value is None or raw_value == '' or not valueType:
         return raw_value
     type_name = valueType.split(':')[-1]
-    if type_name in ('int', 'integer', 'long', 'short', 'byte'):
-        return int(raw_value)
-    if type_name in ('float', 'double', 'decimal'):
-        return float(raw_value)
-    if type_name == 'boolean':
-        return raw_value in (True, 'true', 'True', 'TRUE', 1, '1')
-    if type_name == 'time':
-        parts = raw_value.split(':')
-        hours = int(parts[0])
-        minutes = int(parts[1]) if len(parts) > 1 else 0
-        seconds = int(parts[2]) if len(parts) > 2 else 0
-        return hours * 3600 + minutes * 60 + seconds
+    try:
+        if type_name in ('int', 'integer', 'long', 'short', 'byte'):
+            return int(raw_value)
+        if type_name in ('float', 'double', 'decimal'):
+            return float(raw_value)
+        if type_name == 'boolean':
+            return raw_value in (True, 'true', 'True', 'TRUE', 1, '1')
+        if type_name == 'time':
+            parts = raw_value.split(':')
+            hours = int(parts[0])
+            minutes = int(parts[1]) if len(parts) > 1 else 0
+            seconds = int(parts[2]) if len(parts) > 2 else 0
+            return hours * 3600 + minutes * 60 + seconds
+    except (ValueError, TypeError):
+        return raw_value
     return raw_value

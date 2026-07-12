@@ -643,9 +643,9 @@ AAS 객체·simpy env 는 주입받고 path_extractor 를 import 하지 않는�
 
 ```
 ver1 simpy 이산사건 시뮬레이션 + RL (KETI 재구성 — ④ 학습·구동).
-CproSimEnv(simpy env·디스패처·smt·reward·state_vec) + 관측 producer + GraphModule/op_* + PPOAgent + train.
-RL 의 환경으로 기능하는 simpy 와 학습을 한 모듈에 둔다(과제 RL 메인 — engine/reward/rl 분리 안 함).
-도메인(knowledge_graph/warehouse)·smt 는 import, AAS·정책상수는 run.py 가 주입.
+CproSimEnv(simpy env·디스패처·smt·reward·state_vec) + 관측 producer + GraphModule/op_* + PPOAgent.
+(train 루프는 train.py 로 이전 — simulation 은 엔진+정책 공통 코어. EPISODE_DURATION_SEC 은 여기 유지.)
+도메인(knowledge_graph/warehouse)·smt 는 import, AAS·정책상수는 build.py 가 주입.
 ```
 
 **docstring (클래스·함수)**
@@ -882,7 +882,7 @@ ECO(에코앤파트너스)가 MCF(Manufacturing Carbon Footprint)→PCF 수식/�
 - 본 모듈은 그 kWh(및 미래 자재 BOM / AAS MCF submodel)를 받아 탄소로 변환만 한다.
 
 ECO 전달 예정(2026-05/06): 배출계수 kWh→kgCO2e, Scope 1/2/3, LCA 자재계수.
-연결(Task 3): run.build_simulation 이 CarbonModel 을 env 에 주입 → simulation.potential() 의
+연결(Task 3): build.build_simulation 이 CarbonModel 을 env 에 주입 → simulation.potential() 의
 W2 항이 carbon.from_energy(EpisodeEnergyKwh) / carbon.from_energy(max_premium) 로 정규화.
 기본 emission_factor=1.0 이면 비율 불변 → 현재 동작 정확 보존(에너지 proxy).
 ```
@@ -900,7 +900,7 @@ W2 항이 carbon.from_energy(EpisodeEnergyKwh) / carbon.from_energy(max_premium)
 
 ```
 기본 구현: 전력량 × 배출계수 (Scope 2). emission_factor=1.0 이면 에너지 proxy 와 동일(동작 보존).
-    실 계수(예: 한국 전력 배출계수 kgCO2e/kWh)는 run.py 주입 또는 ECO 가 AAS 로 제공 시 path_extractor 추출.
+    실 계수(예: 한국 전력 배출계수 kgCO2e/kWh)는 build.py 주입 또는 ECO 가 AAS 로 제공 시 path_extractor 추출.
 ```
 
 - **`def from_energy`** (L27): Scope 2 전력 간접배출 = energy_kwh → kgCO2e. (즉시 필요분)
@@ -938,16 +938,24 @@ W2 항이 carbon.from_energy(EpisodeEnergyKwh) / carbon.from_energy(max_premium)
 - L23 — `# 'schedule'     : ...,   # 공정 타임라인 (plan_cell._schedule_log 등)`
 
 
-## `run.py`
+## `build.py` · `train.py` · `run_trained.py` (구 `run.py` 3분할)
 
-**모듈 설명**
+> 구 `run.py` 는 ① 공용 배선(build_simulation/build_agent) ② 학습 __main__ 이 섞여 있었다.
+> 이를 셋으로 분리: **`build.py`** = 공용 배선(학습·추론·viz 공용), **`train.py`** = 학습 진입점
+> (train 루프 + __main__, simulation.train 이전), **`run_trained.py`** = 추론 진입점(학습된 .pt
+> 재사용해 PO/수치만 바꿔 KPI+워커스케줄 출력, frozen-safe + CLI). 아래 build_simulation/
+> build_agent docstring 은 `build.py` 로 그대로 이전됨. 인계 패키지 레시피는 `deploy/`.
+
+**모듈 설명 (build.py)**
 
 ```
-CPRO 단일 진입점 (run) — AAS → (CproSimEnv, PPOAgent) wiring + __main__ 학습 실행.
+CPRO 공용 배선 (build) — AAS → (CproSimEnv, PPOAgent) wiring. train·infer·viz 가 공용 호출.
 
 기존에 `simulation_ver1.__main__` / `_capture_oqc` / `_timeit` / `cpro_ver1_viz` /
 `cpro_worker_util` 에 verbatim 복제돼 있던 ~30개 kwarg wiring 블록을 한 곳으로 통합한다.
 도구·외피(shell)는 `build_simulation()` / `build_agent()` 만 호출하고 같은 wiring 을 다시 쓰지 않는다.
+TRAINING_AAS_FILES(5파일) = 학습·추론 공용 로드셋(SMT 카탈로그 제외). DEFAULT_AAS_FILES(6) 는 viz/하위호환.
+build_simulation 은 due_day= 오버라이드(모델별 납기일, ×86400, 머지) 지원.
 
 규칙(CLAUDE.md):
 - AAS 접근은 path_extractor 단일 진입점만 사용 — JSON 직접 파싱 없음.
@@ -1023,8 +1031,8 @@ aas_dir 의 입력 AAS 들을 path_extractor 싱글톤에 로드. 외피(shell) 
 - L162 — `# actor/critic 도 계산그래프. source_dims 로 Linear in_features(=embedding+state) 를 wiring resolve.`
 - L166 — `# 알고리즘 = Operation 으로 선택 (PPO 고정 아님). networks(encoder/actor/critic) + Arguments(하이퍼) + env-주입(StateDim/RuntimeVariables).`
 - L167 `algo_cls = sv.import_callable(Algorithm.Operation.value)` — `#← "simulation.PPOAgent"`
-- L188 — `# run.py = 단일 진입점. AAS 로드 → build_simulation/build_agent → 학습 실행.`
-- L189 — `# (구 simulation_ver1.__main__ 흡수.)`
+- `train.py.__main__` — `# 학습 진입점. build.TRAINING_AAS_FILES(5파일) 로드 → build.build_simulation/build_agent → train 실행.` (구 run.py.__main__ + simulation.train 흡수.)
+- `run_trained.py` — `# 추론 진입점. TrainedModel(.pt+AAS 1회 로드).run(po, overrides) → {kpi, schedule}. CLI: --in/--out.`
 - L193 `_ROOT = os.path.dirname(os.path.abspath(__file__))` — `# 패키지 루트 — AAS JSON`
 - L201 `for mp in SimulationModel.Warehouse.InputBOM.target}` — `#← Warehouse.InputBOM`
 
@@ -1196,7 +1204,7 @@ PO 납기일(DueDay)을 생산성 보상에 반영. **페이스 기반** — 매
 
 ### 구현 위치
 - `path_extractor.py` `RuntimeVariables.DuePaceDeficit(Throughput, target_qty, DueDay, now, DuePaceDeficit)` — 순수 누적 (AAS 명시 연산).
-- `run.py build_simulation`: PO에서 `DueDay = {model: day×86400}` 추출·주입, RewardWeights 튜플에 'W7_DueDate' 추가.
+- `build.py build_simulation`: PO에서 `DueDay = {model: day×86400}` 추출·주입(`due_day=` 오버라이드로 모델별 머지 가능), RewardWeights 튜플에 'W7_DueDate' 추가.
 - `simulation.py CproSimEnv`: `DueDay` 주입(__init__), reset에 `DuePaceDeficit=0`·`_due_violation_norm`, _watch 누적, potential W7 항, state_vec 페이스 결손 채널(+1, state_dim 18→19).
 - `scratch/plan_cell.py` (셀재구성 RL PoC — 보관): reward_terms W7 + _watch 누적.
 - `aas_data/ProvisionOfSimulationModel.json`: RewardWeights에 W7_DueDate Property(value 0.25) + ConceptDescription.
@@ -1239,7 +1247,7 @@ PO 납기일(DueDay)을 생산성 보상에 반영. **페이스 기반** — 매
 - W2 idShort는 `W2_Energy` 유지(에너지가 탄소 기반, 현 동작 동일). ECO 실모델 결합 시 `W2_Carbon` 개명 검토.
 
 
-## run.py 설계 노트 (공유그룹·idle·PO)
+## build.py 설계 노트 (공유그룹·idle·PO)
 
 ### 공유그룹(shared) 판별 — 하드코딩 제거
 `build_simulation`의 `shared_groups`는 `KnowledgeGraph.Node` 그룹 중 **모델 공유**(KG에서 model_id='ALL'로 1회 생성) 노드를 고른다. 과거엔 `DEFAULT_SHARED_GROUPS=('ProcessOQC',)` 하드코딩이었음.
@@ -1248,8 +1256,8 @@ PO 납기일(DueDay)을 생산성 보상에 반영. **페이스 기반** — 매
 - 현재 규칙(코드만, AAS 무변경): `if not name.startswith('SIM_') and any(node.SamplingRate is not None for node in group.value.values())` → SIM_* 제외 + RMA(미샘플) 제외 = **OQC만**.
 - ⚠️ **SamplingRate를 "활성 공유" 프록시로 전용한 휴리스틱**이라 취약: 샘플링 없는 활성 공유공정이 생기면 누락, 샘플링 있는 비활성 공정이 생기면 오포함. 견고한 대안 = AAS Node 그룹에 명시 `Scope/Active` Qualifier, 또는 `ProcessRMA`를 Node+Action에서 제거. RMA 정식 모델링 시 재검토.
 
-### idle 전력 — AAS 상수 사용 (ratio 하드코딩 제거)
-`IdlePowerKw = IdleProcessRatedPowerKw`(AAS `DefaultParameters`, 0.0993kW **flat**, 공정 무관). 과거 `max(RatedPowerKw × IdlePowerRatio, floor)`에서 `IdlePowerRatio=0.10`(`IDLE_POWER_RATIO`) 하드코딩을 제거하고 AAS 상수만 적용. → 유휴전력이 정격 비례가 아님. 정격 비례가 필요하면 AAS에 ratio 항을 신설해야 함.
+### 기저 전력 — 설비(워크스테이션) 단위·근무시간 게이팅 (구 idle 전력 모델 대체)
+`DefaultProcessConsumedPowerKw`(AAS `DefaultParameters`, 구 `IdleProcessRatedPowerKw`): 공장 공통 주기 소모 + 설비 켜둠 소모를 퉁친 기저값. 기저 에너지 = **워크스테이션 수** × kW × **근무시간 경과**(`_work_elapsed`, 휴게 제외) — 과거 "KG 노드 수 × env.now(24h)"에서 변경(노드 단위는 모델×공정 중복 카운트였음). 가동 에너지는 공정별 `CycleTimeSec × RatedPowerKw` **전액**(과거 `Rated − idle` 차감 제거 — 기저가 노드 단위가 아니게 되어 차감 근거 소멸, 기저를 정격보다 높여도 클램프로 신호가 죽지 않음). W2_Energy 분자 = `total_energy_kwh()`(기저+조립 가동+SMT 가동, 실 전력 총 적산) — state 관측도 동일. 분모 = 가동 최대 + (기저 + SMT 정격 합, SMT 실가동일 때만) × 지평. 지평 = `ExpectedMakespanSec`(병목 라인 하한 × 1.5): 라인별 Σ target×CycleTime ÷ (worker_count×UnitsPerWorker)의 최대 — 과거 `work_day_sec × 총 target`(직렬 가정, 실제의 ~40배)은 시간항을 자기상쇄시켜 기저값을 키워도 W2 신호가 안 컸음(상한 = W1의 1/3). 실 makespan 이 지평을 넘으면 비율 > 1 허용(의도). 소규모 PO 는 고정 지연(SMT flush·에이징) 때문에 비율이 크게 나옴 — q180 스케일에서 ~1 근방. SMT 는 기저(DefaultProcessConsumedPowerKw) 부과 대상에선 제외 — smt.py 가 근무시간 정격 연속 소모로 이미 시간 비례 적산. 과거 `IdlePowerRatio=0.10` 하드코딩 제거 이력은 동일.
 
 ### PO 단일 순회
 `target_qty`·`DueDay`를 `PurchaseOrder.items()`의 `(quantity, day, registered)` 한 번 순회로 산출. 과거 `PurchaseOrder.target_qty()` 별도 메서드 + `items()` 이중 순회 → 메서드 제거하고 통합.
