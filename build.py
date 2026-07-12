@@ -6,16 +6,13 @@ import os
 import path_extractor
 from path_extractor import AssetAdministrationShell, ProvisionofSimulationModelsAAS
 
-DEFAULT_AAS_FILES     = ('ProvisionOfSimulationModel.json', 'WorkstationWorkerMatchingDataAAS.json',
-                         'MODEL_A.json', 'MODEL_B.json', 'MODEL_C.json',
-                         'SMTEquipmentCatalog.json')
+_EQUIPMENT_AAS_FILES  = ('1_Loader.json', '2_SPI.json', '3_ScreenPrinter.json', '4_Mounter.json',
+                         '5_AOI.json', '6_Reflow.json', '7_Unloader.json')
 
-# 학습이 실제로 로드하는 5파일 (SMTEquipmentCatalog 제외). 추론(run_trained)은 학습과
-# 동일 파일셋이어야 .pt regime·KPI가 일치하므로 train.py·run_trained.py 가 이 상수를 공유한다.
-# SMTEquipmentCatalog 를 더하면 SMT 라인 설비의 CycleTimeSec/RatedPowerKw 참조가 카탈로그에서
-# 해결돼 smt_line 이 실가동(SMT 에너지 가산) → 학습(폴백)과 동작이 달라진다.
 TRAINING_AAS_FILES    = ('ProvisionOfSimulationModel.json', 'WorkstationWorkerMatchingDataAAS.json',
-                         'MODEL_A.json', 'MODEL_B.json', 'MODEL_C.json')
+                         'MODEL_A.json', 'MODEL_B.json', 'MODEL_C.json') + _EQUIPMENT_AAS_FILES
+
+DEFAULT_AAS_FILES     = TRAINING_AAS_FILES
 
 
 def load_aas(aas_dir: str, *, files=DEFAULT_AAS_FILES) -> AssetAdministrationShell:
@@ -49,7 +46,7 @@ def build_simulation(aas_dir: Optional[str] = None, *,
         DueDay[model_id]         = day * 86400
     if target_qty is None:
         target_qty = target_from_po
-    if due_day is not None:                         # 납기일(일 단위) 오버라이드 — 지정 모델만 덮어쓰고 나머지는 PO 유지
+    if due_day is not None:
         unknown = set(due_day) - set(target_qty)
         if unknown:
             raise ValueError(f'due_day override references unknown models: {sorted(unknown)} (target: {sorted(target_qty)})')
@@ -72,8 +69,8 @@ def build_simulation(aas_dir: Optional[str] = None, *,
     _dp = DefaultParameters.value
     _flag = lambda d, k: (str(d[k].value).strip().lower() in ('true', '1')) if k in d else False
     ScenarioMode     = _sc['ScenarioMode'].value if 'ScenarioMode' in _sc else 'FINITE'
-    InfiniteStock    = _flag(_dp, 'InfiniteStock')                          # DefaultParameters
-    MaxEpisodeSec    = int(_sc['MaxEpisodeSec'].value)                      # AAS 단일 소스 (SimulationConfig 필수)
+    InfiniteStock    = _flag(_dp, 'InfiniteStock')
+    MaxEpisodeSec    = int(_sc['MaxEpisodeSec'].value)
 
     SMTLines = None
     SMTProcess = SimulationModel.value.get('SMTProcess') if enable_smt else None
@@ -169,12 +166,12 @@ def build_agent(env=None, *, StateDim: Optional[int] = None, checkpoint: Optiona
     )
     if checkpoint is not None:
         _ckpt = torch.load(checkpoint)
-        if isinstance(_ckpt, dict) and 'model' in _ckpt:          # 신버전: 가중치 + Adam 옵티마이저 상태
+        if isinstance(_ckpt, dict) and 'model' in _ckpt:
             agent.load_state_dict(_ckpt['model'])
             if _ckpt.get('optim') is not None:
                 agent.optimizer.load_state_dict(_ckpt['optim'])
         else:
-            agent.load_state_dict(_ckpt)                           # 구버전 호환(가중치만)
+            agent.load_state_dict(_ckpt)
         agent.eval()
         agent.reset_buffer()
     return agent

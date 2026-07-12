@@ -39,11 +39,11 @@ def plan_energy_kwh(sim, plan):
 def start(sim):
     pcb_codes = [code for items in sim._pcb_warehouse.inventory.values() for code in items]
     plan = getattr(sim, 'SmtPlan', 'auto')
-    if plan == 'auto':                             # 기본: FINITE 는 PO 기반 계획생산, STEADY 는 연속 생산
+    if plan == 'auto':
         plan = po_pcb_plan(sim) if sim.ScenarioMode != 'STEADY' else None
-    sim.SmtPlanEffective = plan if sim.SMTLines else None   # W2 분모 계산(reset)에서 참조
+    sim.SmtPlanEffective = plan if sim.SMTLines else None
     if sim.SMTLines and plan:
-        queue = [(code, qty) for code, qty in plan.items() if qty > 0]   # 라인 공유 큐
+        queue = [(code, qty) for code, qty in plan.items() if qty > 0]
         sim.smt_plan_log = []
         for line_id, equipment in sim.SMTLines.items():
             sim.env.process(smt_line_planned(sim, line_id, equipment, queue))
@@ -65,8 +65,8 @@ def smt_line(sim, line_id, equipment, pcb_codes):
     if not pcb_codes or not equipment:
         return
     base_cycle = next((cycle for name, cycle, _ in equipment if 'AOI' in name),
-                      equipment[-1][1])              # 기준설비(캐파 1) = AOI
-    flush      = sum(cycle for _, cycle, _ in equipment)  # 어레이 1장 Loader→AOI 통과시간 = 라인 비우기 시간
+                      equipment[-1][1])
+    flush      = sum(cycle for _, cycle, _ in equipment)
     total_kw   = sum(power for _, _, power in equipment)
     if not hasattr(sim, 'smt_line_caps'):
         sim.smt_line_caps = {}
@@ -85,22 +85,21 @@ def smt_line(sim, line_id, equipment, pcb_codes):
             sim.SMTEnergyKwh += total_kw * step / 3600
             sim.line_energy[line_id] = sim.line_energy.get(line_id, 0.0) + total_kw * step / 3600
             _eq = sim.smt_equip_energy.setdefault(line_id, {})
-            for name, _, power in equipment:                       # Loader~AOI 설비별 누적
+            for name, _, power in equipment:
                 _eq[name] = _eq.get(name, 0.0) + power * step / 3600
             remaining -= step
 
     while True:
         for code in pcb_codes:
-            yield from worked(flush)                 # 첫 어레이 Loader→AOI 통과(파이프라인 latency)
+            yield from worked(flush)
             for k in range(sim.SmtBatchArrays):
                 if k:
-                    yield from worked(base_cycle)    # 이후 AOI cycle 마다 1장 배출
+                    yield from worked(base_cycle)
                 sim.warehouse.produce({code: sim.SmtArrayPcb})
                 sim._wake_stock()
-                _rec = getattr(sim, 'smt_record', None)   # 추론 계측 훅(배포 전용, 학습 시 None)
+                _rec = getattr(sim, 'smt_record', None)
                 if _rec is not None:
                     _rec(line_id, equipment, code, sim.env.now, flush, total_kw * flush / 3600)
-            # for 종료 시점 = 마지막 어레이 배출 = 라인 empty → 다음 PCB 종류 투입 가능
 
 
 def smt_line_planned(sim, line_id, equipment, queue):
@@ -113,7 +112,7 @@ def smt_line_planned(sim, line_id, equipment, queue):
     if not equipment:
         return
     base_cycle = next((cycle for name, cycle, _ in equipment if 'AOI' in name),
-                      equipment[-1][1])              # 기준설비(캐파 1) = AOI
+                      equipment[-1][1])
     flush      = sum(cycle for _, cycle, _ in equipment)
     if not hasattr(sim, 'smt_line_caps'):
         sim.smt_line_caps = {}
@@ -155,7 +154,7 @@ def smt_line_planned(sim, line_id, equipment, queue):
             produced += batch
             kwh = accrue(k == 0)
             sim._wake_stock()
-            _rec = getattr(sim, 'smt_record', None)   # 추론 계측 훅(배포 전용, 학습 시 None)
+            _rec = getattr(sim, 'smt_record', None)
             if _rec is not None:
                 _rec(line_id, equipment, code, sim.env.now, flush if k == 0 else base_cycle, kwh)
         sim.smt_plan_log.append({'line': line_id, 'code': code, 'pcb': produced,

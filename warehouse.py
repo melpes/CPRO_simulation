@@ -32,7 +32,7 @@ class Warehouse:
         return cls(inventory)
     
     def consume(self, ProcessConsumedBOM: dict, deduct: bool = True) -> list:
-        if not deduct:                       # 무한재고: 재고 차감·발주 없이 소비 기록만(RecordingWarehouse가 포착)
+        if not deduct:
             return []
         for item_code, Quantity in ProcessConsumedBOM.items():
             for Category in self.inventory:

@@ -157,8 +157,14 @@ class SMTEquipmentProcess(SubmodelElementCollection):
 
     def _catalog_property(self, child_idShort: str) -> 'Property | None':
         reference = self.value[child_idShort]
-        catalog   = _find_submodel_by_id(self.semanticId)
-        return _walk_for_match(catalog, reference.semanticId) if catalog is not None else None
+        equipment = _find_aas_by_id(self.semanticId)
+        if equipment is None:
+            return None
+        for submodel in equipment.submodels.values():
+            found = _walk_for_match(submodel, reference.semanticId)
+            if found is not None:
+                return found
+        return None
 
     @property
     def CycleTimeSec(self) -> 'Property | None':  return self._catalog_property('CycleTimeSec')
@@ -233,7 +239,7 @@ class RuntimeVariables(SubmodelElementCollection):
         horizon_sec = (self.ExpectedMakespanSec(KnowledgeGraph, target_qty, workers)
                        if HorizonMode == 'bottleneck' else 0.0)
         if horizon_sec <= 0:
-            horizon_sec = WorkDaySec * total            # serial 모드 + 폴백(워커·노드 매칭 실패 시)
+            horizon_sec = WorkDaySec * total
         active_max = sum(
             target_qty.get(node.model_id, total)
             * node.CycleTimeSec
@@ -588,6 +594,15 @@ def _find_submodel_by_id(url: str):
     return None
 
 
+def _find_aas_by_id(url: str):
+    for entry in _aas_registry.values():
+        aas_list = entry if isinstance(entry, list) else [entry]
+        for aas in aas_list:
+            if aas.id == url:
+                return aas
+    return None
+
+
 def _find_submodel_by_semantic(url: str):
     for entry in _aas_registry.values():
         aas_list = entry if isinstance(entry, list) else [entry]
@@ -635,6 +650,7 @@ def _idShort_from_cd(identifier: str) -> str:
 @dataclass(kw_only=True)
 class AssetAdministrationShell:
     idShort: str = ''
+    id: str = ''
     submodels: Dict[str, Submodel] = field(default_factory=dict)
 
     def __getattr__(self, name: str) -> Submodel:
@@ -694,10 +710,12 @@ class AssetAdministrationShell:
 ProvisionofSimulationModelsAAS = AssetAdministrationShell()
 WorkstationWorkerMatchingDataAAS = AssetAdministrationShell()
 ProductAAS: List[AssetAdministrationShell] = []
+EquipmentAAS: List[AssetAdministrationShell] = []
 
 
 _aas_registry: Dict[str, AssetAdministrationShell | List[AssetAdministrationShell]] = {
     'ProductAAS': ProductAAS,
+    'EquipmentAAS': EquipmentAAS,
     'WorkstationWorkerMatchingDataAAS': WorkstationWorkerMatchingDataAAS,
     'ProvisionofSimulationModelsAAS': ProvisionofSimulationModelsAAS,
 }
@@ -707,7 +725,8 @@ def load(json_path: str) -> None:
     with open(json_path, encoding='utf-8') as file:
         raw_data = json.load(file)
 
-    aas_idShort = raw_data['assetAdministrationShells'][0]['idShort']
+    shell = raw_data['assetAdministrationShells'][0]
+    aas_idShort = shell['idShort']
 
     if aas_idShort == 'ProvisionofSimulationModelsAAS':
         target_aas = ProvisionofSimulationModelsAAS
@@ -715,9 +734,13 @@ def load(json_path: str) -> None:
         target_aas = WorkstationWorkerMatchingDataAAS
     else:
         target_aas = AssetAdministrationShell()
-        ProductAAS.append(target_aas)
+        if any(sm.get('idShort') == 'HierarchicalStructures' for sm in raw_data.get('submodels', [])):
+            ProductAAS.append(target_aas)
+        else:
+            EquipmentAAS.append(target_aas)
 
     target_aas.idShort = aas_idShort
+    target_aas.id = shell.get('id', '')
     target_aas.submodels = {
         raw_submodel['idShort']: _build_sme(raw_submodel, (raw_submodel['idShort'],))
         for raw_submodel in raw_data.get('submodels', [])
@@ -816,19 +839,22 @@ def _walk_subclasses(root: type):
 
 
 def _cast_value(raw_value, valueType: str | None):
-    if raw_value is None or not valueType:
+    if raw_value is None or raw_value == '' or not valueType:
         return raw_value
     type_name = valueType.split(':')[-1]
-    if type_name in ('int', 'integer', 'long', 'short', 'byte'):
-        return int(raw_value)
-    if type_name in ('float', 'double', 'decimal'):
-        return float(raw_value)
-    if type_name == 'boolean':
-        return raw_value in (True, 'true', 'True', 'TRUE', 1, '1')
-    if type_name == 'time':
-        parts = raw_value.split(':')
-        hours = int(parts[0])
-        minutes = int(parts[1]) if len(parts) > 1 else 0
-        seconds = int(parts[2]) if len(parts) > 2 else 0
-        return hours * 3600 + minutes * 60 + seconds
+    try:
+        if type_name in ('int', 'integer', 'long', 'short', 'byte'):
+            return int(raw_value)
+        if type_name in ('float', 'double', 'decimal'):
+            return float(raw_value)
+        if type_name == 'boolean':
+            return raw_value in (True, 'true', 'True', 'TRUE', 1, '1')
+        if type_name == 'time':
+            parts = raw_value.split(':')
+            hours = int(parts[0])
+            minutes = int(parts[1]) if len(parts) > 1 else 0
+            seconds = int(parts[2]) if len(parts) > 2 else 0
+            return hours * 3600 + minutes * 60 + seconds
+    except (ValueError, TypeError):
+        return raw_value
     return raw_value

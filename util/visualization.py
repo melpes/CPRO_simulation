@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 from __future__ import annotations
 import os, sys, json, bisect
 from typing import Dict, List, Optional, Tuple
@@ -14,16 +13,15 @@ if _ROOT not in sys.path:
     sys.path.insert(0, _ROOT)
 import path_extractor as pe
 import knowledge_graph as kg_mod
+import build as _cf
 
 
-#========AAS 로드========
-for _file in ['ProvisionOfSimulationModel.json', 'WorkstationWorkerMatchingDataAAS.json',
-              'MODEL_A.json', 'MODEL_B.json', 'MODEL_C.json']:
+for _file in _cf.TRAINING_AAS_FILES:
     pe.load(os.path.join(_ROOT, 'aas_data', _file))
 PSM     = pe.ProvisionofSimulationModelsAAS
 SM      = PSM.SimulationModels.SimulationModel
 WORKERS = PSM.workers
-DEFAULT_TARGET = {model_id: quantity                                  #← SimulationModel/PurchaseOrder
+DEFAULT_TARGET = {model_id: quantity
                   for model_id, (quantity, DueDay, RegisteredDay) in SM.PurchaseOrder.items()}
 PCB_CATS  = set(PSM.SelfManagedBOM.keys())
 PCB_MODEL = {entity.idShort: aas.submodels['ManufacturingProcess'].model_id
@@ -32,7 +30,6 @@ PCB_MODEL = {entity.idShort: aas.submodels['ManufacturingProcess'].model_id
              if entity.Qualifier.get('Category') in PCB_CATS}
 
 
-#========영상 렌더 설정========
 DISP_START             = 28800
 SIM_HOUR_TO_SEC        = 1.2
 FPS                    = 15
@@ -41,7 +38,6 @@ TRANSITION_HOLD_FRAMES = 1
 MAX_EVENTS             = 60000
 
 
-#========간트 렌더 설정========
 EXCLUDE      = ('WWM_RMALine',)
 LINES        = [ln for ln in WORKERS if ln not in EXCLUDE]
 WS_S, WS_E   = 32400, 64800
@@ -61,7 +57,6 @@ for _pc, _node in _KG.nodes.items():
         TERM_PER_MODEL.setdefault(_node.model_id, set()).add(_pc)
 
 
-#========기록 env (영상·간트 공용 RecEnv: model,pc,line,t0,t_cycle,t_total + stock_ts)========
 def _recording_env(target_qty: Optional[Dict[str, int]] = None, seed: int = 42, **policy):
     import random
     import simulation as sv
@@ -124,7 +119,6 @@ def drive_run(env, agent=None):
     return env.events, env.stock_ts
 
 
-#========영상 렌더 (factory animation → mp4)========
 def layout(env):
     lines, pos, line_x = list(env.workers), {}, {}
     for xi, ln in enumerate(lines):
@@ -200,7 +194,7 @@ def render_video(name: str, env, mode: str, agent=None, out_dir: Optional[str] =
 
     lines, line_x, pos = layout(env)
     KG = env.KnowledgeGraph
-    base_kw  = env.RuntimeVariables.BaselinePowerKw(               # 근무시간 기저(kW, 워크스테이션 단위)
+    base_kw  = env.RuntimeVariables.BaselinePowerKw(
                    env.workers, env.DefaultProcessConsumedPowerKw)
     def _in_work(t):
         sid = t % 86400.0
@@ -305,7 +299,7 @@ def render_video(name: str, env, mode: str, agent=None, out_dir: Optional[str] =
         axP.set_yticks([])
         axP.axvline(0, color='black', lw=0.6)
         axP.set_title(f'PCB stock / item — model color ({len(pcb_codes)})', fontsize=9)
-        line_pow = [sum(rated_kw[pc] for pc in line_pcs[ln] if pc in active)   # 기저는 공장 전체 1회 — 라인별 표시 없음
+        line_pow = [sum(rated_kw[pc] for pc in line_pcs[ln] if pc in active)
                     for ln in lines]
         bar_color = ['orangered' if any(pc in active for pc in line_pcs[ln])
                      else 'slategray' for ln in lines]
@@ -342,7 +336,6 @@ def render_video(name: str, env, mode: str, agent=None, out_dir: Optional[str] =
     return out
 
 
-#========간트 렌더 (events.jsonl → png)========
 def t_to_disp(t):
     day = int(t // DAY); in_day = t - day * DAY
     if in_day < WS_S:    d = 0
@@ -429,11 +422,11 @@ def render_gantt(label: str, events_path: str, out_png: str, xmax_disp_h: Option
         ax.axvline(d * 8, color='0.85', lw=0.7)
     ax.axvline(own_disp_h, color='#444', lw=1.2, ls='--', alpha=0.7)
 
-    if ndays > 10:                                                 # 긴 run: 날짜 경계만 Dn 라벨 (중간 시각은 minor 눈금만)
+    if ndays > 10:
         major  = [d * 8 for d in range(ndays + 1) if d * 8 <= xmax]
         labels = [f'D{d+1}' for d in range(len(major))]
         minor  = [d * 8 + h for d in range(ndays + 1) for h in (2, 4, 6) if d * 8 + h <= xmax]
-    else:                                                          # 짧은 run: 2h 간격 상세 (Dn / +2h / +4h / +6h)
+    else:
         major  = [t for t in range(0, int(xmax) + 1, 2)]
         labels = [f'D{t//8+1}' if t % 8 == 0 else f'+{t%8}h' for t in major]
         minor  = [i * 0.5 for i in range(int(xmax / 0.5) + 1) if (i * 0.5) % 2 != 0]
@@ -488,9 +481,215 @@ def render_gantt(label: str, events_path: str, out_png: str, xmax_disp_h: Option
     return out_png
 
 
+_ALLUVIAL_LABEL_COLOR = {
+    'WWM_FwInputLine': '#2e86ab', 'WWM_LensHolderLine': '#3fa34d',
+    'WWM_FocusLine': '#e08e0b', 'WWM_SemiAssemblyLine': '#d1495b',
+    'WWM_SetAssemblyLine': '#6a4c93', 'WWM_InspectionLine': '#7b4f2e',
+    'WWM_AgingLine': '#00897b', 'WWM_OqcLine': '#c94f9c', 'WWM_PackagingLine': '#6b8e23',
+}
+
+
+def render_alluvial(label: str, events_path: str, out_png: str,
+                    gap_h: float = 1.2, xmax_disp_h: Optional[float] = None) -> str:
+    import numpy as np
+    from collections import defaultdict
+    from matplotlib.patches import Patch, Rectangle
+    plt.rcParams['font.family'] = 'Malgun Gothic'
+    plt.rcParams['axes.unicode_minus'] = False
+
+    rows = [json.loads(l) for l in open(events_path, encoding='utf-8')]
+    jobs = [r for r in rows if r.get('type', 'job') == 'job' and 'line' in r]
+    reallocs = [r for r in rows if r.get('type') == 'realloc']
+
+    lines = list(LINES)
+    SHORT = {ln: ln.replace('WWM_', '').replace('Line', '') for ln in lines}
+    IDLE = '#dcdcdc'
+    RH = 0.72
+
+    by_line = {ln: [] for ln in lines}
+    for r in jobs:
+        if r['line'] in by_line:
+            t_cyc = r.get('t_cycle', r.get('t1'))
+            t_tot = r.get('t_total', r.get('t1'))
+            by_line[r['line']].append((r['model'], r['t0'], t_cyc, t_tot))
+
+    before = {ln: WORKERS[ln]['worker_count'] for ln in lines}
+    after = dict(before)
+    has_realloc = bool(reallocs)
+    src = None
+    move_t = None
+    moves_in = defaultdict(int)
+    if has_realloc:
+        move_t = min(r['t0'] for r in reallocs)
+        for r in reallocs:
+            src = r.get('src', src)
+            for dst, n in r.get('moves', {}).items():
+                moves_in[dst] += int(n)
+        total_moved = sum(moves_in.values())
+        for dst, n in moves_in.items():
+            after[dst] = before[dst] + n
+        if src is not None:
+            after[src] = before[src] - total_moved
+    cap = {ln: max(before[ln], after[ln]) for ln in lines}
+    targets = [ln for ln in lines if moves_in.get(ln, 0) > 0]
+    extra_slots = {ln: list(range(before[ln], after[ln])) for ln in targets}
+
+    slot_iv = {}
+    for ln in lines:
+        asg = assign_slots(by_line[ln], cap[ln], WORKERS[ln]['UnitsPerWorker'])
+        dd = defaultdict(list)
+        for (slot, m, t0a, tcyc, ttot) in asg:
+            dd[slot].append((m, t0a, tcyc))
+        slot_iv[ln] = {k: sorted(dd.get(k, []), key=lambda x: x[1]) for k in range(cap[ln])}
+
+    mover_slots = []
+    if has_realloc and src is not None and after[src] < before[src]:
+        last_act = {k: (max(e for m, s, e in iv) if iv else 0) for k, iv in slot_iv[src].items()}
+        resident = set(sorted(range(cap[src]), key=lambda k: last_act[k], reverse=True)[:after[src]])
+        mover_slots = [k for k in range(cap[src]) if k not in resident]
+
+    y_of, line_center = {}, {}
+    row = 0.0
+    for ln in lines:
+        start = row
+        for k in range(cap[ln]):
+            y_of[(ln, k)] = row
+            row += 1
+        line_center[ln] = (start + row - 1) / 2
+        row += 1.0
+    SPAN = row
+
+    def d(t):
+        return t_to_disp(t) / 3600.0
+
+    last_busy_raw = max((e for ln in lines for iv in slot_iv[ln].values()
+                         for m, s, e in iv), default=0.0)
+    LAST_DH = d(last_busy_raw)
+    makespan_wall = max((tt for ln in lines for (m, t0, tc, tt) in by_line[ln]),
+                        default=last_busy_raw) / 3600.0
+
+    move_dh = d(move_t) if has_realloc else float('inf')
+    GAP = gap_h if has_realloc else 0.0
+    P0, P1 = move_dh, move_dh + GAP
+
+    def seg_to_X(a, b):
+        return (a, b) if b <= P0 + 1e-9 else (a + GAP, b + GAP)
+
+    def Xt(dh):
+        return dh if dh <= P0 + 1e-9 else dh + GAP
+
+    XR = Xt(LAST_DH) if (xmax_disp_h is None) else Xt(xmax_disp_h)
+
+    fig_h = max(10.0, SPAN * 0.17) + 2.2
+    fig, ax = plt.subplots(figsize=(17, fig_h))
+
+    def rect(xa, xb, y, color, z):
+        if xb > xa:
+            ax.add_patch(Rectangle((xa, y - RH / 2), xb - xa, RH, facecolor=color, lw=0, zorder=z))
+
+    def idle_bar(x0d, x1d, y):
+        if x0d < P0:
+            rect(x0d, min(x1d, P0), y, IDLE, 1)
+        if x1d > P0:
+            xa, xb = seg_to_X(max(x0d, P0), x1d)
+            rect(xa, xb, y, IDLE, 1)
+
+    def busy_bars(iv, y, xclip0=None, xclip1=None):
+        for m, s, e in iv:
+            d0, d1 = d(s), d(e)
+            if xclip0 is not None:
+                d0 = max(d0, xclip0)
+            if xclip1 is not None:
+                d1 = min(d1, xclip1)
+            if d1 <= d0:
+                continue
+            segs = [(d0, P0), (P0, d1)] if d0 < P0 < d1 else [(d0, d1)]
+            col = GANTT_COLOR.get(m, '#888')
+            for a, b in segs:
+                xa, xb = seg_to_X(a, b)
+                rect(xa, xb, y, col, 3)
+
+    def panel_connector(y):
+        ax.plot([P0, P1], [y, y], color='#e8e8e8', lw=0.7, zorder=0)
+
+    def bezier_ribbon(y0, y1):
+        t = np.linspace(0, 1, 60)
+        cx0, cx1 = P0 + GAP * 0.5, P1 - GAP * 0.5
+        bx = (1 - t)**3 * P0 + 3 * (1 - t)**2 * t * cx0 + 3 * (1 - t) * t**2 * cx1 + t**3 * P1
+        by = (1 - t)**3 * y0 + 3 * (1 - t)**2 * t * y0 + 3 * (1 - t) * t**2 * y1 + t**3 * y1
+        X = np.concatenate([bx, bx[::-1]])
+        Y = np.concatenate([by - RH / 2, (by + RH / 2)[::-1]])
+        ax.fill(X, Y, facecolor='#8f8f8f', edgecolor='#5f5f5f', lw=0.8, zorder=5, alpha=0.9)
+
+    mover_dest = set((ln, k) for ln in targets for k in extra_slots[ln])
+    src_movers = set(mover_slots)
+    for ln in lines:
+        for k in range(cap[ln]):
+            if ln == src and k in src_movers:
+                continue
+            if (ln, k) in mover_dest:
+                continue
+            y = y_of[(ln, k)]
+            idle_bar(0.0, LAST_DH, y)
+            if has_realloc:
+                panel_connector(y)
+            busy_bars(slot_iv[ln][k], y)
+
+    if has_realloc and mover_slots:
+        ax.axvspan(P0, P1, color='#fbfbfb', zorder=-5)
+        dest_by_y = sorted(mover_dest, key=lambda sd: y_of[sd])
+        movers_by_y = sorted(mover_slots, key=lambda k: y_of[(src, k)])
+        for mslot, (dln, dk) in zip(movers_by_y, dest_by_y):
+            y_semi, y_dst = y_of[(src, mslot)], y_of[(dln, dk)]
+            idle_bar(0.0, move_dh, y_semi)
+            busy_bars(slot_iv[src][mslot], y_semi, xclip1=move_dh)
+            idle_bar(move_dh, LAST_DH, y_dst)
+            busy_bars(slot_iv[dln][dk], y_dst, xclip0=move_dh)
+            bezier_ribbon(y_semi, y_dst)
+
+    for ln in lines:
+        ax.text(-0.15, line_center[ln], SHORT[ln], ha='right', va='center',
+                fontsize=10, fontweight='bold', color=_ALLUVIAL_LABEL_COLOR.get(ln, '#444'))
+
+    if has_realloc:
+        ax.axvline(P0, color='#555555', lw=1.1, ls='--', alpha=0.8, zorder=4)
+        ax.axvline(P1, color='#999999', lw=1.0, ls='--', alpha=0.7, zorder=4)
+
+    ax.set_xlim(-2.4, XR + 0.2)
+    ax.set_ylim(-0.9, SPAN + 0.3)
+    ax.invert_yaxis()
+    ax.set_yticks([])
+    tick_h = list(range(0, int(LAST_DH) + 1))
+    ax.set_xticks([Xt(h) for h in tick_h])
+    ax.set_xticklabels([f'{h}h' for h in tick_h])
+    for sp in ('top', 'right', 'left'):
+        ax.spines[sp].set_visible(False)
+    ax.set_xlabel('작업시간 (h)')
+
+    ax.text(XR, SPAN * 0.5,
+            f'마지막 busy {LAST_DH:.1f}h(=makespan {makespan_wall:.2f}h)\n이후 유휴',
+            ha='right', va='center', fontsize=8.5, color='#888888', style='italic')
+
+    ax.legend(handles=[Patch(facecolor=GANTT_COLOR['MODEL_A'], label='MODEL_A'),
+                       Patch(facecolor=GANTT_COLOR['MODEL_B'], label='MODEL_B'),
+                       Patch(facecolor=GANTT_COLOR['MODEL_C'], label='MODEL_C')],
+              loc='upper right', fontsize=9, frameon=False, bbox_to_anchor=(1.0, 1.005))
+
+    fig.text(0.5, 0.012,
+             'thread=작업자 1명, 색=생산 모델 A/B/C, 회색=유휴. '
+             '슬롯 배정=간트 assign_slots(라인별 정확), 개별 신원 표시용.',
+             ha='center', fontsize=8.5, color='#555555')
+
+    fig.subplots_adjust(left=0.055, right=0.995, top=0.985, bottom=0.06)
+    fig.savefig(out_png, dpi=140)
+    plt.close(fig)
+    n_move = len(mover_slots)
+    print(f'  saved {out_png}  (lines={len(lines)}, realloc={"Y" if has_realloc else "N"}'
+          f'{f", moved={n_move}" if has_realloc else ""}, last_busy={LAST_DH:.2f}h)')
+    return out_png
+
+
 def render_production_time(label: str, events_path: str, out_png: str, legend_loc: str = 'upper left') -> str:
-    """모델별 '누적 수량 → 도달 시간' 곡선. x=누적 생산 수량, y=생산 시간(h). 세 모델을 한 축에 겹쳐 그린다.
-    각 수량 k 에 도달하기까지 걸린 시간 = 그 모델 k 번째 완성품의 종료 시각."""
     rows = [json.loads(l) for l in open(events_path, encoding='utf-8')]
     completions = {m: [] for m in TERM_PER_MODEL}
     for r in rows:
@@ -502,7 +701,7 @@ def render_production_time(label: str, events_path: str, out_png: str, legend_lo
         ts.sort()
         if not ts:
             continue
-        xs = list(range(1, len(ts) + 1))                       # 누적 생산 수량 (1..n)
+        xs = list(range(1, len(ts) + 1))
         ax.plot(xs, ts, label=f'{m} ({len(ts)} units, {ts[-1]:.1f}h)',
                 color=GANTT_COLOR[m], lw=1.8)
     ax.set_xlabel('cumulative quantity (units)')
@@ -517,7 +716,6 @@ def render_production_time(label: str, events_path: str, out_png: str, legend_lo
     return out_png
 
 
-#========고수준 라이브러리========
 def render_greedy(target_qty: Optional[Dict[str, int]] = None,
                   out_dir: Optional[str] = None, name: str = 'greedy') -> Optional[str]:
     env = _recording_env(target_qty)
@@ -573,6 +771,7 @@ if __name__ == '__main__':
         epilog="""모드
   video    공장 흐름 애니메이션 mp4
   gantt    간트차트 png(+누적완료)   — 새로 구동하거나 --events 로 기존 jsonl만 렌더
+  alluvial 슬롯별 gantt-thread alluvial png (재배분 이동 패널/리본; realloc 없으면 기본 gantt-thread) — --events 로 기존 jsonl 렌더
   prodtime 수량→도달시간 곡선 png (세 모델 한 축, x=수량 y=생산시간) — --events 로 기존 jsonl 렌더
   events   이벤트 로그 events_*.jsonl 만 저장 (렌더 없음)
   compare  그리디 vs 학습정책 동시 구동 → 공통 x축 간트 비교
@@ -588,7 +787,7 @@ if __name__ == '__main__':
   python util/visualization.py compare -c result/runs/<run>/best.pt
 """)
     p.add_argument('mode', nargs='?', default='gantt',
-                   choices=['video', 'gantt', 'prodtime', 'events', 'compare'],
+                   choices=['video', 'gantt', 'alluvial', 'prodtime', 'events', 'compare'],
                    help='산출물 종류 (기본 gantt)')
     p.add_argument('-c', '--checkpoint',
                    help='학습정책 체크포인트(.pt). 주면 학습정책, 없으면 그리디')
@@ -610,11 +809,11 @@ if __name__ == '__main__':
                 else os.path.join(_ROOT, 'result', 'viz')))
     os.makedirs(out_dir, exist_ok=True)
 
-    def _agent():                                                      # -c 있으면 학습정책, 없으면 None(그리디)
+    def _agent():
         if not trained:
             return None
         import build as cf
-        sd = args.state_dim or _recording_env().state_dim             # 미지정 시 env에서 자동
+        sd = args.state_dim or _recording_env().state_dim
         return cf.build_agent(StateDim=sd, checkpoint=args.checkpoint)
 
     if args.mode == 'video':
@@ -625,7 +824,7 @@ if __name__ == '__main__':
             render_greedy(out_dir=out_dir, name=args.name or 'greedy')
 
     elif args.mode == 'gantt':
-        if args.events_src:                                            # 기존 jsonl만 렌더 (구동 안 함)
+        if args.events_src:
             srcs = ([args.events_src] if os.path.isfile(args.events_src)
                     else sorted(glob.glob(os.path.join(args.events_src, 'events_*.jsonl'))))
             if not srcs:
@@ -633,11 +832,25 @@ if __name__ == '__main__':
             for src in srcs:
                 lab = os.path.splitext(os.path.basename(src))[0].replace('events_', '') or label
                 render_gantt(lab, src, os.path.join(out_dir, f'gantt_{lab}.png'))
-        else:                                                          # 새로 구동 후 간트
+        else:
             capture_compare(out_dir, {label: _agent()}, max_sec=args.max_sec, render=True)
 
+    elif args.mode == 'alluvial':
+        if args.events_src:
+            srcs = ([args.events_src] if os.path.isfile(args.events_src)
+                    else sorted(glob.glob(os.path.join(args.events_src, 'events*.jsonl'))))
+            if not srcs:
+                raise SystemExit(f'events.jsonl 을 찾지 못함: {args.events_src}')
+            for src in srcs:
+                lab = os.path.splitext(os.path.basename(src))[0].replace('events_', '') or label
+                render_alluvial(lab, src, os.path.join(out_dir, f'alluvial_{lab}.png'))
+        else:
+            env = _recording_env()
+            _, path = capture(env, label, out_dir, agent=_agent(), max_sec=args.max_sec)
+            render_alluvial(label, path, os.path.join(out_dir, f'alluvial_{label}.png'))
+
     elif args.mode == 'prodtime':
-        if args.events_src:                                            # 기존 jsonl만 렌더 (구동 안 함)
+        if args.events_src:
             srcs = ([args.events_src] if os.path.isfile(args.events_src)
                     else sorted(glob.glob(os.path.join(args.events_src, 'events_*.jsonl'))))
             if not srcs:
@@ -645,7 +858,7 @@ if __name__ == '__main__':
             for src in srcs:
                 lab = os.path.splitext(os.path.basename(src))[0].replace('events_', '') or label
                 render_production_time(lab, src, os.path.join(out_dir, f'prodtime_{lab}.png'))
-        else:                                                          # 새로 구동 후 곡선
+        else:
             env = _recording_env()
             _, path = capture(env, label, out_dir, agent=_agent(), max_sec=args.max_sec)
             render_production_time(label, path, os.path.join(out_dir, f'prodtime_{label}.png'))

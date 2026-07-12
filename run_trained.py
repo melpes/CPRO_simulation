@@ -20,11 +20,9 @@ scenario.json:
 from __future__ import annotations
 import os, sys, json, argparse, random
 
-sys.dont_write_bytecode = True   # 배포 패키지에 __pycache__/.pyc 안 남김 (인계 폴더 청결)
+sys.dont_write_bytecode = True
 
 
-# ── frozen-safe 경로 ──────────────────────────────────────────────────────
-# PyInstaller 로 동결 시 sys._MEIPASS(번들 루트)가 생긴다. dev 에선 스크립트 dir 로 폴백.
 def _resource_root() -> str:
     return getattr(sys, '_MEIPASS', None) or os.path.dirname(os.path.abspath(__file__))
 
@@ -34,7 +32,7 @@ def _resource_path(*parts) -> str:
 
 
 AAS_DIR_DEFAULT = _resource_path('aas_data')
-CKPT_DEFAULT    = _resource_path('agent_mod.pt')   # 동결 번들에선 루트에 동봉. dev 에선 --ckpt 로 지정.
+CKPT_DEFAULT    = _resource_path('agent_mod.pt')
 
 ALLOWED_OVERRIDES = {'ReplenishLeadDay', 'IdleWorkerThreshold',
                      'WorkStartTime', 'WorkEndTime', 'BreakStart', 'BreakDuration',
@@ -42,7 +40,6 @@ ALLOWED_OVERRIDES = {'ReplenishLeadDay', 'IdleWorkerThreshold',
                      'ScenarioMode', 'MaxEpisodeSec', 'InfiniteStock'}
 
 
-# ── 워커 스케줄 캡처 (util.visualization 안 끌어옴 — matplotlib 회피) ─────────
 def _schedule_env_cls():
     import simulation as sim
     import export
@@ -52,16 +49,15 @@ def _schedule_env_cls():
         설치 + SMT 설비 가동 훅. export.build_payload 가 이 기록들로 산출물을 가공한다."""
         def reset(self):
             super().reset()
-            self.events = []                       # 스케줄(워커) 이벤트
-            self.smt_events = []                   # 설비(SMT) 가동 이벤트
-            self.smt_op_time = {}                  # {line_id: {equipment: 가동초}}
-            init = getattr(self, '_init_stock', None)   # 카테고리별 초기 재고 오버라이드(프록시 전 적용)
+            self.events = []
+            self.smt_events = []
+            self.smt_op_time = {}
+            init = getattr(self, '_init_stock', None)
             if init:
                 for cat, val in init.items():
                     if cat in self.warehouse.inventory:
                         for item in self.warehouse.inventory[cat].values():
                             item.present_stock = float(val)
-            # warehouse 를 기록 프록시로 교체 (SMT produce 도 sim.warehouse 동적참조라 포착됨)
             self.warehouse = export.RecordingWarehouse(self.warehouse, lambda: self.env.now)
 
         def _run_job(self, ws, job, req):
@@ -72,8 +68,8 @@ def _schedule_env_cls():
                                 'model'        : node.model_id,
                                 'process_code' : job['pc'],
                                 'start_sec'    : float(t0),
-                                'end_sec'      : float(t0 + node.CycleTimeSec),    # 사이클 종료(워커 점유 끝)
-                                'unit_id'      : id(job['done_set'])})             # 유닛 식별(WIP 시계열용)
+                                'end_sec'      : float(t0 + node.CycleTimeSec),
+                                'unit_id'      : id(job['done_set'])})
 
         def smt_record(self, line_id, equipment, code, t_end, array_cycle, array_energy):
             """smt.py 훅: 한 array 처리 직후 호출. array 는 설비들을 직렬로 통과(array_cycle=Σcycle)
@@ -99,11 +95,11 @@ class TrainedModel:
         import build
         from path_extractor import ProvisionofSimulationModelsAAS as _PSM
         self.aas_dir = aas_dir or AAS_DIR_DEFAULT
-        if not _PSM.submodels:                                   # 싱글톤 비었을 때만 로드(이중 append 방지)
-            build.load_aas(self.aas_dir, files=build.TRAINING_AAS_FILES)   # 학습과 동일 5파일
+        if not _PSM.submodels:
+            build.load_aas(self.aas_dir, files=build.TRAINING_AAS_FILES)
         self._build       = build
         self._schedule_env = _schedule_env_cls()
-        base_env          = build.build_simulation()             # AAS PurchaseOrder 기준
+        base_env          = build.build_simulation()
         self.default_target = dict(base_env.target_qty)
         self.model_set      = set(base_env.target_qty)
         self.agent          = build.build_agent(base_env, checkpoint=checkpoint)
@@ -114,7 +110,6 @@ class TrainedModel:
         overrides = dict(overrides or {})
         seed      = int(overrides.pop('seed', seed))
 
-        # ── PO(수량·납기) ── 모델 set 은 고정. 미지정 모델은 AAS PO 기본값 유지(state_dim 보존).
         target_qty = dict(self.default_target)
         due_day    = {}
         if po:
@@ -129,12 +124,10 @@ class TrainedModel:
                 if 'due_day' in spec:
                     due_day[model_id] = int(spec['due_day'])
 
-        # ── ops 오버라이드 검증 ──
         unknown_ov = set(overrides) - ALLOWED_OVERRIDES
         if unknown_ov:
             raise ValueError(f"unknown override keys {sorted(unknown_ov)}; allowed: {sorted(ALLOWED_OVERRIDES)}")
 
-        # ── 재현성: produce_unit 의 SamplingRate 가 stdlib random 사용 ──
         random.seed(seed)
         torch.manual_seed(seed)
 
@@ -145,41 +138,41 @@ class TrainedModel:
             MaxEpisodes= 1,
         )
         if 'ReplenishLeadDay' in overrides:
-            env.ReplenishLeadDay   = int(overrides['ReplenishLeadDay']) * 86400   # 일 → 초
+            env.ReplenishLeadDay   = int(overrides['ReplenishLeadDay']) * 86400
         if 'IdleWorkerThreshold' in overrides:
-            env.IdleWorkerThreshold = int(overrides['IdleWorkerThreshold'])       # 초
+            env.IdleWorkerThreshold = int(overrides['IdleWorkerThreshold'])
         if 'WorkStartTime' in overrides:
-            env.WorkStartTime = float(overrides['WorkStartTime']) * 3600          # 시(hour) → 초-of-day
+            env.WorkStartTime = float(overrides['WorkStartTime']) * 3600
         if 'WorkEndTime' in overrides:
-            env.WorkEndTime   = float(overrides['WorkEndTime']) * 3600            # 시(hour) → 초-of-day
+            env.WorkEndTime   = float(overrides['WorkEndTime']) * 3600
         if 'BreakStart' in overrides or 'BreakDuration' in overrides:
             bs  = (float(overrides['BreakStart']) * 3600 if 'BreakStart' in overrides
-                   else env.break_start_sec)                                       # 시(hour) → 초-of-day
+                   else env.break_start_sec)
             dur = (float(overrides['BreakDuration']) * 60 if 'BreakDuration' in overrides
-                   else env.break_end_sec - env.break_start_sec)                   # 분(min) → 초
+                   else env.break_end_sec - env.break_start_sec)
             env.break_start_sec = bs
             env.break_end_sec   = bs + dur
         if 'DefaultProcessConsumedPowerKw' in overrides:
             env.DefaultProcessConsumedPowerKw = float(overrides['DefaultProcessConsumedPowerKw'])
         if 'initial_state' in overrides:
             init = overrides['initial_state'] or {}
-            env._init_stock = dict(init.get('initial_stock') or {})              # {카테고리: 초기재고} — reset 에서 적용
+            env._init_stock = dict(init.get('initial_stock') or {})
         if 'ScenarioMode' in overrides:
             mode = str(overrides['ScenarioMode']).upper()
             if mode not in ('FINITE', 'STEADY'):
                 raise ValueError(f"ScenarioMode must be FINITE|STEADY, got {overrides['ScenarioMode']!r}")
-            env.ScenarioMode = mode                                              # FINITE(PO 완료) | STEADY(무한생산, MaxEpisodeSec 중단)
+            env.ScenarioMode = mode
         if 'MaxEpisodeSec' in overrides:
-            env.MaxEpisodeSec = int(overrides['MaxEpisodeSec'])                  # STEADY 종료 시각(초)
+            env.MaxEpisodeSec = int(overrides['MaxEpisodeSec'])
         if 'InfiniteStock' in overrides:
-            env.InfiniteStock = bool(overrides['InfiniteStock'])                 # True=자재 무한(소비 스킵)
+            env.InfiniteStock = bool(overrides['InfiniteStock'])
 
         summary = env.run(agent=self.agent)
 
         target       = dict(env.target_qty)
         throughput   = dict(env.Throughput)
         total_target = sum(target.values()) or 1
-        energy_kwh   = summary['EpisodeEnergyKwh']               # idle + active(+SMT) 합
+        energy_kwh   = summary['EpisodeEnergyKwh']
         kpi = {
             'makespan_sec'     : summary['makespan_sec'],
             'makespan_days'    : summary['makespan_sec'] / 86400.0,
@@ -201,11 +194,11 @@ class TrainedModel:
             'seed'             : seed,
         }
         import export
-        payload = export.build_payload(env, summary)            # 생산성/탄소 구조화 산출물
+        payload = export.build_payload(env, summary)
         prod, carb = payload['productivity'], payload['carbon']
-        kpi['actual_due_day'] = prod['kpi'].get('actual_due_day')   # 고유 필드만 최상위 kpi(정본)로 흡수
+        kpi['actual_due_day'] = prod['kpi'].get('actual_due_day')
         kpi['idle_power_kwh'] = carb['kpi'].get('idle_power_kwh')
-        prod.pop('kpi', None)                                   # productivity.kpi·carbon.kpi 는 최상위 kpi 와 중복 → 제거
+        prod.pop('kpi', None)
         carb.pop('kpi', None)
         return {'kpi': kpi, 'schedule': env.events,
                 'productivity': prod, 'carbon': carb,

@@ -16,7 +16,7 @@
       "initial_stock": { "LENS": 100, "PCB": 200 }
     },
     "ScenarioMode": "FINITE",
-    "MaxEpisodeSec": 28800,
+    "MaxEpisodeSec": 1900800,
     "InfiniteStock": false,
     "seed": 42
   }

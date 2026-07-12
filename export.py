@@ -19,20 +19,16 @@ from typing import Any, Callable, Dict, List
 
 import carbon
 
-SAMPLE_SEC = 600  # 시계열 샘플링 간격(초) = 10분
+SAMPLE_SEC = 600
 
 
-# ────────────────────────────────────────────────────────────────────────────
-# 창고 기록 프록시 — 실 warehouse(Warehouse | _StockRouter)를 감싼다.
-# _ScheduleEnv.reset 에서 env.warehouse 를 이걸로 교체. 학습 경로엔 설치하지 않는다.
-# ────────────────────────────────────────────────────────────────────────────
 class RecordingWarehouse:
     def __init__(self, inner, clock: Callable[[], float]):
         self._inner = inner
-        self._clock = clock                      # () -> env.now
+        self._clock = clock
         self.events: List[dict] = []
         self.by_item: Dict[str, dict] = {}
-        self._code_of: Dict[int, str] = {}       # id(StockItem) -> item_code (replenish 용)
+        self._code_of: Dict[int, str] = {}
         for cat in inner.inventory.values():
             for code, item in cat.items():
                 self._code_of[id(item)] = code
@@ -43,14 +39,12 @@ class RecordingWarehouse:
                     'total_arrived'      : 0.0,
                 }
 
-    # env 가 warehouse.inventory 를 직접 읽는 경로(state_vec·Stock*Count) 위임
     @property
     def inventory(self):
         return self._inner.inventory
 
     @property
     def main(self):
-        # W3/W4 카운트용 주창고 위임(_counted_warehouse) — 라우터면 main, 아니면 inner 자체
         return getattr(self._inner, 'main', self._inner)
 
     def _stat(self, code: str) -> dict:
@@ -79,7 +73,7 @@ class RecordingWarehouse:
             self.events.append({'item_code': code, 't_sec': t, 'type': 'consume',
                                 'qty': -float(qty),
                                 'present_stock': None if after is None else float(after)})
-        for item in ordered:                                   # 재주문 트리거
+        for item in ordered:
             code = self._code_of.get(id(item))
             if code is not None:
                 self.events.append({'item_code': code, 't_sec': t, 'type': 'order',
@@ -111,9 +105,6 @@ class RecordingWarehouse:
                                     'qty': float(delta), 'present_stock': float(it.present_stock)})
 
 
-# ────────────────────────────────────────────────────────────────────────────
-# 파생 헬퍼
-# ────────────────────────────────────────────────────────────────────────────
 def _overlap(a0: float, a1: float, b0: float, b1: float) -> float:
     return max(0.0, min(a1, b1) - max(a0, b0))
 
@@ -148,27 +139,23 @@ def _grid(makespan: float, sample_sec: int):
     return out
 
 
-# ────────────────────────────────────────────────────────────────────────────
-# 메인 — 완료된 env + summary → 구조화 페이로드
-# ────────────────────────────────────────────────────────────────────────────
 def build_payload(env, summary: Dict[str, Any], *, sample_sec: int = SAMPLE_SEC) -> Dict[str, Any]:
     kg        = env.KnowledgeGraph
-    events    = list(getattr(env, 'events', []))                  # schedule
+    events    = list(getattr(env, 'events', []))
     makespan  = float(summary.get('makespan_sec')
                       or max((e['end_sec'] for e in events), default=0.0))
     target    = {m: int(q) for m, q in env.target_qty.items()}
     total_tg  = sum(target.values()) or 1
     throughput = {m: int(v) for m, v in (summary.get('Throughput') or env.Throughput).items()}
-    base_kw   = env.RuntimeVariables.BaselinePowerKw(             # 근무시간 기저 전력(kW, 설비=워크스테이션 단위)
+    base_kw   = env.RuntimeVariables.BaselinePowerKw(
                     env.workers, env.DefaultProcessConsumedPowerKw)
     smt_events = list(getattr(env, 'smt_events', []))
 
-    def _in_work(t: float) -> bool:                               # 기저 소모는 근무시간(휴게 제외)만
+    def _in_work(t: float) -> bool:
         sid = t % 86400.0
         return (env.WorkStartTime <= sid < env.WorkEndTime
                 and not (env.break_start_sec <= sid < env.break_end_sec))
 
-    # --- 엔티티별 집계: 라인(설비)별 (스케줄 이벤트에서) ---
     busy: Dict[str, dict] = {}
     line_ivs: Dict[str, list] = {}
     for e in events:
@@ -179,25 +166,23 @@ def build_payload(env, summary: Dict[str, Any], *, sample_sec: int = SAMPLE_SEC)
     workers = {}
     for ws, info in env.workers.items():
         wc  = info['worker_count']
-        cap = wc * makespan or 1.0                       # 워커-초 정원
-        bs  = busy.get(ws, {}).get('busy_sec', 0.0)      # 워커-초 가동(작업 점유 합)
+        cap = wc * makespan or 1.0
+        bs  = busy.get(ws, {}).get('busy_sec', 0.0)
         idle = max(0.0, cap - bs)
-        op_sec = _union_len(line_ivs.get(ws, []))        # 라인이 ≥1명 가동하던 wall-clock 시간
-        workers[ws] = {'worker_count': wc,                                  # 인원수
+        op_sec = _union_len(line_ivs.get(ws, []))
+        workers[ws] = {'worker_count': wc,
                        'processed_quantity': busy.get(ws, {}).get('q', 0),
-                       'operating_sec': round(op_sec, 1),                    # 라인 가동시간(동작)
+                       'operating_sec': round(op_sec, 1),
                        'operating_ratio': round(op_sec / makespan, 4) if makespan else 0.0,
                        'idle_sec': round(idle, 1),
                        'idle_ratio': round(idle / cap, 4) if cap else 0.0}
 
-    # --- actual_due_day: 모델별 마지막 완성 시각 → 일 ---
     term_end: Dict[str, float] = {}
     for e in events:
         if _is_terminal(env, e['process_code']):
             term_end[e['model']] = max(term_end.get(e['model'], 0.0), e['end_sec'])
     actual_due_day = {m: math.ceil(term_end[m] / 86400.0) for m in term_end}
 
-    # --- unit 단위 시각(WIP 시계열용) ---
     unit_span: Dict[Any, dict] = {}
     for e in events:
         u = unit_span.setdefault(e.get('unit_id', id(e)),
@@ -207,10 +192,9 @@ def build_payload(env, summary: Dict[str, Any], *, sample_sec: int = SAMPLE_SEC)
             u['end'] = max(u['end'], e['end_sec'])
     units = list(unit_span.values())
 
-    # --- 시계열 (10분 그리드) ---
     grid = _grid(makespan, sample_sec)
     ts_t, cum_done, ratio, wip, act_workers = [], [], [], [], []
-    line_active: Dict[str, list] = {ws: [] for ws in env.workers}      # 라인(설비)별 가동 작업자 수
+    line_active: Dict[str, list] = {ws: [] for ws in env.workers}
     inst_power, cum_energy = [], []
     running_e = 0.0
     for lo, hi, mid in grid:
@@ -220,7 +204,7 @@ def build_payload(env, summary: Dict[str, Any], *, sample_sec: int = SAMPLE_SEC)
         cum_done.append(done)
         ratio.append(round(done / total_tg, 4))
         wip.append(sum(1 for u in units if u['start'] <= hi and not (u['end'] and u['end'] <= hi)))
-        per_line = {ws: 0 for ws in env.workers}                       # 이 시점 라인별 가동 작업자
+        per_line = {ws: 0 for ws in env.workers}
         for e in events:
             if e['start_sec'] <= mid < e['end_sec']:
                 per_line[e['workstation']] = per_line.get(e['workstation'], 0) + 1
@@ -228,7 +212,6 @@ def build_payload(env, summary: Dict[str, Any], *, sample_sec: int = SAMPLE_SEC)
             line_active[ws].append(per_line.get(ws, 0))
         act_workers.append(sum(per_line.values()))
 
-        # 순간 전력(kW) = 근무시간 기저 + 가동(공정 정격) + SMT
         prem = 0.0
         for e in events:
             if e['start_sec'] <= mid < e['end_sec']:
@@ -237,7 +220,6 @@ def build_payload(env, summary: Dict[str, Any], *, sample_sec: int = SAMPLE_SEC)
         smt_p = sum(s['power_kw'] for s in smt_events if s['start_sec'] <= mid < s['end_sec'])
         inst_power.append(round((base_kw if _in_work(mid) else 0.0) + prem + smt_p, 3))
 
-        # 버킷 에너지(kWh) → 누적
         e_idle = base_kw * (env._work_elapsed(hi) - env._work_elapsed(lo)) / 3600.0
         e_prem = 0.0
         for e in events:
@@ -249,14 +231,12 @@ def build_payload(env, summary: Dict[str, Any], *, sample_sec: int = SAMPLE_SEC)
         running_e += e_idle + e_prem + e_smt
         cum_energy.append(round(running_e, 4))
 
-    # --- 탄소/전력 KPI ---
     total_e   = float(summary.get('EpisodeEnergyKwh') or 0.0)
     premium_e = float(summary.get('ActivePremiumKwh') or 0.0)
     smt_e     = float(getattr(env, 'SMTEnergyKwh', 0.0))
     idle_e    = max(0.0, total_e - premium_e - smt_e)
-    active_e  = total_e - idle_e                                  # 가동 = 총 - 유휴
+    active_e  = total_e - idle_e
 
-    # --- warehouse 집계/이벤트 (프록시가 설치돼 있으면) ---
     wh = env.warehouse
     wh_by_item = {}
     for code, st in getattr(wh, 'by_item', {}).items():
@@ -283,12 +263,12 @@ def build_payload(env, summary: Dict[str, Any], *, sample_sec: int = SAMPLE_SEC)
             'by_entity': {
                 'workers'            : workers,
                 'warehouse_by_item'  : wh_by_item,
-                'equipment_op_time'  : getattr(env, 'smt_op_time', {}),   # 설비별 가동시간(초)
+                'equipment_op_time'  : getattr(env, 'smt_op_time', {}),
             },
             'events': {
                 'schedule'  : events,
                 'warehouse' : wh_events,
-                'equipment' : smt_events,                                  # 설비별 가동 이벤트
+                'equipment' : smt_events,
             },
             'timeseries': {
                 'sample_sec'         : sample_sec,
@@ -296,8 +276,8 @@ def build_payload(env, summary: Dict[str, Any], *, sample_sec: int = SAMPLE_SEC)
                 'cumulative_completed': cum_done,
                 'completion_ratio'   : ratio,
                 'wip'                : wip,
-                'active_workers'     : act_workers,           # 전체 합
-                'line_active_workers': line_active,           # 라인(설비)별 가동 작업자 수 {line:[...]}
+                'active_workers'     : act_workers,
+                'line_active_workers': line_active,
             },
         },
         'carbon': {

@@ -61,7 +61,6 @@ def train(env, agent, MaxEpisodes, run_name=None, episode_max_sec=EPISODE_DURATI
               f'makespan={summary["makespan_sec"]:.0f} E={summary["EpisodeEnergyKwh"]:.2f} '
               f'thru=[{thru}] ev={ev} {"BEST↑" if is_best else ""}', flush=True)
 
-    # 학습 종료 → best 체크포인트로 자족 추론 패키지 자동 생성 (result/runs/<run>/deploy/)
     if os.path.exists(ckpt):
         import package
         pkg = package.build_package(ckpt, os.path.join(_OUT, 'deploy'))
@@ -73,9 +72,9 @@ if __name__ == '__main__':
     import build
 
     _ROOT = os.path.dirname(os.path.abspath(__file__))
-    for _f in build.TRAINING_AAS_FILES:                # 학습은 5파일 (SMTEquipmentCatalog 제외)
+    for _f in build.TRAINING_AAS_FILES:
         path_extractor.load(os.path.join(_ROOT, 'aas_data', _f))
 
-    env   = build.build_simulation()                   # 수량·납기일·에피소드 모두 AAS(PurchaseOrder·SimulationConfig)에서
+    env   = build.build_simulation()
     agent = build.build_agent(env)
-    train(env, agent, env.MaxEpisodes, episode_max_sec=env.MaxEpisodeSec)   # 모드 무관 공통 상한
+    train(env, agent, env.MaxEpisodes, episode_max_sec=env.MaxEpisodeSec)

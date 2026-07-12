@@ -13,15 +13,13 @@
 from __future__ import annotations
 import os, sys, shutil, argparse
 
-import build   # TRAINING_AAS_FILES 단일 출처 (path_extractor 만 끌어옴 — torch 아님)
+import build
 
 _ROOT = os.path.dirname(os.path.abspath(__file__))
 
-# 추론 import 폐포 (run_trained → build → simulation → 도메인). util/train/rl_logger 는 불포함.
 CODE_MODULES = ['run_trained.py', 'build.py', 'simulation.py', 'export.py',
                 'knowledge_graph.py', 'warehouse.py', 'smt.py', 'carbon.py', 'path_extractor.py']
 
-# deploy/ 의 정적 템플릿 — 각 패키지에 그대로 복사
 TEMPLATE_FILES = ['requirements-infer.txt', 'scenario.example.json', 'README.md']
 
 
@@ -31,20 +29,20 @@ def build_package(checkpoint: str, out_dir: str, *, aas_dir: str = None) -> str:
         raise FileNotFoundError(f'checkpoint not found: {checkpoint}')
     os.makedirs(out_dir, exist_ok=True)
 
-    for mod in CODE_MODULES:                                    # 코드
+    for mod in CODE_MODULES:
         src = os.path.join(_ROOT, mod)
         if not os.path.isfile(src):
             raise FileNotFoundError(f'inference module missing: {mod}')
         shutil.copy2(src, os.path.join(out_dir, mod))
 
-    aas_out = os.path.join(out_dir, 'aas_data')                 # AAS (학습과 동일 5파일)
+    aas_out = os.path.join(out_dir, 'aas_data')
     os.makedirs(aas_out, exist_ok=True)
     for f in build.TRAINING_AAS_FILES:
         shutil.copy2(os.path.join(aas_dir, f), os.path.join(aas_out, f))
 
-    shutil.copy2(checkpoint, os.path.join(out_dir, 'agent_mod.pt'))   # 가중치
+    shutil.copy2(checkpoint, os.path.join(out_dir, 'agent_mod.pt'))
 
-    for f in TEMPLATE_FILES:                                    # 템플릿
+    for f in TEMPLATE_FILES:
         shutil.copy2(os.path.join(_ROOT, 'deploy', f), os.path.join(out_dir, f))
 
     return out_dir
