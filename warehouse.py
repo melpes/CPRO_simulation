@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 from __future__ import annotations
 
 from dataclasses import dataclass
@@ -31,10 +30,10 @@ class Warehouse:
                 )
         return cls(inventory)
     
-    def consume(self, ProcessConsumedBOM: dict, deduct: bool = True) -> list:
+    def consume(self, InputBOM: dict, deduct: bool = True) -> list:
         if not deduct:
             return []
-        for item_code, Quantity in ProcessConsumedBOM.items():
+        for item_code, Quantity in InputBOM.items():
             for Category in self.inventory:
                 if item_code in self.inventory[Category]:
                     self.inventory[Category][item_code].present_stock -= Quantity
@@ -79,10 +78,10 @@ class _StockRouter:
     def inventory(self):
         return {**self.main.inventory, **self.pcb.inventory}
 
-    def consume(self, ProcessConsumedBOM: dict, deduct: bool = True) -> list:
+    def consume(self, InputBOM: dict, deduct: bool = True) -> list:
         main_bom, pcb_bom = {}, {}
-        for code, qty in ProcessConsumedBOM.items():
-            (pcb_bom if code in self._pcb_items else main_bom)[code] = qty
+        for item_code, Quantity in InputBOM.items():
+            (pcb_bom if item_code in self._pcb_items else main_bom)[item_code] = Quantity
         ordered = self.main.consume(main_bom, deduct) if main_bom else []
         if pcb_bom:
             self.pcb.consume(pcb_bom, deduct)
@@ -90,8 +89,8 @@ class _StockRouter:
 
     def produce(self, OutputBOM: dict) -> None:
         main_bom, pcb_bom = {}, {}
-        for code, qty in OutputBOM.items():
-            (pcb_bom if code in self._pcb_items else main_bom)[code] = qty
+        for item_code, Quantity in OutputBOM.items():
+            (pcb_bom if item_code in self._pcb_items else main_bom)[item_code] = Quantity
         if main_bom:
             self.main.produce(main_bom)
         if pcb_bom:

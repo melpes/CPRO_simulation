@@ -1,0 +1,27 @@
+{
+  "scenario": "realloc",
+  "po": {
+    "MODEL_A": {
+      "qty": 100,
+      "due_day": 22
+    },
+    "MODEL_B": {
+      "qty": 100,
+      "due_day": 22
+    },
+    "MODEL_C": {
+      "qty": 100,
+      "due_day": 22
+    }
+  },
+  "realloc": {
+    "src": "WWM_SemiAssemblyLine",
+    "moves": {
+      "WWM_SetAssemblyLine": 2
+    },
+    "idle_trigger_sec": 600
+  },
+  "overrides": {
+    "seed": 42
+  }
+}

@@ -26,7 +26,7 @@ DEFAULT_TARGET = {model_id: quantity
 PCB_CATS  = set(PSM.SelfManagedBOM.keys())
 PCB_MODEL = {entity.idShort: aas.submodels['ManufacturingProcess'].model_id
              for aas in pe.ProductAAS
-             for entity in aas.submodels['HierarchicalStructures']._walk_entities()
+             for entity in aas.submodels['HierarchicalStructures']._traverse_entities()
              if entity.Qualifier.get('Category') in PCB_CATS}
 
 
@@ -187,15 +187,14 @@ def render_video(name: str, env, mode: str, agent=None, out_dir: Optional[str] =
         f = real_to_frame(t0)
         if f is None:
             continue
-        for pred in env.KnowledgeGraph._predecessors(pc):
+        for pred in env.KnowledgeGraph.DepPrev(pc):
             ts = comp.get(pred)
             if ts and bisect.bisect_right(ts, t0) > 0:
                 transitions.append((f, pred, pc, m))
 
     lines, line_x, pos = layout(env)
     KG = env.KnowledgeGraph
-    base_kw  = env.RuntimeVariables.BaselinePowerKw(
-                   env.workers, env.DefaultProcessConsumedPowerKw)
+    base_kw  = env.DefaultProcessConsumedPowerKw
     def _in_work(t):
         sid = t % 86400.0
         return (env.WorkStartTime <= sid < env.WorkEndTime
@@ -764,43 +763,16 @@ def capture_compare(out_dir: str, agents: Dict[str, object], max_sec: int = 60 *
 
 if __name__ == '__main__':
     import argparse, glob
-    p = argparse.ArgumentParser(
-        prog='visualization.py',
-        formatter_class=argparse.RawDescriptionHelpFormatter,
-        description='CPRO 시뮬레이션 시각화 — 모드별로 원하는 산출물만 생성',
-        epilog="""모드
-  video    공장 흐름 애니메이션 mp4
-  gantt    간트차트 png(+누적완료)   — 새로 구동하거나 --events 로 기존 jsonl만 렌더
-  alluvial 슬롯별 gantt-thread alluvial png (재배분 이동 패널/리본; realloc 없으면 기본 gantt-thread) — --events 로 기존 jsonl 렌더
-  prodtime 수량→도달시간 곡선 png (세 모델 한 축, x=수량 y=생산시간) — --events 로 기존 jsonl 렌더
-  events   이벤트 로그 events_*.jsonl 만 저장 (렌더 없음)
-  compare  그리디 vs 학습정책 동시 구동 → 공통 x축 간트 비교
-
-정책은 -c 로 정해진다: -c <ckpt.pt> 주면 학습정책, 없으면 그리디.
-출력은 -o, 생략 시 학습정책=체크포인트 폴더 / 그리디=result/viz.
-
-예시
-  python util/visualization.py gantt -c result/runs/<run>/best.pt   # 학습정책 → run 폴더에 간트
-  python util/visualization.py gantt                                # 그리디 → result/viz
-  python util/visualization.py gantt --events result/runs/<run>     # 기존 jsonl 폴더 → 간트만 재렌더
-  python util/visualization.py video -c result/runs/<run>/best.pt
-  python util/visualization.py compare -c result/runs/<run>/best.pt
-""")
-    p.add_argument('mode', nargs='?', default='gantt',
-                   choices=['video', 'gantt', 'alluvial', 'prodtime', 'events', 'compare'],
-                   help='산출물 종류 (기본 gantt)')
-    p.add_argument('-c', '--checkpoint',
-                   help='학습정책 체크포인트(.pt). 주면 학습정책, 없으면 그리디')
-    p.add_argument('-o', '--out-dir',
-                   help='출력 폴더 (기본: 학습정책=체크포인트 폴더, 그리디=result/viz)')
-    p.add_argument('--state-dim', type=int, default=0,
-                   help='학습정책 StateDim (기본 0=env에서 자동 추론)')
-    p.add_argument('-n', '--name', help='산출물 라벨 (기본=정책명)')
-    p.add_argument('--max-sec', type=int, default=60 * 86400,
-                   help='구동 상한 초 (기본 60일; 주문 완료 시 자동 종료되므로 보통 그대로)')
-    p.add_argument('--events', dest='events_src',
-                   help='gantt 모드: 기존 events.jsonl 파일/폴더를 렌더 (시뮬 생략)')
-    args = p.parse_args()
+    parser = argparse.ArgumentParser(description='CPRO 시뮬레이션 시각화 — 모드별로 원하는 산출물만 생성')
+    parser.add_argument('mode', nargs='?', default='gantt',
+                        choices=['video', 'gantt', 'alluvial', 'prodtime', 'events', 'compare'])
+    parser.add_argument('-c', '--checkpoint')
+    parser.add_argument('-o', '--out-dir')
+    parser.add_argument('--state-dim', type=int, default=0)
+    parser.add_argument('-n', '--name')
+    parser.add_argument('--max-sec', type=int, default=60 * 86400)
+    parser.add_argument('--events', dest='events_src')
+    args = parser.parse_args()
 
     trained = bool(args.checkpoint)
     label   = args.name or ('trained' if trained else 'greedy')
@@ -813,7 +785,7 @@ if __name__ == '__main__':
         if not trained:
             return None
         import build as cf
-        sd = args.state_dim or _recording_env().state_dim
+        sd = args.state_dim or _recording_env().StateDim
         return cf.build_agent(StateDim=sd, checkpoint=args.checkpoint)
 
     if args.mode == 'video':

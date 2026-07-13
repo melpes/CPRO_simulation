@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 from __future__ import annotations
 from typing import Dict, Optional, Type
 import os
@@ -13,6 +12,8 @@ TRAINING_AAS_FILES    = ('ProvisionOfSimulationModel.json', 'WorkstationWorkerMa
                          'MODEL_A.json', 'MODEL_B.json', 'MODEL_C.json') + _EQUIPMENT_AAS_FILES
 
 DEFAULT_AAS_FILES     = TRAINING_AAS_FILES
+
+SIM_GROUP_PREFIX = 'SIM_'
 
 
 def load_aas(aas_dir: str, *, files=DEFAULT_AAS_FILES) -> AssetAdministrationShell:
@@ -56,7 +57,7 @@ def build_simulation(aas_dir: Optional[str] = None, *,
     ManufacturingProcesses = {mp.model_id: mp for mp in SimulationModel.Warehouse.InputBOM.target}
     shared_groups          = {name: group
                               for name, group in SimulationModel.KnowledgeGraph.Node.value.items()
-                              if not name.startswith('SIM_')
+                              if not name.startswith(SIM_GROUP_PREFIX)
                               and any(node.SamplingRate is not None for node in group.value.values())}
     NodeFeatureAttrs = SimulationModel.ModelArchitecture.Observation.ObservationNodeFeatures.attrs()
     KnowledgeGraph   = knowledge_graph.KnowledgeGraph.build(ManufacturingProcesses, PSM.workers, shared_groups, node_feature_attrs=NodeFeatureAttrs)
@@ -65,12 +66,11 @@ def build_simulation(aas_dir: Optional[str] = None, *,
     if MaxEpisodes is None:
         MaxEpisodes = int(SimulationModel.SimulationConfig.MaxEpisodes.value)
 
-    _sc = SimulationModel.SimulationConfig.value
-    _dp = DefaultParameters.value
-    _flag = lambda d, k: (str(d[k].value).strip().lower() in ('true', '1')) if k in d else False
-    ScenarioMode     = _sc['ScenarioMode'].value if 'ScenarioMode' in _sc else 'FINITE'
-    InfiniteStock    = _flag(_dp, 'InfiniteStock')
-    MaxEpisodeSec    = int(_sc['MaxEpisodeSec'].value)
+    sim_config = SimulationModel.SimulationConfig.value
+    ScenarioMode  = sim_config['ScenarioMode'].value if 'ScenarioMode' in sim_config else 'FINITE'
+    InfiniteStock = (str(DefaultParameters.value['InfiniteStock'].value).strip().lower() in ('true', '1')
+                     ) if 'InfiniteStock' in DefaultParameters.value else False
+    MaxEpisodeSec = int(sim_config['MaxEpisodeSec'].value)
 
     SMTLines = None
     SMTProcess = SimulationModel.value.get('SMTProcess') if enable_smt else None
@@ -127,19 +127,16 @@ def build_agent(env=None, *, StateDim: Optional[int] = None, checkpoint: Optiona
     Arguments         = Algorithm.Arguments
 
     if StateDim is None:
-        StateDim = env.state_dim if env is not None else 0
-
-    def _input_source(child):
-        if isinstance(child, path_extractor.ReferenceElement):
-            return path_extractor._idShort_from_cd(child.value[0])
-        return child.value
+        StateDim = env.StateDim if env is not None else 0
 
     def _graph_spec(graph_smc):
         spec = []
         for node_id, node in graph_smc.value.items():
             operation = node.Operation.value
             arguments = {name: child.value for name, child in node.value['Arguments'].value.items()} if 'Arguments' in node.value else {}
-            inputs    = {name: _input_source(child) for name, child in node.value['Inputs'].value.items()} if 'Inputs' in node.value else {}
+            inputs    = {name: (path_extractor._idShort_from_cd(child.value[0])
+                                if isinstance(child, path_extractor.ReferenceElement) else child.value)
+                         for name, child in node.value['Inputs'].value.items()} if 'Inputs' in node.value else {}
             spec.append({'id': node_id, 'Operation': operation, 'Arguments': arguments, 'Inputs': inputs})
         return spec
 
@@ -165,13 +162,13 @@ def build_agent(env=None, *, StateDim: Optional[int] = None, checkpoint: Optiona
         RuntimeVariables = SimulationModel.RuntimeVariables,
     )
     if checkpoint is not None:
-        _ckpt = torch.load(checkpoint)
-        if isinstance(_ckpt, dict) and 'model' in _ckpt:
-            agent.load_state_dict(_ckpt['model'])
-            if _ckpt.get('optim') is not None:
-                agent.optimizer.load_state_dict(_ckpt['optim'])
+        ckpt_data = torch.load(checkpoint)
+        if isinstance(ckpt_data, dict) and 'model' in ckpt_data:
+            agent.load_state_dict(ckpt_data['model'])
+            if ckpt_data.get('optim') is not None:
+                agent.optimizer.load_state_dict(ckpt_data['optim'])
         else:
-            agent.load_state_dict(_ckpt)
+            agent.load_state_dict(ckpt_data)
         agent.eval()
         agent.reset_buffer()
     return agent

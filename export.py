@@ -1,15 +1,3 @@
-# -*- coding: utf-8 -*-
-"""추론(deploy) 실행 산출물 가공·출력.
-
-학습이 아니라 학습완료→deploy된 정책을 run_trained 로 1회 실행할 때, 그 스케줄 결과를
-KETI/TELOS/BI 가 받을 구조화 페이로드(생산성/탄소 × KPI·집계·이벤트·시계열)로 가공한다.
-
-데이터 출처(시뮬 본체 무수정):
-  - schedule 이벤트  : _ScheduleEnv 가 env.events 에 기록(workstation/model/process_code/start/end/unit_id)
-  - warehouse 이벤트 : RecordingWarehouse(여기 정의) 프록시가 consume/produce/replenish 가로채 기록
-  - 설비(SMT) 이벤트 : smt.py 훅 → env.smt_events / env.smt_op_time
-  - 시계열·순간전력  : 위 이벤트에서 SAMPLE_SEC(10분) 그리드로 파생(라이브 샘플링 불필요)
-"""
 from __future__ import annotations
 
 import json
@@ -29,8 +17,8 @@ class RecordingWarehouse:
         self.events: List[dict] = []
         self.by_item: Dict[str, dict] = {}
         self._code_of: Dict[int, str] = {}
-        for cat in inner.inventory.values():
-            for code, item in cat.items():
+        for category in inner.inventory.values():
+            for code, item in category.items():
                 self._code_of[id(item)] = code
                 self.by_item[code] = {
                     'lowest_present_stock': float(item.present_stock),
@@ -53,56 +41,56 @@ class RecordingWarehouse:
             'total_consumed': 0.0, 'total_arrived': 0.0})
 
     def _present(self, code: str):
-        for cat in self._inner.inventory.values():
-            if code in cat:
-                return cat[code].present_stock
+        for category in self._inner.inventory.values():
+            if code in category:
+                return category[code].present_stock
         return None
 
-    def consume(self, ProcessConsumedBOM: dict, deduct: bool = True) -> list:
-        before = {code: self._present(code) for code in ProcessConsumedBOM}
-        ordered = self._inner.consume(ProcessConsumedBOM, deduct)
-        t = float(self._clock())
-        for code, qty in ProcessConsumedBOM.items():
+    def consume(self, InputBOM: dict, deduct: bool = True) -> list:
+        before = {code: self._present(code) for code in InputBOM}
+        ordered = self._inner.consume(InputBOM, deduct)
+        now = float(self._clock())
+        for code, quantity in InputBOM.items():
             after = self._present(code)
-            st = self._stat(code)
-            st['total_consumed'] += qty
+            stat = self._stat(code)
+            stat['total_consumed'] += quantity
             if after is not None:
-                st['lowest_present_stock'] = min(st['lowest_present_stock'], float(after))
+                stat['lowest_present_stock'] = min(stat['lowest_present_stock'], float(after))
                 if before[code] is not None and before[code] > 0 >= after:
-                    st['stockout_count'] += 1
-            self.events.append({'item_code': code, 't_sec': t, 'type': 'consume',
-                                'qty': -float(qty),
+                    stat['stockout_count'] += 1
+            self.events.append({'item_code': code, 't_sec': now, 'type': 'consume',
+                                'qty': -float(quantity),
                                 'present_stock': None if after is None else float(after)})
         for item in ordered:
             code = self._code_of.get(id(item))
             if code is not None:
-                self.events.append({'item_code': code, 't_sec': t, 'type': 'order',
+                self.events.append({'item_code': code, 't_sec': now, 'type': 'order',
                                     'qty': 0.0, 'present_stock': float(item.present_stock)})
         return ordered
 
     def produce(self, OutputBOM: dict) -> None:
         self._inner.produce(OutputBOM)
-        t = float(self._clock())
-        for code, qty in OutputBOM.items():
-            self._stat(code)['total_arrived'] += qty
+        now = float(self._clock())
+        for code, quantity in OutputBOM.items():
+            self._stat(code)['total_arrived'] += quantity
             after = self._present(code)
-            self.events.append({'item_code': code, 't_sec': t, 'type': 'produce',
-                                'qty': float(qty),
+            self.events.append({'item_code': code, 't_sec': now, 'type': 'produce',
+                                'qty': float(quantity),
                                 'present_stock': None if after is None else float(after)})
 
     def replenish(self, env, ReplenishLeadDay, items, notify=None):
-        before = {id(it): it.present_stock for it in items}
+        before = {id(item): item.present_stock for item in items}
         yield from self._inner.replenish(env, ReplenishLeadDay, items, notify)
-        t = float(self._clock())
-        for it in items:
-            code = self._code_of.get(id(it))
+        now = float(self._clock())
+        for item in items:
+            code = self._code_of.get(id(item))
             if code is None:
                 continue
-            delta = it.present_stock - before[id(it)]
+            delta = item.present_stock - before[id(item)]
             if delta:
                 self._stat(code)['total_arrived'] += delta
-                self.events.append({'item_code': code, 't_sec': t, 'type': 'arrive',
-                                    'qty': float(delta), 'present_stock': float(it.present_stock)})
+                self.events.append({'item_code': code, 't_sec': now, 'type': 'arrive',
+                                    'qty': float(delta), 'present_stock': float(item.present_stock)})
 
 
 def _overlap(a0: float, a1: float, b0: float, b1: float) -> float:
@@ -110,140 +98,142 @@ def _overlap(a0: float, a1: float, b0: float, b1: float) -> float:
 
 
 def _union_len(intervals) -> float:
-    """겹치는 [start,end] 구간들의 합집합 길이 = 라인이 ≥1명 가동 중이던 wall-clock 시간."""
     if not intervals:
         return 0.0
-    ivs = sorted(intervals)
+    ordered = sorted(intervals)
     total = 0.0
-    cs, ce = ivs[0]
-    for s, e in ivs[1:]:
-        if s > ce:
-            total += ce - cs
-            cs, ce = s, e
+    current_start, current_end = ordered[0]
+    for start, end in ordered[1:]:
+        if start > current_end:
+            total += current_end - current_start
+            current_start, current_end = start, end
         else:
-            ce = max(ce, e)
-    return total + (ce - cs)
+            current_end = max(current_end, end)
+    return total + (current_end - current_start)
 
 
-def _is_terminal(env, pc: str) -> bool:
-    return pc not in env.KnowledgeGraph.edges
+def _is_terminal(env, process_code: str) -> bool:
+    return process_code not in env.KnowledgeGraph.edges
 
 
 def _grid(makespan: float, sample_sec: int):
-    n = max(1, math.ceil(makespan / sample_sec))
-    out = []
-    for i in range(n):
-        lo = i * sample_sec
-        hi = min((i + 1) * sample_sec, makespan)
-        out.append((lo, hi, (lo + hi) / 2.0))
-    return out
+    bucket_count = max(1, math.ceil(makespan / sample_sec))
+    grid = []
+    for i in range(bucket_count):
+        low  = i * sample_sec
+        high = min((i + 1) * sample_sec, makespan)
+        grid.append((low, high, (low + high) / 2.0))
+    return grid
 
 
 def build_payload(env, summary: Dict[str, Any], *, sample_sec: int = SAMPLE_SEC) -> Dict[str, Any]:
-    kg        = env.KnowledgeGraph
+    KnowledgeGraph = env.KnowledgeGraph
     events    = list(getattr(env, 'events', []))
     makespan  = float(summary.get('makespan_sec')
-                      or max((e['end_sec'] for e in events), default=0.0))
-    target    = {m: int(q) for m, q in env.target_qty.items()}
-    total_tg  = sum(target.values()) or 1
-    throughput = {m: int(v) for m, v in (summary.get('Throughput') or env.Throughput).items()}
-    base_kw   = env.RuntimeVariables.BaselinePowerKw(
-                    env.workers, env.DefaultProcessConsumedPowerKw)
+                      or max((event['end_sec'] for event in events), default=0.0))
+    target    = {model_id: int(quantity) for model_id, quantity in env.target_qty.items()}
+    total_target = sum(target.values()) or 1
+    throughput = {model_id: int(v) for model_id, v in (summary.get('Throughput') or env.Throughput).items()}
+    base_power_kw = env.DefaultProcessConsumedPowerKw
     smt_events = list(getattr(env, 'smt_events', []))
 
     def _in_work(t: float) -> bool:
-        sid = t % 86400.0
-        return (env.WorkStartTime <= sid < env.WorkEndTime
-                and not (env.break_start_sec <= sid < env.break_end_sec))
+        sec_in_day = t % 86400.0
+        return (env.WorkStartTime <= sec_in_day < env.WorkEndTime
+                and not (env.break_start_sec <= sec_in_day < env.break_end_sec))
 
+    # 워커 가동/유휴 집계
     busy: Dict[str, dict] = {}
-    line_ivs: Dict[str, list] = {}
-    for e in events:
-        d = busy.setdefault(e['workstation'], {'q': 0, 'busy_sec': 0.0})
-        d['q'] += 1
-        d['busy_sec'] += e['end_sec'] - e['start_sec']
-        line_ivs.setdefault(e['workstation'], []).append((e['start_sec'], e['end_sec']))
+    line_intervals: Dict[str, list] = {}
+    for event in events:
+        bucket = busy.setdefault(event['workstation'], {'q': 0, 'busy_sec': 0.0})
+        bucket['q'] += 1
+        bucket['busy_sec'] += event['end_sec'] - event['start_sec']
+        line_intervals.setdefault(event['workstation'], []).append((event['start_sec'], event['end_sec']))
     workers = {}
     for ws, info in env.workers.items():
-        wc  = info['worker_count']
-        cap = wc * makespan or 1.0
-        bs  = busy.get(ws, {}).get('busy_sec', 0.0)
-        idle = max(0.0, cap - bs)
-        op_sec = _union_len(line_ivs.get(ws, []))
-        workers[ws] = {'worker_count': wc,
+        worker_count = info['worker_count']
+        capacity = worker_count * makespan or 1.0
+        busy_sec = busy.get(ws, {}).get('busy_sec', 0.0)
+        idle = max(0.0, capacity - busy_sec)
+        operating_sec = _union_len(line_intervals.get(ws, []))
+        workers[ws] = {'worker_count': worker_count,
                        'processed_quantity': busy.get(ws, {}).get('q', 0),
-                       'operating_sec': round(op_sec, 1),
-                       'operating_ratio': round(op_sec / makespan, 4) if makespan else 0.0,
+                       'operating_sec': round(operating_sec, 1),
+                       'operating_ratio': round(operating_sec / makespan, 4) if makespan else 0.0,
                        'idle_sec': round(idle, 1),
-                       'idle_ratio': round(idle / cap, 4) if cap else 0.0}
+                       'idle_ratio': round(idle / capacity, 4) if capacity else 0.0}
 
-    term_end: Dict[str, float] = {}
-    for e in events:
-        if _is_terminal(env, e['process_code']):
-            term_end[e['model']] = max(term_end.get(e['model'], 0.0), e['end_sec'])
-    actual_due_day = {m: math.ceil(term_end[m] / 86400.0) for m in term_end}
+    # 모델별 실제 납기일 (마지막 종단 공정 완료시각)
+    terminal_end: Dict[str, float] = {}
+    for event in events:
+        if _is_terminal(env, event['process_code']):
+            terminal_end[event['model']] = max(terminal_end.get(event['model'], 0.0), event['end_sec'])
+    actual_due_day = {model_id: math.ceil(terminal_end[model_id] / 86400.0) for model_id in terminal_end}
 
+    # 유닛 구간 (WIP 계산용)
     unit_span: Dict[Any, dict] = {}
-    for e in events:
-        u = unit_span.setdefault(e.get('unit_id', id(e)),
-                                 {'start': e['start_sec'], 'end': 0.0})
-        u['start'] = min(u['start'], e['start_sec'])
-        if _is_terminal(env, e['process_code']):
-            u['end'] = max(u['end'], e['end_sec'])
+    for event in events:
+        unit = unit_span.setdefault(event.get('unit_id', id(event)),
+                                    {'start': event['start_sec'], 'end': 0.0})
+        unit['start'] = min(unit['start'], event['start_sec'])
+        if _is_terminal(env, event['process_code']):
+            unit['end'] = max(unit['end'], event['end_sec'])
     units = list(unit_span.values())
 
+    # 시계열 — 완료·WIP·순간전력·누적에너지
     grid = _grid(makespan, sample_sec)
-    ts_t, cum_done, ratio, wip, act_workers = [], [], [], [], []
+    t_series, cumulative_completed, completion_ratio, wip, active_workers = [], [], [], [], []
     line_active: Dict[str, list] = {ws: [] for ws in env.workers}
-    inst_power, cum_energy = [], []
-    running_e = 0.0
-    for lo, hi, mid in grid:
-        ts_t.append(round(hi, 1))
-        done = sum(1 for e in events
-                   if _is_terminal(env, e['process_code']) and e['end_sec'] <= hi)
-        cum_done.append(done)
-        ratio.append(round(done / total_tg, 4))
-        wip.append(sum(1 for u in units if u['start'] <= hi and not (u['end'] and u['end'] <= hi)))
+    instant_power, cumulative_energy = [], []
+    running_energy = 0.0
+    for low, high, mid in grid:
+        t_series.append(round(high, 1))
+        done = sum(1 for event in events
+                   if _is_terminal(env, event['process_code']) and event['end_sec'] <= high)
+        cumulative_completed.append(done)
+        completion_ratio.append(round(done / total_target, 4))
+        wip.append(sum(1 for unit in units if unit['start'] <= high and not (unit['end'] and unit['end'] <= high)))
         per_line = {ws: 0 for ws in env.workers}
-        for e in events:
-            if e['start_sec'] <= mid < e['end_sec']:
-                per_line[e['workstation']] = per_line.get(e['workstation'], 0) + 1
+        for event in events:
+            if event['start_sec'] <= mid < event['end_sec']:
+                per_line[event['workstation']] = per_line.get(event['workstation'], 0) + 1
         for ws in line_active:
             line_active[ws].append(per_line.get(ws, 0))
-        act_workers.append(sum(per_line.values()))
+        active_workers.append(sum(per_line.values()))
 
-        prem = 0.0
-        for e in events:
-            if e['start_sec'] <= mid < e['end_sec']:
-                node = kg.nodes[e['process_code']]
-                prem += node.RatedPowerKw
-        smt_p = sum(s['power_kw'] for s in smt_events if s['start_sec'] <= mid < s['end_sec'])
-        inst_power.append(round((base_kw if _in_work(mid) else 0.0) + prem + smt_p, 3))
+        premium_power = 0.0
+        for event in events:
+            if event['start_sec'] <= mid < event['end_sec']:
+                premium_power += KnowledgeGraph.nodes[event['process_code']].RatedPowerKw
+        smt_power = sum(s['power_kw'] for s in smt_events if s['start_sec'] <= mid < s['end_sec'])
+        instant_power.append(round((base_power_kw if _in_work(mid) else 0.0) + premium_power + smt_power, 3))
 
-        e_idle = base_kw * (env._work_elapsed(hi) - env._work_elapsed(lo)) / 3600.0
-        e_prem = 0.0
-        for e in events:
-            node = kg.nodes[e['process_code']]
-            e_prem += _overlap(e['start_sec'], e['end_sec'], lo, hi) \
-                      * node.RatedPowerKw / 3600.0
-        e_smt = sum(_overlap(s['start_sec'], s['end_sec'], lo, hi) * s['power_kw'] / 3600.0
-                    for s in smt_events)
-        running_e += e_idle + e_prem + e_smt
-        cum_energy.append(round(running_e, 4))
+        bucket_idle_kwh = base_power_kw * (env._work_elapsed(high) - env._work_elapsed(low)) / 3600.0
+        bucket_premium_kwh = 0.0
+        for event in events:
+            bucket_premium_kwh += _overlap(event['start_sec'], event['end_sec'], low, high) \
+                                  * KnowledgeGraph.nodes[event['process_code']].RatedPowerKw / 3600.0
+        bucket_smt_kwh = sum(_overlap(s['start_sec'], s['end_sec'], low, high) * s['power_kw'] / 3600.0
+                             for s in smt_events)
+        running_energy += bucket_idle_kwh + bucket_premium_kwh + bucket_smt_kwh
+        cumulative_energy.append(round(running_energy, 4))
 
-    total_e   = float(summary.get('EpisodeEnergyKwh') or 0.0)
-    premium_e = float(summary.get('ActivePremiumKwh') or 0.0)
-    smt_e     = float(getattr(env, 'SMTEnergyKwh', 0.0))
-    idle_e    = max(0.0, total_e - premium_e - smt_e)
-    active_e  = total_e - idle_e
+    # 에너지 총량 (유휴/가동/SMT 분해)
+    total_kwh   = float(summary.get('EpisodeEnergyKwh') or 0.0)
+    premium_kwh = float(summary.get('ActivePremiumKwh') or 0.0)
+    smt_kwh     = float(getattr(env, 'SMTEnergyKwh', 0.0))
+    idle_kwh    = max(0.0, total_kwh - premium_kwh - smt_kwh)
+    active_kwh  = total_kwh - idle_kwh
 
-    wh = env.warehouse
-    wh_by_item = {}
-    for code, st in getattr(wh, 'by_item', {}).items():
-        low = st.get('lowest_present_stock')
-        wh_by_item[code] = {**st,
-                            'lowest_present_stock': None if low in (float('inf'), float('-inf')) else low}
-    wh_events  = getattr(wh, 'events', [])
+    # 창고 품목별 집계
+    warehouse = env.warehouse
+    warehouse_by_item = {}
+    for code, stat in getattr(warehouse, 'by_item', {}).items():
+        low = stat.get('lowest_present_stock')
+        warehouse_by_item[code] = {**stat,
+                                   'lowest_present_stock': None if low in (float('inf'), float('-inf')) else low}
+    warehouse_events = getattr(warehouse, 'events', [])
 
     return {
         'meta': {
@@ -257,41 +247,41 @@ def build_payload(env, summary: Dict[str, Any], *, sample_sec: int = SAMPLE_SEC)
                 'makespan_sec'  : round(makespan, 1),
                 'throughput'    : throughput,
                 'order_quantity': target,
-                'due_day'       : {m: round(env.DueDay[m] / 86400.0) for m in target},
+                'due_day'       : {model_id: round(env.DueDay[model_id] / 86400.0) for model_id in target},
                 'actual_due_day': actual_due_day,
             },
             'by_entity': {
                 'workers'            : workers,
-                'warehouse_by_item'  : wh_by_item,
+                'warehouse_by_item'  : warehouse_by_item,
                 'equipment_op_time'  : getattr(env, 'smt_op_time', {}),
             },
             'events': {
                 'schedule'  : events,
-                'warehouse' : wh_events,
+                'warehouse' : warehouse_events,
                 'equipment' : smt_events,
             },
             'timeseries': {
                 'sample_sec'         : sample_sec,
-                't_sec'              : ts_t,
-                'cumulative_completed': cum_done,
-                'completion_ratio'   : ratio,
+                't_sec'              : t_series,
+                'cumulative_completed': cumulative_completed,
+                'completion_ratio'   : completion_ratio,
                 'wip'                : wip,
-                'active_workers'     : act_workers,
+                'active_workers'     : active_workers,
                 'line_active_workers': line_active,
             },
         },
         'carbon': {
             'kpi': {
-                'total_power_kwh'    : round(total_e, 2),
-                'idle_power_kwh'     : round(idle_e, 2),
-                'active_power_kwh'   : round(active_e, 2),
-                'total_carbon_kgco2e': round(carbon.total(total_e), 2),
+                'total_power_kwh'    : round(total_kwh, 2),
+                'idle_power_kwh'     : round(idle_kwh, 2),
+                'active_power_kwh'   : round(active_kwh, 2),
+                'total_carbon_kgco2e': round(carbon.TotalEmission(total_kwh), 2),
             },
             'timeseries': {
                 'sample_sec'           : sample_sec,
-                't_sec'                : ts_t,
-                'instant_power_kw'     : inst_power,
-                'cumulative_energy_kwh': cum_energy,
+                't_sec'                : t_series,
+                'instant_power_kw'     : instant_power,
+                'cumulative_energy_kwh': cumulative_energy,
             },
         },
     }

@@ -1,0 +1,52 @@
+{
+  "scenario": "infinite",
+  "points": [
+    {
+      "MODEL_A": {
+        "qty": 50
+      },
+      "MODEL_B": {
+        "qty": 50
+      },
+      "MODEL_C": {
+        "qty": 50
+      }
+    },
+    {
+      "MODEL_A": {
+        "qty": 100
+      },
+      "MODEL_B": {
+        "qty": 100
+      },
+      "MODEL_C": {
+        "qty": 100
+      }
+    },
+    {
+      "MODEL_A": {
+        "qty": 150
+      },
+      "MODEL_B": {
+        "qty": 150
+      },
+      "MODEL_C": {
+        "qty": 150
+      }
+    },
+    {
+      "MODEL_A": {
+        "qty": 200
+      },
+      "MODEL_B": {
+        "qty": 200
+      },
+      "MODEL_C": {
+        "qty": 200
+      }
+    }
+  ],
+  "overrides": {
+    "seed": 42
+  }
+}

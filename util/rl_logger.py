@@ -1,46 +1,30 @@
-# -*- coding: utf-8 -*-
-"""RL 학습 진단 로거 — 학습 진단 항목을 매 에피소드 JSONL 로 기록.
-
-`simulation.py:train()` 에서 에피소드마다 1회 호출. PPOAgent.learn 이
-반환하는 진단 dict(B/C/D 패널) + 도메인 결과(E) + rollout/길이(F) + running
-best(A 부분) 를 한 줄(JSON) 로 누적 append. 별도 eval rollout/baseline 이
-필요한 A·F 일부(eval/return_mean, vs_random, vs_baseline, train_eval_gap)는
-이번 범위 밖(Tier 3) — 추후 deterministic eval set 도입 시 추가.
-
-순수 표준 라이브러리만 사용 (json/time/statistics). torch 의존 없음.
-"""
 from __future__ import annotations
 import json, math, os, time, statistics
 from typing import Optional
 
 
-def _finite(v):
-    # NaN/Inf → None (유효 JSON 유지; ev 정의불가 케이스를 null 로 표기)
-    return None if isinstance(v, float) and not math.isfinite(v) else v
-
-
 class RLLogger:
     def __init__(self, path: str, entropy_window: int = 10, resume: bool = False):
-        self.path           = path
-        self.entropy_window = entropy_window
-        self._R_hist        = []        # 에피소드별 train rollout reward
-        self._len_hist      = []        # 에피소드별 결정점 수
-        self._ent_hist      = []        # 에피소드별 policy entropy
-        self._best_R        = None
-        self.next_episode   = 0         # 다음 에피소드 번호 (resume 시 기존 로그 뒤부터)
-        if resume and os.path.exists(path):               # 이어달리기: 로그 유지 + 통계/번호 복원, append
+        self.path             = path
+        self.entropy_window   = entropy_window
+        self._R_history       = []
+        self._length_history  = []
+        self._entropy_history = []
+        self._best_R          = None
+        self.next_episode     = 0
+        if resume and os.path.exists(path):
             for line in open(path, encoding='utf-8'):
-                try: d = json.loads(line)
+                try: entry = json.loads(line)
                 except Exception: continue
-                if 'train/rollout_reward' in d:  self._R_hist.append(float(d['train/rollout_reward']))
-                if 'sanity/episode_length' in d: self._len_hist.append(int(d['sanity/episode_length']))
-                if d.get('exploration/entropy') is not None: self._ent_hist.append(float(d['exploration/entropy']))
-                if d.get('eval/return_best_so_far') is not None:
-                    b = float(d['eval/return_best_so_far'])
-                    self._best_R = b if self._best_R is None else max(self._best_R, b)
-                self.next_episode = int(d.get('episode', self.next_episode - 1)) + 1
+                if 'train/rollout_reward' in entry:  self._R_history.append(float(entry['train/rollout_reward']))
+                if 'sanity/episode_length' in entry: self._length_history.append(int(entry['sanity/episode_length']))
+                if entry.get('exploration/entropy') is not None: self._entropy_history.append(float(entry['exploration/entropy']))
+                if entry.get('eval/return_best_so_far') is not None:
+                    best = float(entry['eval/return_best_so_far'])
+                    self._best_R = best if self._best_R is None else max(self._best_R, best)
+                self.next_episode = int(entry.get('episode', self.next_episode - 1)) + 1
         else:
-            open(self.path, 'w', encoding='utf-8').close()    # 새 run = 새 파일
+            open(self.path, 'w', encoding='utf-8').close()
 
     def log_episode(self, episode: int, *, R: float, makespan: float,
                      energy: float, throughput: dict, target_qty: dict,
@@ -53,10 +37,10 @@ class RLLogger:
                      smt_equip_energy: Optional[dict] = None,
                      completion_sec: Optional[dict] = None,
                      idle_time_total: Optional[float] = None,
-                     line_idle_time: Optional[dict] = None) -> bool:
-        """한 에피소드 기록 후 is_best 반환 (best 갱신 시 train 이 .pt 저장)."""
-        self._R_hist.append(float(R))
-        self._len_hist.append(int(decisions))
+                     line_idle_time: Optional[dict] = None,
+                     extra: Optional[dict] = None) -> bool:
+        self._R_history.append(float(R))
+        self._length_history.append(int(decisions))
         is_best = self._best_R is None or R > self._best_R
         if is_best:
             self._best_R = float(R)
@@ -69,52 +53,51 @@ class RLLogger:
             'episode'                     : episode,
             'wall_time'                   : round(time.time(), 3),
 
-            # [F] SANITY & DEBUGGING — 단독 신뢰 금지, eval 와 함께만 의미
             'train/rollout_reward'        : float(R),
-            'train/rollout_reward_mean'   : statistics.fmean(self._R_hist),
-            'sanity/reward_std'           : (statistics.pstdev(self._R_hist)
-                                             if len(self._R_hist) > 1 else 0.0),
+            'train/rollout_reward_mean'   : statistics.fmean(self._R_history),
+            'sanity/reward_std'           : (statistics.pstdev(self._R_history)
+                                             if len(self._R_history) > 1 else 0.0),
             'sanity/episode_length'       : int(decisions),
-            'sanity/episode_length_mean'  : statistics.fmean(self._len_hist),
+            'sanity/episode_length_mean'  : statistics.fmean(self._length_history),
 
-            # [A] LEARNING SIGNAL — running max (진동해도 monotonic). eval_* 는 Tier3.
             'eval/return_best_so_far'     : self._best_R,
             'is_best'                     : is_best,
 
-            # [E] TASK-SPECIFIC — reward 설계와 무관한 도메인 품질
-            'task/primary_metric'         : float(makespan),     # makespan(sec)
+            'task/primary_metric'         : float(makespan),
             'task/energy_kwh'             : float(energy),
             'task/throughput'             : produced,
             'task/throughput_ratio'       : produced / ordered,
             'task/feasibility_rate'       : 1.0 if feasible else produced / ordered,
-            **{f'task/throughput/{m}': throughput[m] for m in throughput},   # 모델별 생산량
+            **{f'task/throughput/{m}': throughput[m] for m in throughput},
         }
-        if violations:                                       # W3/W4/W6 누적 카운터 (보상 구성요소 — 학습 추세 추적용)
+        if violations:
             row.update({f'task/{k}': v for k, v in violations.items()})
-        if reward_terms:                                     # 항별(W1~W8) 가중·정규화 보상 기여도 (합 = R)
+        if reward_terms:
             row.update({f'reward/{k}': v for k, v in reward_terms.items()})
-        if line_energy:                                      # 라인(워크스테이션·SMT)별 active 에너지 kWh
+        if line_energy:
             row.update({f'energy/line/{k}': v for k, v in line_energy.items()})
         if idle_energy is not None:
-            row['energy/idle'] = idle_energy                 # 에피소드 내 유휴(대기) 에너지 kWh
+            row['energy/idle'] = idle_energy
         if smt_energy is not None:
             row['energy/smt'] = smt_energy
-        if smt_equip_energy:                                 # SMT 세부공정(Loader~AOI)별 에너지 kWh
-            row.update({f'energy/smt/{line}/{eq}': v
-                        for line, eqs in smt_equip_energy.items() for eq, v in eqs.items()})
-        if completion_sec:                                   # 모델별 PO 수량 충족 시각(초, 미완=null)
+        if smt_equip_energy:
+            row.update({f'energy/smt/{line}/{name}': v
+                        for line, equipment in smt_equip_energy.items() for name, v in equipment.items()})
+        if completion_sec:
             row.update({f'task/completion_sec/{m}': v for m, v in completion_sec.items()})
         if idle_time_total is not None:
-            row['idle_sec/total'] = idle_time_total          # 작업자 총 유휴 시간 (worker-초 합, 나누지 않음)
-        if line_idle_time:                                   # 라인별 작업자당 평균 유휴 시간 (초)
+            row['idle_sec/total'] = idle_time_total
+        if line_idle_time:
             row.update({f'idle_sec/line/{k}': v for k, v in line_idle_time.items()})
+        if extra:
+            row.update(extra)
 
-        # [B] CRITIC / [C] STABILITY / [D] EXPLORATION — learn() 진단 dict
         if metrics:
-            row.update({k: _finite(v) for k, v in metrics.items()})
-            ent = metrics.get('exploration/entropy')
-            if ent is not None:
-                self._ent_hist.append(float(ent))
+            row.update({k: (None if isinstance(v, float) and not math.isfinite(v) else v)
+                        for k, v in metrics.items()})
+            entropy = metrics.get('exploration/entropy')
+            if entropy is not None:
+                self._entropy_history.append(float(entropy))
                 row['exploration/entropy_slope'] = self._entropy_slope()
 
         with open(self.path, 'a', encoding='utf-8') as f:
@@ -122,13 +105,12 @@ class RLLogger:
         return is_best
 
     def _entropy_slope(self) -> float:
-        # 최근 window entropy 의 단순 선형회귀 기울기 (collapse 속도). <2 → 0.
-        w = self._ent_hist[-self.entropy_window:]
-        if len(w) < 2:
+        window = self._entropy_history[-self.entropy_window:]
+        if len(window) < 2:
             return 0.0
-        xs = list(range(len(w)))
-        mx, my = statistics.fmean(xs), statistics.fmean(w)
-        den = sum((x - mx) ** 2 for x in xs)
-        if den == 0:
+        xs = list(range(len(window)))
+        mean_x, mean_y = statistics.fmean(xs), statistics.fmean(window)
+        denominator = sum((x - mean_x) ** 2 for x in xs)
+        if denominator == 0:
             return 0.0
-        return sum((x - mx) * (y - my) for x, y in zip(xs, w)) / den
+        return sum((x - mean_x) * (y - mean_y) for x, y in zip(xs, window)) / denominator

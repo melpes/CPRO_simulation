@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 from __future__ import annotations
 
 import json
@@ -19,18 +18,10 @@ class semanticId(str):
     pass
 
 
-class SMEPath(list):
-    @classmethod
-    def _parse(cls, raw_reference: dict | None) -> 'SMEPath':
-        if not raw_reference:
-            return cls()
-        return cls(semanticId(key.get('value', '')) for key in raw_reference.get('keys', []))
-
-    @staticmethod
-    def _parse_as_list(raw_reference: dict | None) -> List[semanticId]:
-        if not raw_reference:
-            return []
-        return [semanticId(key.get('value', '')) for key in raw_reference.get('keys', [])]
+def _reference_keys(raw_reference: dict | None) -> List[semanticId]:
+    if not raw_reference:
+        return []
+    return [semanticId(key.get('value', '')) for key in raw_reference.get('keys', [])]
 
 
 class Qualifier(dict):
@@ -44,7 +35,7 @@ class SubmodelElement:
     Qualifier: Qualifier = field(default_factory=Qualifier)
     value: (Dict[str, SubmodelElement]
             | List[SubmodelElement]
-            | List[semanticId] | SMEPath
+            | List[semanticId]
             | str | int | float | bool
             | None) = None
 
@@ -58,7 +49,7 @@ class SubmodelElement:
     def keys(self):  return self.value.keys()
     def values(self):return self.value.values()
 
-    def _walk_entities(self):
+    def _traverse_entities(self):
         if isinstance(self, Entity):
             yield self
         for children_attr in ('value', 'statements'):
@@ -66,11 +57,11 @@ class SubmodelElement:
             if isinstance(children, dict):
                 for child in children.values():
                     if isinstance(child, SubmodelElement):
-                        yield from child._walk_entities()
+                        yield from child._traverse_entities()
             elif isinstance(children, list):
                 for child in children:
                     if isinstance(child, SubmodelElement):
-                        yield from child._walk_entities()
+                        yield from child._traverse_entities()
 
 
 @dataclass(kw_only=True)
@@ -161,7 +152,7 @@ class SMTEquipmentProcess(SubmodelElementCollection):
         if equipment is None:
             return None
         for submodel in equipment.submodels.values():
-            found = _walk_for_match(submodel, reference.semanticId)
+            found = _traverse_for_match(submodel, reference.semanticId)
             if found is not None:
                 return found
         return None
@@ -199,22 +190,8 @@ class RuntimeVariables(SubmodelElementCollection):
         ('SimulationModels', 'SimulationModel', 'RuntimeVariables'),
     ]
 
-    def BaselinePowerKw(self, workers, DefaultProcessConsumedPowerKw) -> float:
-        """근무시간 상시 기저전력(kW) = 공장 전체 기저부하(대기전력) 1회 적용.
-        DefaultProcessConsumedPowerKw 는 라인별이 아니라 공장 전체의 상시 소모를 표현
-        (workers 는 시그니처 유지용 — 계산에 사용하지 않음). SMT 가동 에너지는 별도 적산."""
-        return DefaultProcessConsumedPowerKw
-
-    def IdleBaselineKwh(self, workers, WorkElapsedSec, DefaultProcessConsumedPowerKw) -> float:
-        """기저 에너지(kWh) — 근무시간(휴게 제외) 경과분에만 적산. 야간·휴게엔 소모 없음."""
-        return WorkElapsedSec * self.BaselinePowerKw(workers, DefaultProcessConsumedPowerKw) / 3600
-
-    def ExpectedMakespanSec(self, KnowledgeGraph, target_qty, workers,
-                            MarginFactor=1.5) -> float:
-        """예상 makespan(근무초) = 병목 라인 하한 × 여유계수.
-        라인별 총 작업량(Σ target × CycleTimeSec)을 병렬 슬롯(worker_count × UnitsPerWorker)으로
-        나눈 값의 최대 — 자재 대기·블로킹은 안 세는 하한이라 MarginFactor 로 보수화.
-        W2 분모의 시간항 지평: 실 makespan 이 이를 넘으면 비율 > 1 (의도적으로 허용)."""
+    def _expected_makespan_sec(self, KnowledgeGraph, target_qty, workers,
+                               margin_factor=1.5) -> float:
         total = sum(target_qty.values())
         bottleneck = 0.0
         for info in workers.values():
@@ -225,36 +202,28 @@ class RuntimeVariables(SubmodelElementCollection):
                        for pc in info.get('ProcessCode', [])
                        if (node := KnowledgeGraph.nodes.get(pc)) is not None)
             bottleneck = max(bottleneck, load / slots)
-        return MarginFactor * bottleneck
+        return margin_factor * bottleneck
 
-    def MaxEpisodeEnergyKwh(self, KnowledgeGraph, target_qty, workers, WorkDaySec,
-                            DefaultProcessConsumedPowerKw, SmtPowerKw=0.0,
-                            HorizonMode='bottleneck') -> float:
-        """W2 분모(정규화 상수) = 가동 최대(전 노드 target 회 × 정격)
-        + 기저 + SMT(라인 정격 합 — 근무시간 연속 소모라 시간 비례) × 지평.
-        HorizonMode: 'bottleneck'=병목 기반 예상 makespan(기본) /
-        'serial'=하루 근무초 × 총 target(구 방식, 직렬 가정 — 비교실험용:
-        지평이 실제의 수십 배라 기저·SMT 항이 자기상쇄돼 D 증감이 신호에 안 잡힘)."""
+    def MaxEpisodeEnergyKwh(self, KnowledgeGraph, target_qty, workers, work_day_sec,
+                            DefaultProcessConsumedPowerKw, smt_power_kw=0.0,
+                            horizon_mode='bottleneck') -> float:
         total = sum(target_qty.values())
-        horizon_sec = (self.ExpectedMakespanSec(KnowledgeGraph, target_qty, workers)
-                       if HorizonMode == 'bottleneck' else 0.0)
+        horizon_sec = (self._expected_makespan_sec(KnowledgeGraph, target_qty, workers)
+                       if horizon_mode == 'bottleneck' else 0.0)
         if horizon_sec <= 0:
-            horizon_sec = WorkDaySec * total
+            horizon_sec = work_day_sec * total
         active_max = sum(
             target_qty.get(node.model_id, total)
             * node.CycleTimeSec
             * node.RatedPowerKw
             for node in KnowledgeGraph.nodes.values()
         ) / 3600
-        baseline_max = self.IdleBaselineKwh(workers, horizon_sec,
-                                            DefaultProcessConsumedPowerKw)
-        smt_max = SmtPowerKw * horizon_sec / 3600
+        baseline_max = horizon_sec * DefaultProcessConsumedPowerKw / 3600
+        smt_max = smt_power_kw * horizon_sec / 3600
         return max(1e-6, active_max + baseline_max + smt_max)
 
-    def EpisodeEnergyKwh(self, GraphNode, EpisodeEnergyKwh) -> float:
-        """가동 에너지 적산 — 공정 1회 수행분 CycleTimeSec × RatedPowerKw.
-        기저는 워크스테이션 단위(IdleBaselineKwh)라 노드별 차감 없음."""
-        return EpisodeEnergyKwh + GraphNode.CycleTimeSec * GraphNode.RatedPowerKw / 3600
+    def EpisodeEnergyKwh(self, graph_node, EpisodeEnergyKwh) -> float:
+        return EpisodeEnergyKwh + graph_node.CycleTimeSec * graph_node.RatedPowerKw / 3600
 
     def CycleCompleted(self, ProcessCode, KnowledgeGraph) -> bool:
         return (ProcessCode in KnowledgeGraph.nodes
@@ -302,14 +271,6 @@ class RuntimeVariables(SubmodelElementCollection):
             progress = Throughput[model_id] / target_qty[model_id]
             deficit += max(0.0, required - progress)
         return DuePaceDeficit + deficit
-
-    def DuePaceDeficitByModel(self, Throughput, target_qty, DueDay, now, DuePaceDeficitByModel) -> dict:
-        result = {}
-        for model_id in target_qty:
-            required = min(now / DueDay[model_id], 1.0)
-            progress = Throughput[model_id] / target_qty[model_id]
-            result[model_id] = DuePaceDeficitByModel[model_id] + max(0.0, required - progress)
-        return result
 
     def EpisodeReturns(self, rewards, Gamma) -> list:
         EpisodeReturns, G = [], 0.0
@@ -420,8 +381,8 @@ class Entity(SubmodelElement):
 
 @dataclass(kw_only=True)
 class RelationshipElement(SubmodelElement):
-    first: List[semanticId] | SMEPath
-    second: List[semanticId] | SMEPath
+    first: List[semanticId]
+    second: List[semanticId]
 
 
 def _is_identifier(key: str) -> bool:
@@ -435,26 +396,26 @@ def _resolve_identifier(identifier: str):
             for submodel in aas.submodels.values():
                 if submodel.id == identifier:
                     return submodel
-                found = _walk_for_match(submodel, identifier)
+                found = _traverse_for_match(submodel, identifier)
                 if found is not None:
                     return found
     return None
 
 
-def _walk_for_match(node, target_identifier: str):
+def _traverse_for_match(node, target_identifier: str):
     if node.semanticId == target_identifier:
         return node
     for children_attr in ('value', 'statements'):
         children = node.__dict__.get(children_attr)
         if isinstance(children, dict):
             for child in children.values():
-                found = _walk_for_match(child, target_identifier)
+                found = _traverse_for_match(child, target_identifier)
                 if found is not None:
                     return found
         elif isinstance(children, list):
             for child in children:
                 if isinstance(child, SubmodelElement):
-                    found = _walk_for_match(child, target_identifier)
+                    found = _traverse_for_match(child, target_identifier)
                     if found is not None:
                         return found
     return None
@@ -462,11 +423,7 @@ def _walk_for_match(node, target_identifier: str):
 
 @dataclass(kw_only=True)
 class ReferenceElement(SubmodelElement):
-    value: List[semanticId] | SMEPath
-
-    @classmethod
-    def _parse_value(cls, raw_reference: dict | None):
-        return SMEPath._parse_as_list(raw_reference)
+    value: List[semanticId]
 
     def __getitem__(self, key):
         return self.target[key]
@@ -484,7 +441,7 @@ class ReferenceElement(SubmodelElement):
         if all(_is_identifier(key) for key in keys[1:]):
             node = first
             for key in keys[1:]:
-                found = _walk_for_match(node, key)
+                found = _traverse_for_match(node, key)
                 if found is None:
                     return [_resolve_identifier(key) for key in keys]
                 node = found
@@ -502,10 +459,7 @@ class ProcessNodePropertyRef(ReferenceElement):
         ('SimulationModels', 'SimulationModel', 'Node', '*', '*', 'DefectRate'),
         ('SimulationModels', 'SimulationModel', 'Node', '*', '*', 'RatedPowerKw'),
     ]
-    value: SMEPath
-
-    @classmethod
-    def _parse_value(cls, raw_reference): return SMEPath._parse(raw_reference)
+    value: List[semanticId]
 
     @property
     def target(self) -> Property:
@@ -573,15 +527,12 @@ class WWMPropertyRef(ReferenceElement):
         ('SimulationModels', 'SimulationModel', 'DefaultParameters', 'WorkEndTime'),
         ('SimulationModels', 'SimulationModel', 'DefaultParameters', 'BreakDurationMin'),
     ]
-    value: SMEPath
-
-    @classmethod
-    def _parse_value(cls, raw_reference): return SMEPath._parse(raw_reference)
+    value: List[semanticId]
 
     @property
     def target(self) -> Property:
         wwm_submodel = _find_submodel_by_id(self.value[0])
-        return _walk_for_match(wwm_submodel, self.value[1])
+        return _traverse_for_match(wwm_submodel, self.value[1])
 
 
 def _find_submodel_by_id(url: str):
@@ -618,25 +569,25 @@ def _find_typed_by_semantic(url: str, target_type: type):
         aas_list = entry if isinstance(entry, list) else [entry]
         for aas in aas_list:
             for submodel in aas.submodels.values():
-                found = _walk_for_typed(submodel, url, target_type)
+                found = _traverse_for_typed(submodel, url, target_type)
                 if found is not None:
                     return found
     return None
 
 
-def _walk_for_typed(node, target_url: str, target_type: type):
+def _traverse_for_typed(node, target_url: str, target_type: type):
     if isinstance(node, target_type) and node.semanticId == target_url:
         return node
     for children_attr in ('value', 'statements'):
         children = node.__dict__.get(children_attr)
         if isinstance(children, dict):
             for child in children.values():
-                found = _walk_for_typed(child, target_url, target_type)
+                found = _traverse_for_typed(child, target_url, target_type)
                 if found is not None: return found
         elif isinstance(children, list):
             for child in children:
                 if isinstance(child, SubmodelElement):
-                    found = _walk_for_typed(child, target_url, target_type)
+                    found = _traverse_for_typed(child, target_url, target_type)
                     if found is not None: return found
     return None
 
@@ -679,10 +630,10 @@ class AssetAdministrationShell:
     def _grouped_bom(self, self_managed: bool | None) -> Dict[str, List[str]]:
         result: Dict[str, List[str]] = {}
         for aas in ProductAAS:
-            hs = aas.submodels.get('HierarchicalStructures')
-            if hs is None:
+            hierarchical_structures = aas.submodels.get('HierarchicalStructures')
+            if hierarchical_structures is None:
                 continue
-            for entity in hs._walk_entities():
+            for entity in hierarchical_structures._traverse_entities():
                 category = entity.Qualifier.get('Category')
                 if not category:
                     continue
@@ -734,7 +685,7 @@ def load(json_path: str) -> None:
         target_aas = WorkstationWorkerMatchingDataAAS
     else:
         target_aas = AssetAdministrationShell()
-        if any(sm.get('idShort') == 'HierarchicalStructures' for sm in raw_data.get('submodels', [])):
+        if any(submodel.get('idShort') == 'HierarchicalStructures' for submodel in raw_data.get('submodels', [])):
             ProductAAS.append(target_aas)
         else:
             EquipmentAAS.append(target_aas)
@@ -799,13 +750,13 @@ def _build_sme(raw_sme: dict, position: tuple) -> SubmodelElement:
         )
     if modelType == 'ReferenceElement':
         cls = domain_cls if (domain_cls and issubclass(domain_cls, ReferenceElement)) else ReferenceElement
-        return cls(**base_fields, value=cls._parse_value(raw_sme.get('value')))
+        return cls(**base_fields, value=_reference_keys(raw_sme.get('value')))
     if modelType == 'RelationshipElement':
         cls = domain_cls if (domain_cls and issubclass(domain_cls, RelationshipElement)) else RelationshipElement
         return cls(
             **base_fields,
-            first=SMEPath._parse_as_list(raw_sme.get('first')),
-            second=SMEPath._parse_as_list(raw_sme.get('second')),
+            first=_reference_keys(raw_sme.get('first')),
+            second=_reference_keys(raw_sme.get('second')),
         )
     return SubmodelElement(**base_fields)
 
@@ -813,7 +764,7 @@ def _build_sme(raw_sme: dict, position: tuple) -> SubmodelElement:
 def _match_domain(position: tuple):
     best_cls = None
     best_specificity = -1
-    for cls in _walk_subclasses(SubmodelElement):
+    for cls in _traverse_subclasses(SubmodelElement):
         for pattern in getattr(cls, '_positions_excluded', ()):
             if _position_matches(position, pattern):
                 return None
@@ -832,10 +783,10 @@ def _position_matches(position: tuple, pattern: tuple) -> bool:
     return all(p == '*' or p == s for s, p in zip(position, pattern))
 
 
-def _walk_subclasses(root: type):
+def _traverse_subclasses(root: type):
     for sub in root.__subclasses__():
         yield sub
-        yield from _walk_subclasses(sub)
+        yield from _traverse_subclasses(sub)
 
 
 def _cast_value(raw_value, valueType: str | None):

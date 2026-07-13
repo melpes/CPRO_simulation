@@ -29116,7 +29116,7 @@
                     }
                   ],
                   "valueType": "xs:float",
-                  "value": "18.4762",
+                  "value": "0.0",
                   "modelType": "Property"
                 },
                 {
@@ -29543,7 +29543,7 @@
                     }
                   ],
                   "valueType": "xs:float",
-                  "value": "30.9206",
+                  "value": "0.0",
                   "modelType": "Property"
                 }
               ],
@@ -29801,7 +29801,7 @@
                     }
                   ],
                   "valueType": "xs:float",
-                  "value": "12.0241",
+                  "value": "0.360723",
                   "modelType": "Property"
                 },
                 {
@@ -30349,7 +30349,7 @@
                     }
                   ],
                   "valueType": "xs:float",
-                  "value": "15.6313",
+                  "value": "0.468939",
                   "modelType": "Property"
                 },
                 {
@@ -30897,7 +30897,7 @@
                     }
                   ],
                   "valueType": "xs:float",
-                  "value": "16.8337",
+                  "value": "0.505011",
                   "modelType": "Property"
                 },
                 {
@@ -31273,7 +31273,7 @@
                     }
                   ],
                   "valueType": "xs:float",
-                  "value": "7.2144",
+                  "value": "0.216432",
                   "modelType": "Property"
                 },
                 {
@@ -31614,7 +31614,7 @@
                     }
                   ],
                   "valueType": "xs:float",
-                  "value": "19.2385",
+                  "value": "0.577155",
                   "modelType": "Property"
                 },
                 {
@@ -32033,7 +32033,7 @@
                     }
                   ],
                   "valueType": "xs:float",
-                  "value": "26.4530",
+                  "value": "0.79359",
                   "modelType": "Property"
                 },
                 {
@@ -32632,7 +32632,7 @@
                     }
                   ],
                   "valueType": "xs:float",
-                  "value": "15.8571",
+                  "value": "0.475713",
                   "modelType": "Property"
                 },
                 {
@@ -32973,7 +32973,7 @@
                     }
                   ],
                   "valueType": "xs:float",
-                  "value": "7.3784",
+                  "value": "0.221352",
                   "modelType": "Property"
                 },
                 {
@@ -33349,7 +33349,7 @@
                     }
                   ],
                   "valueType": "xs:float",
-                  "value": "7.3784",
+                  "value": "0.221352",
                   "modelType": "Property"
                 },
                 {
@@ -33682,7 +33682,7 @@
                     }
                   ],
                   "valueType": "xs:float",
-                  "value": "11.8055",
+                  "value": "0.354165",
                   "modelType": "Property"
                 },
                 {
@@ -33972,7 +33972,7 @@
                     }
                   ],
                   "valueType": "xs:float",
-                  "value": "12.8151",
+                  "value": "0.384453",
                   "modelType": "Property"
                 }
               ],
@@ -34902,7 +34902,7 @@
                     }
                   ],
                   "valueType": "xs:float",
-                  "value": "10.1845",
+                  "value": "0.79359",
                   "modelType": "Property"
                 },
                 {
@@ -35544,7 +35544,7 @@
                     }
                   ],
                   "valueType": "xs:float",
-                  "value": "24.9533",
+                  "value": "0.1945",
                   "modelType": "Property"
                 }
               ],
@@ -35802,7 +35802,7 @@
                     }
                   ],
                   "valueType": "xs:float",
-                  "value": "24.9533",
+                  "value": "8.034963",
                   "modelType": "Property"
                 },
                 {
@@ -36307,7 +36307,7 @@
                     }
                   ],
                   "valueType": "xs:float",
-                  "value": "24.9533",
+                  "value": "8.034963",
                   "modelType": "Property"
                 },
                 {
@@ -36726,7 +36726,7 @@
                     }
                   ],
                   "valueType": "xs:float",
-                  "value": "24.3504",
+                  "value": "7.840829",
                   "modelType": "Property"
                 },
                 {
@@ -37059,7 +37059,7 @@
                     }
                   ],
                   "valueType": "xs:float",
-                  "value": "24.2967",
+                  "value": "7.823537",
                   "modelType": "Property"
                 },
                 {

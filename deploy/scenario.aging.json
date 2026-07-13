@@ -1,0 +1,46 @@
+{
+  "scenario": "aging",
+  "po": {
+    "MODEL_A": {
+      "qty": 100,
+      "due_day": 22
+    },
+    "MODEL_B": {
+      "qty": 100,
+      "due_day": 22
+    },
+    "MODEL_C": {
+      "qty": 100,
+      "due_day": 22
+    }
+  },
+  "points": [
+    {
+      "poe_switches": 1,
+      "units_per_switch": 6,
+      "units_per_worker": 2,
+      "worker_count": 6
+    },
+    {
+      "poe_switches": 2,
+      "units_per_switch": 6,
+      "units_per_worker": 4,
+      "worker_count": 6
+    },
+    {
+      "poe_switches": 4,
+      "units_per_switch": 8,
+      "units_per_worker": 10,
+      "worker_count": 6
+    },
+    {
+      "poe_switches": 6,
+      "units_per_switch": 8,
+      "units_per_worker": 45,
+      "worker_count": 6
+    }
+  ],
+  "overrides": {
+    "seed": 42
+  }
+}

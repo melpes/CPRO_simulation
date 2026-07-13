@@ -24139,7 +24139,7 @@
                     }
                   ],
                   "valueType": "xs:float",
-                  "value": "33.257",
+                  "value": "0.0",
                   "modelType": "Property"
                 },
                 {
@@ -24618,7 +24618,7 @@
                     }
                   ],
                   "valueType": "xs:float",
-                  "value": "32.949",
+                  "value": "0.0",
                   "modelType": "Property"
                 },
                 {
@@ -25074,7 +25074,7 @@
                     }
                   ],
                   "valueType": "xs:float",
-                  "value": "30.794",
+                  "value": "0.0",
                   "modelType": "Property"
                 }
               ],
@@ -25362,7 +25362,7 @@
                     }
                   ],
                   "valueType": "xs:float",
-                  "value": "6.687",
+                  "value": "0.20061",
                   "modelType": "Property"
                 },
                 {
@@ -25816,7 +25816,7 @@
                     }
                   ],
                   "valueType": "xs:float",
-                  "value": "6.396",
+                  "value": "0.19188",
                   "modelType": "Property"
                 },
                 {
@@ -26255,7 +26255,7 @@
                     }
                   ],
                   "valueType": "xs:float",
-                  "value": "18.607",
+                  "value": "0.55821",
                   "modelType": "Property"
                 },
                 {
@@ -26697,7 +26697,7 @@
                     }
                   ],
                   "valueType": "xs:float",
-                  "value": "18.316",
+                  "value": "0.54948",
                   "modelType": "Property"
                 },
                 {
@@ -27085,7 +27085,7 @@
                     }
                   ],
                   "valueType": "xs:float",
-                  "value": "18.316",
+                  "value": "0.54948",
                   "modelType": "Property"
                 },
                 {
@@ -27561,7 +27561,7 @@
                     }
                   ],
                   "valueType": "xs:float",
-                  "value": "35.596",
+                  "value": "1.06788",
                   "modelType": "Property"
                 },
                 {
@@ -28688,7 +28688,7 @@
                     }
                   ],
                   "valueType": "xs:float",
-                  "value": "14.537",
+                  "value": "0.43611",
                   "modelType": "Property"
                 },
                 {
@@ -29186,7 +29186,7 @@
                     }
                   ],
                   "valueType": "xs:float",
-                  "value": "14.537",
+                  "value": "0.43611",
                   "modelType": "Property"
                 },
                 {
@@ -29588,7 +29588,7 @@
                     }
                   ],
                   "valueType": "xs:float",
-                  "value": "2.472",
+                  "value": "0.07416",
                   "modelType": "Property"
                 },
                 {
@@ -29969,7 +29969,7 @@
                   "description": [
                     {
                       "language": "en",
-                      "text": "Aging test process. Equipment: Computer (0.15kW × 9) + Monitor + PoE + Aging Test chamber (estimated 10kW for 9 units). Sole process in AGING group."
+                      "text": "Aging test process. Equipment: Computer (0.15kW × 9) + Monitor + PoE + camera under test (~0.01kW/unit); aging chamber excluded (not in equipment master). Sole process in AGING group."
                     }
                   ],
                   "semanticId": {
@@ -29990,7 +29990,7 @@
                     }
                   ],
                   "valueType": "xs:float",
-                  "value": "10.1845",
+                  "value": "0.1945",
                   "modelType": "Property"
                 }
               ],
@@ -30278,7 +30278,7 @@
                     }
                   ],
                   "valueType": "xs:float",
-                  "value": "24.9533",
+                  "value": "8.034963",
                   "modelType": "Property"
                 },
                 {
@@ -30814,7 +30814,7 @@
                     }
                   ],
                   "valueType": "xs:float",
-                  "value": "24.9533",
+                  "value": "8.034963",
                   "modelType": "Property"
                 },
                 {
@@ -31202,7 +31202,7 @@
                     }
                   ],
                   "valueType": "xs:float",
-                  "value": "24.3504",
+                  "value": "7.840829",
                   "modelType": "Property"
                 },
                 {
@@ -31516,7 +31516,7 @@
                     }
                   ],
                   "valueType": "xs:float",
-                  "value": "24.2967",
+                  "value": "7.823537",
                   "modelType": "Property"
                 },
                 {
@@ -38005,7 +38005,7 @@
       "modelType": "ConceptDescription"
     },
     {
-      "idShort": "InpufBOM",
+      "idShort": "InputBOM",
       "displayName": [
         {
           "language": "en",

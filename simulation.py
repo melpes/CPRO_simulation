@@ -1,16 +1,19 @@
-# -*- coding: utf-8 -*-
 from __future__ import annotations
 
+import importlib
+import inspect
 import random
 import simpy
 import torch
 
-import carbon
 from warehouse import Warehouse, _StockRouter
+from knowledge_graph import SHARED_MODEL_ID
 
 
 EPISODE_DURATION_SEC = 30 * 86400
 
+
+# ── 시뮬레이션 환경 (SimPy 이산사건 공장) ──
 class CproSimEnv:
     def __init__(self, KnowledgeGraph, warehouse, workers,
                  IndependentSequence, DependentSequence, DependentJoin,
@@ -19,7 +22,7 @@ class CproSimEnv:
                  WorkStartTime, WorkEndTime, break_start_sec, break_end_sec,
                  IdleWorkerThreshold, RuntimeVariables,
                  DefaultProcessConsumedPowerKw, SelfManagedBOM=None,
-                 SMTLines=None, SmtArrayPcb=6, SmtBatchArrays=40, DueDay=None,
+                 SMTLines=None, SmtArrayPcb=6, DueDay=None,
                  InfiniteStock=False, ScenarioMode='FINITE', MaxEpisodeSec=None):
         self.KnowledgeGraph       = KnowledgeGraph
         self.warehouse            = warehouse
@@ -43,7 +46,6 @@ class CproSimEnv:
         self.RuntimeVariables     = RuntimeVariables
         self.SMTLines             = SMTLines
         self.SmtArrayPcb          = SmtArrayPcb
-        self.SmtBatchArrays       = SmtBatchArrays
         self.DueDay               = DueDay
         self.InfiniteStock        = InfiniteStock
         self.ScenarioMode         = ScenarioMode
@@ -62,7 +64,6 @@ class CproSimEnv:
         self.StockOverflowCount   = 0
         self.IdleViolationCount   = 0
         self.DuePaceDeficit       = 0.0
-        self.DuePaceDeficitByModel = {model_id: 0.0 for model_id in self.target_qty}
         self.CompletionSec        = {model_id: None for model_id in self.target_qty}
         self.smt_equip_energy     = {}
         self.completed            = set()
@@ -98,102 +99,68 @@ class CproSimEnv:
                                                * nominal_work_ticks)
         self._due_violation_norm   = max(1.0, len(self.target_qty) * nominal_work_ticks)
         smt_plan = getattr(self, 'SmtPlanEffective', None)
-        smt_kw = (sum(power for eq in self.SMTLines.values() for _, _, power in eq)
-                  if (self.SMTLines and self.SelfManagedBOM and not smt_plan) else 0.0)
         self.MaxEpisodeEnergyKwh = self.RuntimeVariables.MaxEpisodeEnergyKwh(
             self.KnowledgeGraph, self.target_qty, self.workers, work_day_sec,
-            self.DefaultProcessConsumedPowerKw, smt_kw,
-            HorizonMode=getattr(self, 'W2HorizonMode', 'bottleneck'))
+            self.DefaultProcessConsumedPowerKw,
+            horizon_mode=getattr(self, 'W2HorizonMode', 'bottleneck'))
         if smt_plan:
             import smt
             self.MaxEpisodeEnergyKwh += smt.plan_energy_kwh(self, smt_plan)
     
     def _counted_warehouse(self):
-        """W3/W4·재고 관측이 세는 창고 = 주창고만. SMT 자체관리 PCB(무한 공급, SMT가 계속 채움)는
-        재고 위반 대상이 아니므로 제외 — 라우터(_StockRouter)면 main, 아니면 그대로."""
         return getattr(self.warehouse, 'main', self.warehouse)
 
     @property
     def SteadyWIP(self) -> int:
-        """STEADY 정상상태 유지 WIP(모델당, 1배) = 전체 capacity ÷ 모델수. 초기 충전은 이의 2배로 넣고
-        완성되며 1배(이 값)로 수렴·유지 → 초기 버퍼 여유 + 정상상태 과잉재공 방지."""
         capacity = sum(i['worker_count'] * i['UnitsPerWorker'] for i in self.workers.values())
         return max(1, capacity // len(self.target_qty))
 
+    # 시간·근무시간 (야간·휴게 처리)
     def _is_work_time(self) -> bool:
         seconds_in_day  = self.env.now % 86400
         return (self.WorkStartTime <= seconds_in_day < self.WorkEndTime and
                 not (self.break_start_sec <= seconds_in_day < self.break_end_sec))
 
     def _off_hours_delta(self) -> float:
-        sid = self.env.now % 86400
-        if sid < self.WorkStartTime:
-            return self.WorkStartTime - sid
-        if self.break_start_sec <= sid < self.break_end_sec:
-            return self.break_end_sec - sid
-        return 86400 - sid + self.WorkStartTime
+        sec_in_day = self.env.now % 86400
+        if sec_in_day < self.WorkStartTime:
+            return self.WorkStartTime - sec_in_day
+        if self.break_start_sec <= sec_in_day < self.break_end_sec:
+            return self.break_end_sec - sec_in_day
+        return 86400 - sec_in_day + self.WorkStartTime
 
     def _work_elapsed(self, t: float) -> float:
-        """0~t 누적 작업시간(초). 일 단위 modulo·휴게 제외, 주말 없음 — _is_work_time과 동일 스케줄."""
         day = 86400.0
-        wd  = (self.WorkEndTime - self.WorkStartTime) - (self.break_end_sec - self.break_start_sec)
+        work_day = (self.WorkEndTime - self.WorkStartTime) - (self.break_end_sec - self.break_start_sec)
         full = int(t // day)
-        sid  = t - full * day
+        sec_in_day = t - full * day
         def seg(a, b):
-            return max(0.0, min(sid, b) - a) if sid > a else 0.0
+            return max(0.0, min(sec_in_day, b) - a) if sec_in_day > a else 0.0
         partial = seg(self.WorkStartTime, self.break_start_sec) + seg(self.break_end_sec, self.WorkEndTime)
-        return full * wd + partial
+        return full * work_day + partial
 
     def _flush_idle(self, ws, now: float):
-        """직전 flush~now 구간 유휴를 작업시간 기준으로 event 적산.
-        line_idle_time=총 유휴 worker-초, line_idle_viol=임계 초과분 worker-초(W6). in_progress 변경 직전에 호출."""
         if self.IdleRewardMode != 'time':
             return
-        s_prev = self.workers[ws]['worker_count'] - self.in_progress.get(ws, 0)
+        idle_slots = self.workers[ws]['worker_count'] - self.in_progress.get(ws, 0)
         dt = self._work_elapsed(now) - self._work_elapsed(self._idle_last_t[ws])
-        if s_prev > 0 and dt > 0:
-            self.line_idle_time[ws] += s_prev * dt
-            thr    = max(self.IdleWorkerThreshold, 0.0)
-            before = max(0.0, self._cont_idle[ws] - thr)
+        if idle_slots > 0 and dt > 0:
+            self.line_idle_time[ws] += idle_slots * dt
+            threshold = max(self.IdleWorkerThreshold, 0.0)
+            before = max(0.0, self._cont_idle[ws] - threshold)
             self._cont_idle[ws] += dt
-            after  = max(0.0, self._cont_idle[ws] - thr)
-            self.line_idle_viol[ws] += s_prev * (after - before)
-        if s_prev == 0:
+            after  = max(0.0, self._cont_idle[ws] - threshold)
+            self.line_idle_viol[ws] += idle_slots * (after - before)
+        if idle_slots == 0:
             self._cont_idle[ws] = 0.0
         self._idle_last_t[ws] = now
 
-    def process_job(self, ProcessCode, WorkstationId, done_set):
-        self._flush_idle(WorkstationId, self.env.now)
-        self.in_progress[WorkstationId] = self.in_progress.get(WorkstationId, 0) + 1
-        node = self.KnowledgeGraph.nodes[ProcessCode]
-        while not self._is_work_time():
-            yield self.env.timeout(self._off_hours_delta())
-        with self.worker_resources[WorkstationId].request() as req:
-            yield req
-            yield self.env.timeout(node.CycleTimeSec)
-        _e0 = self.EpisodeEnergyKwh
-        self.EpisodeEnergyKwh = self.RuntimeVariables.EpisodeEnergyKwh(
-            node, self.EpisodeEnergyKwh)
-        self.line_energy[WorkstationId] = self.line_energy.get(WorkstationId, 0.0) + (self.EpisodeEnergyKwh - _e0)
-        if node.InputBOM:
-            ordered = self.warehouse.consume(node.InputBOM, deduct=not self.InfiniteStock)
-            if ordered:
-                self.env.process(self.warehouse.replenish(
-                    self.env, self.ReplenishLeadDay, ordered))
-        if node.OutputBOM:
-            self.warehouse.produce(node.OutputBOM)
-        done_set.add(ProcessCode)
-        self._flush_idle(WorkstationId, self.env.now)
-        self.in_progress[WorkstationId] -= 1
-        if self.in_progress[WorkstationId] == 0:
-            self.last_active[WorkstationId] = self.env.now
-        self.CycleCompleted = self.RuntimeVariables.CycleCompleted(ProcessCode, self.KnowledgeGraph)
-
+    # 작업 디스패치·실행 (경합점 선택은 _dispatcher에서 agent가)
     def _ready_for(self, model_id, done_set):
         return [pc for pc in self.KnowledgeGraph.ready_queue(
                     self.IndependentSequence, self.DependentSequence,
                     self.DependentJoin, done_set, self.warehouse, self.InfiniteStock)
-                if self.KnowledgeGraph.nodes[pc].model_id in (model_id, 'ALL')]
+                if self.KnowledgeGraph.nodes[pc].model_id in (model_id, SHARED_MODEL_ID)]
 
     def _workstation_of(self, ProcessCode):
         return next((ws for ws in self.workers
@@ -211,7 +178,7 @@ class CproSimEnv:
             ev.succeed()
 
     def _dispatcher(self, ws, agent):
-        res = self.worker_resources[ws]
+        resource = self.worker_resources[ws]
         while True:
             if not self._pending[ws]:
                 self._disp_wake[ws] = self.env.event()
@@ -220,19 +187,19 @@ class CproSimEnv:
             if not self._is_work_time():
                 yield self.env.timeout(self._off_hours_delta())
                 continue
-            req = res.request()
+            req = resource.request()
             yield req
-            pend = self._pending[ws]
-            if not pend:
-                res.release(req)
+            pending = self._pending[ws]
+            if not pending:
+                resource.release(req)
                 continue
-            distinct_pcs = list(dict.fromkeys(j['pc'] for j in pend))
+            distinct_pcs = list(dict.fromkeys(j['pc'] for j in pending))
             if agent is not None and len(distinct_pcs) >= 2:
                 chosen_pc = agent.choose(distinct_pcs, self)
-                job = next(j for j in pend if j['pc'] == chosen_pc)
+                job = next(j for j in pending if j['pc'] == chosen_pc)
             else:
-                job = pend[0]
-            pend.remove(job)
+                job = pending[0]
+            pending.remove(job)
             self.env.process(self._run_job(ws, job, req))
 
     def _run_job(self, ws, job, req):
@@ -242,10 +209,10 @@ class CproSimEnv:
         self.in_progress[ws] = self.in_progress.get(ws, 0) + 1
         yield self.env.timeout(node.CycleTimeSec)
         self.worker_resources[ws].release(req)
-        _e0 = self.EpisodeEnergyKwh
+        energy_before = self.EpisodeEnergyKwh
         self.EpisodeEnergyKwh = self.RuntimeVariables.EpisodeEnergyKwh(
             node, self.EpisodeEnergyKwh)
-        self.line_energy[ws] = self.line_energy.get(ws, 0.0) + (self.EpisodeEnergyKwh - _e0)
+        self.line_energy[ws] = self.line_energy.get(ws, 0.0) + (self.EpisodeEnergyKwh - energy_before)
         if node.InputBOM:
             ordered = self.warehouse.consume(node.InputBOM, deduct=not self.InfiniteStock)
             if ordered:
@@ -266,10 +233,10 @@ class CproSimEnv:
         job['in_flight'].discard(pc)
         self.CycleCompleted = self.RuntimeVariables.CycleCompleted(pc, self.KnowledgeGraph)
         self.Throughput = self.RuntimeVariables.Throughput(pc, self.KnowledgeGraph, self.Throughput)
-        _mid = node.model_id
-        if (_mid in self.CompletionSec and self.CompletionSec[_mid] is None
-                and self.Throughput.get(_mid, 0) >= self.target_qty[_mid]):
-            self.CompletionSec[_mid] = self.env.now
+        model_id = node.model_id
+        if (model_id in self.CompletionSec and self.CompletionSec[model_id] is None
+                and self.Throughput.get(model_id, 0) >= self.target_qty[model_id]):
+            self.CompletionSec[model_id] = self.env.now
         if not job['ev'].triggered:
             job['ev'].succeed()
 
@@ -307,8 +274,6 @@ class CproSimEnv:
             outstanding = [e for e in outstanding if not e.triggered]
 
     def _steady_feed(self, model_id, agent, max_sec, hold):
-        """무한생산(STEADY): 완성 즉시 재투입하되, 현재 WIP가 hold(1배) 초과면 재투입 없이 슬롯 종료.
-        초기 2배 충전분이 완성되며 hold 로 수렴, 이후 hold 만큼 상시 재공 유지. max_sec 까지."""
         while self.env.now < max_sec:
             yield from self.produce_unit(model_id, agent)
             self._inflight[model_id] -= 1
@@ -316,6 +281,7 @@ class CproSimEnv:
                 return
             self._inflight[model_id] += 1
 
+    # 에피소드 실행 루프 (피드 + 디스패처 + 30초 감시)
     def run(self, agent=None, max_sec: float = None):
         self.reset()
         if max_sec is None:
@@ -353,9 +319,6 @@ class CproSimEnv:
                     self.DuePaceDeficit = self.RuntimeVariables.DuePaceDeficit(
                         self.Throughput, self.target_qty, self.DueDay, self.env.now,
                         self.DuePaceDeficit)
-                    self.DuePaceDeficitByModel = self.RuntimeVariables.DuePaceDeficitByModel(
-                        self.Throughput, self.target_qty, self.DueDay, self.env.now,
-                        self.DuePaceDeficitByModel)
                 target_met = all(self.Throughput[m] >= self.target_qty[m] for m in self.target_qty)
                 if ((self.ScenarioMode != 'STEADY' and target_met)
                         or self.env.now >= max_sec):
@@ -384,54 +347,50 @@ class CproSimEnv:
             'TotalIdleTime'   : float(sum(self.line_idle_time.values())),
         }
 
+    # 에너지·상태벡터·보상 (W1~W8)
     def baseline_energy_kwh(self) -> float:
-        """근무시간 기저 적산(kWh) — 설비(워크스테이션)당 DefaultProcessConsumedPowerKw 상시 소모."""
-        return self.RuntimeVariables.IdleBaselineKwh(
-            self.workers, self._work_elapsed(self.env.now),
-            self.DefaultProcessConsumedPowerKw)
+        return self._work_elapsed(self.env.now) * self.DefaultProcessConsumedPowerKw / 3600
 
     def total_energy_kwh(self) -> float:
-        """실 전력 총 적산 = 기저 + 조립 가동 + SMT 가동. W2 분자·관측·summary 공통."""
         return self.baseline_energy_kwh() + self.EpisodeEnergyKwh + self.SMTEnergyKwh
 
     @property
-    def state_dim(self) -> int:
+    def StateDim(self) -> int:
         return len(self.target_qty) + 2 + len(self.workers) + 4
 
-    def state_vec(self) -> torch.Tensor:
+    def StateVector(self) -> torch.Tensor:
         total_target = sum(self.target_qty.values())
         work_day = self.WorkEndTime - self.WorkStartTime - (self.break_end_sec - self.break_start_sec)
-        feats = []
+        features = []
         for model_id in self.target_qty:
-            feats.append(self.Throughput[model_id] / self.target_qty[model_id])
-        feats.append(self.env.now / max(work_day * total_target, 1.0))
-        feats.append(self.total_energy_kwh() / self.MaxEpisodeEnergyKwh)
+            features.append(self.Throughput[model_id] / self.target_qty[model_id])
+        features.append(self.env.now / max(work_day * total_target, 1.0))
+        features.append(self.total_energy_kwh() / self.MaxEpisodeEnergyKwh)
         for ws, info in self.workers.items():
-            feats.append(self.in_progress.get(ws, 0) / info['worker_count'])
+            features.append(self.in_progress.get(ws, 0) / info['worker_count'])
         stock_short = 0.0
         stock_over  = 0.0
-        for cat in self._counted_warehouse().inventory.values():
-            for s in cat.values():
-                if s.MinStock > 0:
-                    stock_short += max(0, s.MinStock - s.present_stock) / s.MinStock
-                if s.MaxStock > 0:
-                    stock_over  += max(0, s.present_stock - s.MaxStock) / s.MaxStock
-        feats.append(stock_short)
-        feats.append(stock_over)
+        for category in self._counted_warehouse().inventory.values():
+            for stock_item in category.values():
+                if stock_item.MinStock > 0:
+                    stock_short += max(0, stock_item.MinStock - stock_item.present_stock) / stock_item.MinStock
+                if stock_item.MaxStock > 0:
+                    stock_over  += max(0, stock_item.present_stock - stock_item.MaxStock) / stock_item.MaxStock
+        features.append(stock_short)
+        features.append(stock_over)
         idle_norm_sum = 0.0
         for ws in self.workers:
             if self.in_progress.get(ws, 0) == 0:
                 idle_norm_sum += (self.env.now - self.last_active[ws]) / max(self.IdleWorkerThreshold, 1.0)
-        feats.append(idle_norm_sum / len(self.workers))
+        features.append(idle_norm_sum / len(self.workers))
         due_deficit = 0.0
         for model_id in self.target_qty:
             required = min(self.env.now / self.DueDay[model_id], 1.0)
             due_deficit += max(0.0, required - self.Throughput[model_id] / self.target_qty[model_id])
-        feats.append(due_deficit / len(self.target_qty))
-        return torch.tensor(feats, dtype=torch.float32)
+        features.append(due_deficit / len(self.target_qty))
+        return torch.tensor(features, dtype=torch.float32)
 
     def reward_terms(self) -> dict:
-        """항별(W1~W8) 가중·정규화된 보상 기여도. 합 = potential()."""
         RW = self.RewardWeights
         total_target = sum(self.target_qty.values())
         work_day = self.WorkEndTime - self.WorkStartTime - (self.break_end_sec - self.break_start_sec)
@@ -455,12 +414,12 @@ class CproSimEnv:
         return {
             'W5_Throughput':    + (sum(self.Throughput.values()) / total_target)                                * RW['W5_Throughput'],
             'W1_TimeElapsed':   - (self.env.now / (work_day * total_target))                                    * RW['W1_TimeElapsed'],
-            'W2_Energy':        - (carbon.total(self.total_energy_kwh()) / carbon.total(self.MaxEpisodeEnergyKwh)) * RW['W2_Energy'],
+            'W2_Energy':        - (self.total_energy_kwh() / self.MaxEpisodeEnergyKwh)                          * RW['W2_Energy'],
             'W3_StockOverflow': - (self.StockOverflowCount / self._stock_violation_norm)                        * RW['W3_StockOverflow'],
             'W4_StockShortage': - (self.StockShortageCount / self._stock_violation_norm)                        * RW['W4_StockShortage'],
             'W6_IdleWorker':    w6,
             'W7_DueDate':       w7,
-            'W8_Imbalance':     - self._production_imbalance()                                                  * RW['W8_Imbalance'],
+            'W8_Imbalance':     - self._W8_Imbalance()                                                  * RW['W8_Imbalance'],
         }
 
     def potential(self) -> float:
@@ -468,9 +427,7 @@ class CproSimEnv:
             self._flush_idle(ws, self.env.now)
         return sum(self.reward_terms().values())
 
-    def _production_imbalance(self) -> float:
-        """무한생산(steady) 시 모델 간 완성 편차 페널티: (max-min 모델완성수)/총완성수, [0,1].
-        0=완전 균등. 생산성 높은 모델만 만들고 낮은 모델을 방치하는 정책을 억제(W8_Imbalance)."""
+    def _W8_Imbalance(self) -> float:
         counts = list(self.Throughput.values())
         done   = sum(counts)
         if done < 1:
@@ -481,6 +438,7 @@ class CproSimEnv:
         return self.potential()
 
 
+# ── 관측 (그래프 임베딩·상태벡터) ──
 def obs_node_features(kg):
     if kg.NodeFeatureAttrs is None:
         raise RuntimeError('KnowledgeGraph.NodeFeatureAttrs 미설정 — ObservationNodeFeatures(AAS) 필요')
@@ -494,14 +452,14 @@ def obs_node_features(kg):
 def obs_graph_topology(kg):
     node_index = {pc: i for i, pc in enumerate(kg.nodes)}
     src, dst = [], []
-    for DepPrev, GraphEdges in kg.edges.items():
-        for GraphEdge in GraphEdges:
-            if DepPrev in node_index and GraphEdge.ProcessCode in node_index:
-                src.append(node_index[DepPrev]); dst.append(node_index[GraphEdge.ProcessCode])
+    for DepPrev, edges_from in kg.edges.items():
+        for edge in edges_from:
+            if DepPrev in node_index and edge.ProcessCode in node_index:
+                src.append(node_index[DepPrev]); dst.append(node_index[edge.ProcessCode])
     return torch.tensor([src, dst], dtype=torch.long)
 
 def obs_state_vector(env):
-    return env.state_vec()
+    return env.StateVector()
 
 OBSERVATION_CATALOG = {
     'NodeFeatures':  obs_node_features,
@@ -510,6 +468,7 @@ OBSERVATION_CATALOG = {
 }
 
 
+# ── PPO 에이전트 (경합점에서 공정 선택 + 학습) ──
 class PPOAgent(torch.nn.Module):
     def __init__(self, *, encoder, actor, critic, StateDim,
                  LearningRate, ClipEpsilon, Gamma, GaeLambda,
@@ -538,7 +497,7 @@ class PPOAgent(torch.nn.Module):
         node_list        = list(kg.nodes.keys())
         embeddings       = self.GNNEncoder(NodeFeatures=obs_node_features(kg), GraphTopology=obs_graph_topology(kg))
         ready_emb        = torch.stack([embeddings[node_list.index(pc)] for pc in ready_pcs])
-        state            = env.state_vec() if self.StateDim > 0 else None
+        state            = env.StateVector() if self.StateDim > 0 else None
         dist             = torch.distributions.Categorical(self.Actor(ReadyNodeEmbeddings=ready_emb, StateVector=state))
         idx              = dist.sample() if self.training else dist.probs.argmax()
         value            = self.Critic(PooledNodeEmbedding=ready_emb.mean(dim=0, keepdim=True), StateVector=state).squeeze()
@@ -626,8 +585,7 @@ class PPOAgent(torch.nn.Module):
                 'actor/loss'               : float(actor_loss),
             }
 
-import importlib, inspect
-
+# ── 신경망 조립 (AAS spec → torch 모듈) ──
 def import_callable(path: str):
     module, name = path.rsplit('.', 1)
     return getattr(importlib.import_module(module), name)

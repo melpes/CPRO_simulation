@@ -1,0 +1,1898 @@
+{
+  "kpi": {
+    "makespan_sec": 137280.0,
+    "makespan_days": 1.5888888888888888,
+    "target_qty": {
+      "MODEL_A": 100,
+      "MODEL_B": 100,
+      "MODEL_C": 100
+    },
+    "throughput": {
+      "MODEL_A": 100,
+      "MODEL_B": 100,
+      "MODEL_C": 100
+    },
+    "throughput_ratio": 1.0,
+    "target_met": true,
+    "energy_kwh": 924.3613527778074,
+    "active_premium_kwh": 614.7062166666967,
+    "carbon_kgco2e": 924.3613527778074,
+    "due_day": {
+      "MODEL_A": 22.0,
+      "MODEL_B": 22.0,
+      "MODEL_C": 22.0
+    },
+    "due_pace_deficit": 80.42846590909092,
+    "violations": {
+      "stock_shortage": 0,
+      "stock_overflow": 0,
+      "idle_violation": 0
+    },
+    "seed": 42,
+    "actual_due_day": {
+      "MODEL_C": 1,
+      "MODEL_A": 2,
+      "MODEL_B": 2
+    },
+    "idle_power_kwh": 121.33
+  },
+  "schedule": [
+    {
+      "workstation": "WWM_FwInputLine",
+      "model": "MODEL_C",
+      "process_code": "NVD_20",
+      "start_sec": 32400.0,
+      "end_sec": 32420.0,
+      "unit_id": 2552160282528
+    },
+    {
+      "workstation": "WWM_FwInputLine",
+      "model": "MODEL_C",
+      "process_code": "NVD_20",
+      "start_sec": 32400.0,
+      "end_sec": 32420.0,
+      "unit_id": 2552160283200
+    },
+    "... (8411 more omitted)"
+  ],
+  "productivity": {
+    "by_entity": {
+      "workers": {
+        "WWM_FwInputLine": {
+          "worker_count": 2,
+          "processed_quantity": 1600,
+          "operating_sec": 17045.0,
+          "operating_ratio": 0.1242,
+          "idle_sec": 240560.0,
+          "idle_ratio": 0.8762
+        },
+        "WWM_LensHolderLine": {
+          "worker_count": 4,
+          "processed_quantity": 400,
+          "operating_sec": 12955.0,
+          "operating_ratio": 0.0944,
+          "idle_sec": 511620.0,
+          "idle_ratio": 0.9317
+        },
+        "WWM_FocusLine": {
+          "worker_count": 3,
+          "processed_quantity": 200,
+          "operating_sec": 7200.0,
+          "operating_ratio": 0.0524,
+          "idle_sec": 391840.0,
+          "idle_ratio": 0.9514
+        },
+        "WWM_SemiAssemblyLine": {
+          "worker_count": 11,
+          "processed_quantity": 1100,
+          "operating_sec": 5691.0,
+          "operating_ratio": 0.0415,
+          "idle_sec": 1448180.0,
+          "idle_ratio": 0.959
+        },
+        "WWM_SetAssemblyLine": {
+          "worker_count": 12,
+          "processed_quantity": 2300,
+          "operating_sec": 20043.0,
+          "operating_ratio": 0.146,
+          "idle_sec": 1524360.0,
+          "idle_ratio": 0.9253
+        },
+        "WWM_InspectionLine": {
+          "worker_count": 4,
+          "processed_quantity": 1200,
+          "operating_sec": 14490.0,
+          "operating_ratio": 0.1056,
+          "idle_sec": 492120.0,
+          "idle_ratio": 0.8962
+        },
+        "WWM_AgingLine": {
+          "worker_count": 6,
+          "processed_quantity": 300,
+          "operating_sec": 41974.0,
+          "operating_ratio": 0.3058,
+          "idle_sec": 0.0,
+          "idle_ratio": 0.0
+        },
+        "WWM_OqcLine": {
+          "worker_count": 4,
+          "processed_quantity": 13,
+          "operating_sec": 6013.0,
+          "operating_ratio": 0.0438,
+          "idle_sec": 541320.0,
+          "idle_ratio": 0.9858
+        },
+        "WWM_RMALine": {
+          "worker_count": 6,
+          "processed_quantity": 0,
+          "operating_sec": 0.0,
+          "operating_ratio": 0.0,
+          "idle_sec": 823680.0,
+          "idle_ratio": 1.0
+        },
+        "WWM_PackagingLine": {
+          "worker_count": 6,
+          "processed_quantity": 1300,
+          "operating_sec": 13901.0,
+          "operating_ratio": 0.1013,
+          "idle_sec": 775680.0,
+          "idle_ratio": 0.9417
+        }
+      },
+      "warehouse_by_item": {
+        "P10800565": {
+          "lowest_present_stock": 100.0,
+          "stockout_count": 0,
+          "total_consumed": 100.0,
+          "total_arrived": 0.0
+        },
+        "P10800475": {
+          "lowest_present_stock": 100.0,
+          "stockout_count": 0,
+          "total_consumed": 100.0,
+          "total_arrived": 0.0
+        },
+        "P10800593": {
+          "lowest_present_stock": 100.0,
+          "stockout_count": 0,
+          "total_consumed": 600.0,
+          "total_arrived": 0.0
+        },
+        "P10800723": {
+          "lowest_present_stock": 100.0,
+          "stockout_count": 0,
+          "total_consumed": 100.0,
+          "total_arrived": 0.0
+        },
+        "P20901092": {
+          "lowest_present_stock": 150.0,
+          "stockout_count": 0,
+          "total_consumed": 100.0,
+          "total_arrived": 0.0
+        },
+        "P20901361": {
+          "lowest_present_stock": 150.0,
+          "stockout_count": 0,
+          "total_consumed": 100.0,
+          "total_arrived": 0.0
+        },
+        "P20900508": {
+          "lowest_present_stock": 150.0,
+          "stockout_count": 0,
+          "total_consumed": 100.0,
+          "total_arrived": 0.0
+        },
+        "P20901858": {
+          "lowest_present_stock": 150.0,
+          "stockout_count": 0,
+          "total_consumed": 100.0,
+          "total_arrived": 0.0
+        },
+        "P20900925": {
+          "lowest_present_stock": 150.0,
+          "stockout_count": 0,
+          "total_consumed": 200.0,
+          "total_arrived": 0.0
+        },
+        "P20901652": {
+          "lowest_present_stock": 150.0,
+          "stockout_count": 0,
+          "total_consumed": 100.0,
+          "total_arrived": 0.0
+        },
+        "P20901531": {
+          "lowest_present_stock": 150.0,
+          "stockout_count": 0,
+          "total_consumed": 100.0,
+          "total_arrived": 0.0
+        },
+        "P20901192": {
+          "lowest_present_stock": 150.0,
+          "stockout_count": 0,
+          "total_consumed": 100.0,
+          "total_arrived": 0.0
+        },
+        "P20502140": {
+          "lowest_present_stock": 100.0,
+          "stockout_count": 0,
+          "total_consumed": 100.0,
+          "total_arrived": 0.0
+        },
+        "P20501683": {
+          "lowest_present_stock": 100.0,
+          "stockout_count": 0,
+          "total_consumed": 100.0,
+          "total_arrived": 0.0
+        },
+        "P20502127": {
+          "lowest_present_stock": 100.0,
+          "stockout_count": 0,
+          "total_consumed": 100.0,
+          "total_arrived": 0.0
+        },
+        "P20501665": {
+          "lowest_present_stock": 100.0,
+          "stockout_count": 0,
+          "total_consumed": 100.0,
+          "total_arrived": 0.0
+        },
+        "P20501148": {
+          "lowest_present_stock": 100.0,
+          "stockout_count": 0,
+          "total_consumed": 100.0,
+          "total_arrived": 0.0
+        },
+        "P20502144": {
+          "lowest_present_stock": 100.0,
+          "stockout_count": 0,
+          "total_consumed": 100.0,
+          "total_arrived": 0.0
+        },
+        "P20500680": {
+          "lowest_present_stock": 100.0,
+          "stockout_count": 0,
+          "total_consumed": 100.0,
+          "total_arrived": 0.0
+        },
+        "P20501505": {
+          "lowest_present_stock": 100.0,
+          "stockout_count": 0,
+          "total_consumed": 100.0,
+          "total_arrived": 0.0
+        },
+        "P20502118": {
+          "lowest_present_stock": 100.0,
+          "stockout_count": 0,
+          "total_consumed": 100.0,
+          "total_arrived": 0.0
+        },
+        "P20500904": {
+          "lowest_present_stock": 100.0,
+          "stockout_count": 0,
+          "total_consumed": 100.0,
+          "total_arrived": 0.0
+        },
+        "P20500682": {
+          "lowest_present_stock": 100.0,
+          "stockout_count": 0,
+          "total_consumed": 100.0,
+          "total_arrived": 0.0
+        },
+        "P20500681": {
+          "lowest_present_stock": 100.0,
+          "stockout_count": 0,
+          "total_consumed": 100.0,
+          "total_arrived": 0.0
+        },
+        "P20500905": {
+          "lowest_present_stock": 100.0,
+          "stockout_count": 0,
+          "total_consumed": 100.0,
+          "total_arrived": 0.0
+        },
+        "P20500502": {
+          "lowest_present_stock": 100.0,
+          "stockout_count": 0,
+          "total_consumed": 100.0,
+          "total_arrived": 0.0
+        },
+        "P20500661": {
+          "lowest_present_stock": 100.0,
+          "stockout_count": 0,
+          "total_consumed": 100.0,
+          "total_arrived": 0.0
+        },
+        "P20502501": {
+          "lowest_present_stock": 100.0,
+          "stockout_count": 0,
+          "total_consumed": 100.0,
+          "total_arrived": 0.0
+        },
+        "P20502502": {
+          "lowest_present_stock": 100.0,
+          "stockout_count": 0,
+          "total_consumed": 100.0,
+          "total_arrived": 0.0
+        },
+        "P20502503": {
+          "lowest_present_stock": 100.0,
+          "stockout_count": 0,
+          "total_consumed": 100.0,
+          "total_arrived": 0.0
+        },
+        "P20502534": {
+          "lowest_present_stock": 100.0,
+          "stockout_count": 0,
+          "total_consumed": 100.0,
+          "total_arrived": 0.0
+        },
+        "P20502535": {
+          "lowest_present_stock": 100.0,
+          "stockout_count": 0,
+          "total_consumed": 100.0,
+          "total_arrived": 0.0
+        },
+        "P50100541": {
+          "lowest_present_stock": 80.0,
+          "stockout_count": 0,
+          "total_consumed": 200.0,
+          "total_arrived": 0.0
+        },
+        "P30300592": {
+          "lowest_present_stock": 500.0,
+          "stockout_count": 0,
+          "total_consumed": 200.0,
+          "total_arrived": 0.0
+        },
+        "P30300125": {
+          "lowest_present_stock": 500.0,
+          "stockout_count": 0,
+          "total_consumed": 2700.0,
+          "total_arrived": 0.0
+        },
+        "P30300165": {
+          "lowest_present_stock": 500.0,
+          "stockout_count": 0,
+          "total_consumed": 1500.0,
+          "total_arrived": 0.0
+        },
+        "P30300433": {
+          "lowest_present_stock": 500.0,
+          "stockout_count": 0,
+          "total_consumed": 300.0,
+          "total_arrived": 0.0
+        },
+        "P30300124": {
+          "lowest_present_stock": 500.0,
+          "stockout_count": 0,
+          "total_consumed": 1300.0,
+          "total_arrived": 0.0
+        },
+        "P30301017": {
+          "lowest_present_stock": 500.0,
+          "stockout_count": 0,
+          "total_consumed": 300.0,
+          "total_arrived": 0.0
+        },
+        "P30300614": {
+          "lowest_present_stock": 500.0,
+          "stockout_count": 0,
+          "total_consumed": 100.0,
+          "total_arrived": 0.0
+        },
+        "P30300573": {
+          "lowest_present_stock": 500.0,
+          "stockout_count": 0,
+          "total_consumed": 100.0,
+          "total_arrived": 0.0
+        },
+        "P30300609": {
+          "lowest_present_stock": 500.0,
+          "stockout_count": 0,
+          "total_consumed": 600.0,
+          "total_arrived": 0.0
+        },
+        "P30300896": {
+          "lowest_present_stock": 500.0,
+          "stockout_count": 0,
+          "total_consumed": 400.0,
+          "total_arrived": 0.0
+        },
+        "P30300303": {
+          "lowest_present_stock": 500.0,
+          "stockout_count": 0,
+          "total_consumed": 400.0,
+          "total_arrived": 0.0
+        },
+        "P30300596": {
+          "lowest_present_stock": 500.0,
+          "stockout_count": 0,
+          "total_consumed": 100.0,
+          "total_arrived": 0.0
+        },
+        "P30300062": {
+          "lowest_present_stock": 500.0,
+          "stockout_count": 0,
+          "total_consumed": 200.0,
+          "total_arrived": 0.0
+        },
+        "P30300468": {
+          "lowest_present_stock": 500.0,
+          "stockout_count": 0,
+          "total_consumed": 400.0,
+          "total_arrived": 0.0
+        },
+        "P30300965": {
+          "lowest_present_stock": 500.0,
+          "stockout_count": 0,
+          "total_consumed": 100.0,
+          "total_arrived": 0.0
+        },
+        "P30300999": {
+          "lowest_present_stock": 500.0,
+          "stockout_count": 0,
+          "total_consumed": 400.0,
+          "total_arrived": 0.0
+        },
+        "P30301034": {
+          "lowest_present_stock": 500.0,
+          "stockout_count": 0,
+          "total_consumed": 200.0,
+          "total_arrived": 0.0
+        },
+        "P30301095": {
+          "lowest_present_stock": 500.0,
+          "stockout_count": 0,
+          "total_consumed": 300.0,
+          "total_arrived": 0.0
+        },
+        "P30301127": {
+          "lowest_present_stock": 500.0,
+          "stockout_count": 0,
+          "total_consumed": 100.0,
+          "total_arrived": 0.0
+        },
+        "P21200743": {
+          "lowest_present_stock": 300.0,
+          "stockout_count": 0,
+          "total_consumed": 100.0,
+          "total_arrived": 0.0
+        },
+        "P21200734": {
+          "lowest_present_stock": 300.0,
+          "stockout_count": 0,
+          "total_consumed": 100.0,
+          "total_arrived": 0.0
+        },
+        "P21201260": {
+          "lowest_present_stock": 300.0,
+          "stockout_count": 0,
+          "total_consumed": 100.0,
+          "total_arrived": 0.0
+        },
+        "P21200538": {
+          "lowest_present_stock": 300.0,
+          "stockout_count": 0,
+          "total_consumed": 100.0,
+          "total_arrived": 0.0
+        },
+        "P21201264": {
+          "lowest_present_stock": 300.0,
+          "stockout_count": 0,
+          "total_consumed": 100.0,
+          "total_arrived": 0.0
+        },
+        "P21200533": {
+          "lowest_present_stock": 300.0,
+          "stockout_count": 0,
+          "total_consumed": 100.0,
+          "total_arrived": 0.0
+        },
+        "P21200496": {
+          "lowest_present_stock": 300.0,
+          "stockout_count": 0,
+          "total_consumed": 100.0,
+          "total_arrived": 0.0
+        },
+        "P21200511": {
+          "lowest_present_stock": 300.0,
+          "stockout_count": 0,
+          "total_consumed": 100.0,
+          "total_arrived": 0.0
+        },
+        "P21200901": {
+          "lowest_present_stock": 300.0,
+          "stockout_count": 0,
+          "total_consumed": 100.0,
+          "total_arrived": 0.0
+        },
+        "P21201365": {
+          "lowest_present_stock": 300.0,
+          "stockout_count": 0,
+          "total_consumed": 100.0,
+          "total_arrived": 0.0
+        },
+        "P21201287": {
+          "lowest_present_stock": 300.0,
+          "stockout_count": 0,
+          "total_consumed": 300.0,
+          "total_arrived": 0.0
+        },
+        "P21201135": {
+          "lowest_present_stock": 300.0,
+          "stockout_count": 0,
+          "total_consumed": 100.0,
+          "total_arrived": 0.0
+        },
+        "P21200982": {
+          "lowest_present_stock": 300.0,
+          "stockout_count": 0,
+          "total_consumed": 100.0,
+          "total_arrived": 0.0
+        },
+        "P21201312": {
+          "lowest_present_stock": 300.0,
+          "stockout_count": 0,
+          "total_consumed": 100.0,
+          "total_arrived": 0.0
+        },
+        "P21200352": {
+          "lowest_present_stock": 300.0,
+          "stockout_count": 0,
+          "total_consumed": 100.0,
+          "total_arrived": 0.0
+        },
+        "P21200974": {
+          "lowest_present_stock": 300.0,
+          "stockout_count": 0,
+          "total_consumed": 100.0,
+          "total_arrived": 0.0
+        },
+        "P21201067": {
+          "lowest_present_stock": 300.0,
+          "stockout_count": 0,
+          "total_consumed": 100.0,
+          "total_arrived": 0.0
+        },
+        "P21201286": {
+          "lowest_present_stock": 300.0,
+          "stockout_count": 0,
+          "total_consumed": 100.0,
+          "total_arrived": 0.0
+        },
+        "P21201080": {
+          "lowest_present_stock": 300.0,
+          "stockout_count": 0,
+          "total_consumed": 100.0,
+          "total_arrived": 0.0
+        },
+        "P21200520": {
+          "lowest_present_stock": 300.0,
+          "stockout_count": 0,
+          "total_consumed": 100.0,
+          "total_arrived": 0.0
+        },
+        "P21200468": {
+          "lowest_present_stock": 300.0,
+          "stockout_count": 0,
+          "total_consumed": 100.0,
+          "total_arrived": 0.0
+        },
+        "P21200460": {
+          "lowest_present_stock": 300.0,
+          "stockout_count": 0,
+          "total_consumed": 100.0,
+          "total_arrived": 0.0
+        },
+        "P21200168": {
+          "lowest_present_stock": 300.0,
+          "stockout_count": 0,
+          "total_consumed": 100.0,
+          "total_arrived": 0.0
+        },
+        "P21201311": {
+          "lowest_present_stock": 300.0,
+          "stockout_count": 0,
+          "total_consumed": 100.0,
+          "total_arrived": 0.0
+        },
+        "P21200973": {
+          "lowest_present_stock": 300.0,
+          "stockout_count": 0,
+          "total_consumed": 100.0,
+          "total_arrived": 0.0
+        },
+        "P21201169": {
+          "lowest_present_stock": 300.0,
+          "stockout_count": 0,
+          "total_consumed": 200.0,
+          "total_arrived": 0.0
+        },
+        "P21201212": {
+          "lowest_present_stock": 300.0,
+          "stockout_count": 0,
+          "total_consumed": 100.0,
+          "total_arrived": 0.0
+        },
+        "P21201310": {
+          "lowest_present_stock": 300.0,
+          "stockout_count": 0,
+          "total_consumed": 100.0,
+          "total_arrived": 0.0
+        },
+        "P21201322": {
+          "lowest_present_stock": 300.0,
+          "stockout_count": 0,
+          "total_consumed": 100.0,
+          "total_arrived": 0.0
+        },
+        "P21201481": {
+          "lowest_present_stock": 300.0,
+          "stockout_count": 0,
+          "total_consumed": 100.0,
+          "total_arrived": 0.0
+        },
+        "P21201482": {
+          "lowest_present_stock": 300.0,
+          "stockout_count": 0,
+          "total_consumed": 100.0,
+          "total_arrived": 0.0
+        },
+        "P21201483": {
+          "lowest_present_stock": 300.0,
+          "stockout_count": 0,
+          "total_consumed": 100.0,
+          "total_arrived": 0.0
+        },
+        "P21201484": {
+          "lowest_present_stock": 300.0,
+          "stockout_count": 0,
+          "total_consumed": 100.0,
+          "total_arrived": 0.0
+        },
+        "P21201486": {
+          "lowest_present_stock": 300.0,
+          "stockout_count": 0,
+          "total_consumed": 100.0,
+          "total_arrived": 0.0
+        },
+        "P21201487": {
+          "lowest_present_stock": 300.0,
+          "stockout_count": 0,
+          "total_consumed": 100.0,
+          "total_arrived": 0.0
+        },
+        "P21201488": {
+          "lowest_present_stock": 300.0,
+          "stockout_count": 0,
+          "total_consumed": 100.0,
+          "total_arrived": 0.0
+        },
+        "P21201490": {
+          "lowest_present_stock": 300.0,
+          "stockout_count": 0,
+          "total_consumed": 100.0,
+          "total_arrived": 0.0
+        },
+        "P21201497": {
+          "lowest_present_stock": 300.0,
+          "stockout_count": 0,
+          "total_consumed": 300.0,
+          "total_arrived": 0.0
+        },
+        "P20200832": {
+          "lowest_present_stock": 100.0,
+          "stockout_count": 0,
+          "total_consumed": 100.0,
+          "total_arrived": 0.0
+        },
+        "P20200931": {
+          "lowest_present_stock": 100.0,
+          "stockout_count": 0,
+          "total_consumed": 100.0,
+          "total_arrived": 0.0
+        },
+        "P20200988": {
+          "lowest_present_stock": 100.0,
+          "stockout_count": 0,
+          "total_consumed": 100.0,
+          "total_arrived": 0.0
+        },
+        "P20200819": {
+          "lowest_present_stock": 100.0,
+          "stockout_count": 0,
+          "total_consumed": 100.0,
+          "total_arrived": 0.0
+        },
+        "P20200899": {
+          "lowest_present_stock": 100.0,
+          "stockout_count": 0,
+          "total_consumed": 100.0,
+          "total_arrived": 0.0
+        },
+        "P30400735": {
+          "lowest_present_stock": 200.0,
+          "stockout_count": 0,
+          "total_consumed": 100.0,
+          "total_arrived": 0.0
+        },
+        "P30500003": {
+          "lowest_present_stock": 200.0,
+          "stockout_count": 0,
+          "total_consumed": 300.0,
+          "total_arrived": 0.0
+        },
+        "P30500004": {
+          "lowest_present_stock": 200.0,
+          "stockout_count": 0,
+          "total_consumed": 200.0,
+          "total_arrived": 0.0
+        },
+        "P30400105": {
+          "lowest_present_stock": 200.0,
+          "stockout_count": 0,
+          "total_consumed": 300.0,
+          "total_arrived": 0.0
+        },
+        "P30401009": {
+          "lowest_present_stock": 200.0,
+          "stockout_count": 0,
+          "total_consumed": 100.0,
+          "total_arrived": 0.0
+        },
+        "P30402805": {
+          "lowest_present_stock": 200.0,
+          "stockout_count": 0,
+          "total_consumed": 100.0,
+          "total_arrived": 0.0
+        },
+        "P30401685": {
+          "lowest_present_stock": 200.0,
+          "stockout_count": 0,
+          "total_consumed": 100.0,
+          "total_arrived": 0.0
+        },
+        "P30402020": {
+          "lowest_present_stock": 200.0,
+          "stockout_count": 0,
+          "total_consumed": 100.0,
+          "total_arrived": 0.0
+        },
+        "P30402885": {
+          "lowest_present_stock": 200.0,
+          "stockout_count": 0,
+          "total_consumed": 100.0,
+          "total_arrived": 0.0
+        },
+        "P30402886": {
+          "lowest_present_stock": 200.0,
+          "stockout_count": 0,
+          "total_consumed": 100.0,
+          "total_arrived": 0.0
+        },
+        "P30402892": {
+          "lowest_present_stock": 200.0,
+          "stockout_count": 0,
+          "total_consumed": 100.0,
+          "total_arrived": 0.0
+        },
+        "P30402893": {
+          "lowest_present_stock": 200.0,
+          "stockout_count": 0,
+          "total_consumed": 100.0,
+          "total_arrived": 0.0
+        },
+        "P21600655": {
+          "lowest_present_stock": 100.0,
+          "stockout_count": 0,
+          "total_consumed": 200.0,
+          "total_arrived": 0.0
+        },
+        "P21600245": {
+          "lowest_present_stock": 100.0,
+          "stockout_count": 0,
+          "total_consumed": 100.0,
+          "total_arrived": 0.0
+        },
+        "P21600550": {
+          "lowest_present_stock": 100.0,
+          "stockout_count": 0,
+          "total_consumed": 100.0,
+          "total_arrived": 0.0
+        },
+        "P21600200": {
+          "lowest_present_stock": 100.0,
+          "stockout_count": 0,
+          "total_consumed": 100.0,
+          "total_arrived": 0.0
+        },
+        "P21600323": {
+          "lowest_present_stock": 100.0,
+          "stockout_count": 0,
+          "total_consumed": 100.0,
+          "total_arrived": 0.0
+        },
+        "P21600574": {
+          "lowest_present_stock": 100.0,
+          "stockout_count": 0,
+          "total_consumed": 100.0,
+          "total_arrived": 0.0
+        },
+        "P21100701": {
+          "lowest_present_stock": 100.0,
+          "stockout_count": 0,
+          "total_consumed": 100.0,
+          "total_arrived": 0.0
+        },
+        "P21000790": {
+          "lowest_present_stock": 100.0,
+          "stockout_count": 0,
+          "total_consumed": 200.0,
+          "total_arrived": 0.0
+        },
+        "P21000072": {
+          "lowest_present_stock": 100.0,
+          "stockout_count": 0,
+          "total_consumed": 100.0,
+          "total_arrived": 0.0
+        },
+        "P21101219": {
+          "lowest_present_stock": 100.0,
+          "stockout_count": 0,
+          "total_consumed": 100.0,
+          "total_arrived": 0.0
+        },
+        "P21101357": {
+          "lowest_present_stock": 100.0,
+          "stockout_count": 0,
+          "total_consumed": 100.0,
+          "total_arrived": 0.0
+        },
+        "P21100431": {
+          "lowest_present_stock": 100.0,
+          "stockout_count": 0,
+          "total_consumed": 100.0,
+          "total_arrived": 0.0
+        },
+        "P21101211": {
+          "lowest_present_stock": 100.0,
+          "stockout_count": 0,
+          "total_consumed": 100.0,
+          "total_arrived": 0.0
+        },
+        "P21101550": {
+          "lowest_present_stock": 100.0,
+          "stockout_count": 0,
+          "total_consumed": 100.0,
+          "total_arrived": 0.0
+        },
+        "P21101585": {
+          "lowest_present_stock": 100.0,
+          "stockout_count": 0,
+          "total_consumed": 100.0,
+          "total_arrived": 0.0
+        },
+        "P30300540": {
+          "lowest_present_stock": 100.0,
+          "stockout_count": 0,
+          "total_consumed": 400.0,
+          "total_arrived": 0.0
+        },
+        "P30200916": {
+          "lowest_present_stock": 200.0,
+          "stockout_count": 0,
+          "total_consumed": 100.0,
+          "total_arrived": 0.0
+        },
+        "P30201152": {
+          "lowest_present_stock": 200.0,
+          "stockout_count": 0,
+          "total_consumed": 12.5,
+          "total_arrived": 0.0
+        },
+        "P30200164": {
+          "lowest_present_stock": 200.0,
+          "stockout_count": 0,
+          "total_consumed": 100.0,
+          "total_arrived": 0.0
+        },
+        "P30200390": {
+          "lowest_present_stock": 200.0,
+          "stockout_count": 0,
+          "total_consumed": 9.99999999999998,
+          "total_arrived": 0.0
+        },
+        "P30201153": {
+          "lowest_present_stock": 200.0,
+          "stockout_count": 0,
+          "total_consumed": 100.0,
+          "total_arrived": 0.0
+        },
+        "P30201154": {
+          "lowest_present_stock": 200.0,
+          "stockout_count": 0,
+          "total_consumed": 16.600000000000026,
+          "total_arrived": 0.0
+        },
+        "P21400282": {
+          "lowest_present_stock": 200.0,
+          "stockout_count": 0,
+          "total_consumed": 100.0,
+          "total_arrived": 0.0
+        },
+        "P21400283": {
+          "lowest_present_stock": 200.0,
+          "stockout_count": 0,
+          "total_consumed": 100.0,
+          "total_arrived": 0.0
+        },
+        "P30600066": {
+          "lowest_present_stock": 200.0,
+          "stockout_count": 0,
+          "total_consumed": 100.0,
+          "total_arrived": 0.0
+        },
+        "P10200041": {
+          "lowest_present_stock": 300.0,
+          "stockout_count": 0,
+          "total_consumed": 100.0,
+          "total_arrived": 0.0
+        },
+        "P21001088": {
+          "lowest_present_stock": 50.0,
+          "stockout_count": 0,
+          "total_consumed": 400.0,
+          "total_arrived": 0.0
+        },
+        "P21001040": {
+          "lowest_present_stock": 50.0,
+          "stockout_count": 0,
+          "total_consumed": 500.0,
+          "total_arrived": 0.0
+        },
+        "P21000604": {
+          "lowest_present_stock": 50.0,
+          "stockout_count": 0,
+          "total_consumed": 100.0,
+          "total_arrived": 0.0
+        },
+        "P21000611": {
+          "lowest_present_stock": 50.0,
+          "stockout_count": 0,
+          "total_consumed": 100.0,
+          "total_arrived": 0.0
+        },
+        "P21000140": {
+          "lowest_present_stock": 50.0,
+          "stockout_count": 0,
+          "total_consumed": 100.0,
+          "total_arrived": 0.0
+        },
+        "P21000172": {
+          "lowest_present_stock": 50.0,
+          "stockout_count": 0,
+          "total_consumed": 400.0,
+          "total_arrived": 0.0
+        },
+        "P21001371": {
+          "lowest_present_stock": 50.0,
+          "stockout_count": 0,
+          "total_consumed": 100.0,
+          "total_arrived": 0.0
+        },
+        "P21800011": {
+          "lowest_present_stock": 100.0,
+          "stockout_count": 0,
+          "total_consumed": 100.0,
+          "total_arrived": 0.0
+        },
+        "P21800016": {
+          "lowest_present_stock": 100.0,
+          "stockout_count": 0,
+          "total_consumed": 100.0,
+          "total_arrived": 0.0
+        },
+        "P04901662": {
+          "lowest_present_stock": 50.0,
+          "stockout_count": 0,
+          "total_consumed": 100.0,
+          "total_arrived": 0.0
+        },
+        "P20400112": {
+          "lowest_present_stock": 100.0,
+          "stockout_count": 0,
+          "total_consumed": 100.0,
+          "total_arrived": 0.0
+        },
+        "P20400165": {
+          "lowest_present_stock": 100.0,
+          "stockout_count": 0,
+          "total_consumed": 100.0,
+          "total_arrived": 0.0
+        },
+        "P20400166": {
+          "lowest_present_stock": 100.0,
+          "stockout_count": 0,
+          "total_consumed": 100.0,
+          "total_arrived": 0.0
+        },
+        "P30500005": {
+          "lowest_present_stock": 200.0,
+          "stockout_count": 0,
+          "total_consumed": 100.0,
+          "total_arrived": 0.0
+        },
+        "P21400265": {
+          "lowest_present_stock": 600.0,
+          "stockout_count": 0,
+          "total_consumed": 100.0,
+          "total_arrived": 0.0
+        },
+        "P21400266": {
+          "lowest_present_stock": 600.0,
+          "stockout_count": 0,
+          "total_consumed": 100.0,
+          "total_arrived": 0.0
+        },
+        "P30100094": {
+          "lowest_present_stock": 200.0,
+          "stockout_count": 0,
+          "total_consumed": 100.0,
+          "total_arrived": 0.0
+        },
+        "P30100210": {
+          "lowest_present_stock": 200.0,
+          "stockout_count": 0,
+          "total_consumed": 209.99999999999943,
+          "total_arrived": 0.0
+        },
+        "P30101295": {
+          "lowest_present_stock": 200.0,
+          "stockout_count": 0,
+          "total_consumed": 100.0,
+          "total_arrived": 0.0
+        },
+        "P30101438": {
+          "lowest_present_stock": 200.0,
+          "stockout_count": 0,
+          "total_consumed": 200.0,
+          "total_arrived": 0.0
+        },
+        "P30101499": {
+          "lowest_present_stock": 200.0,
+          "stockout_count": 0,
+          "total_consumed": 100.0,
+          "total_arrived": 0.0
+        },
+        "P30600059": {
+          "lowest_present_stock": 100.0,
+          "stockout_count": 0,
+          "total_consumed": 100.0,
+          "total_arrived": 0.0
+        },
+        "P30601696": {
+          "lowest_present_stock": 100.0,
+          "stockout_count": 0,
+          "total_consumed": 100.0,
+          "total_arrived": 0.0
+        },
+        "PCB_03203204": {
+          "lowest_present_stock": 1000.0,
+          "stockout_count": 0,
+          "total_consumed": 100.0,
+          "total_arrived": 100.0
+        },
+        "PCB_03902715": {
+          "lowest_present_stock": 1000.0,
+          "stockout_count": 0,
+          "total_consumed": 100.0,
+          "total_arrived": 100.0
+        },
+        "PCB_03903424": {
+          "lowest_present_stock": 1000.0,
+          "stockout_count": 0,
+          "total_consumed": 100.0,
+          "total_arrived": 100.0
+        },
+        "PCB_03203145": {
+          "lowest_present_stock": 1000.0,
+          "stockout_count": 0,
+          "total_consumed": 100.0,
+          "total_arrived": 100.0
+        },
+        "PCB_03902607": {
+          "lowest_present_stock": 1000.0,
+          "stockout_count": 0,
+          "total_consumed": 0.0,
+          "total_arrived": 0.0
+        },
+        "PCB_03902608": {
+          "lowest_present_stock": 1000.0,
+          "stockout_count": 0,
+          "total_consumed": 100.0,
+          "total_arrived": 100.0
+        },
+        "PCB_03902690": {
+          "lowest_present_stock": 1000.0,
+          "stockout_count": 0,
+          "total_consumed": 100.0,
+          "total_arrived": 100.0
+        },
+        "PCB_03902727": {
+          "lowest_present_stock": 1000.0,
+          "stockout_count": 0,
+          "total_consumed": 0.0,
+          "total_arrived": 0.0
+        },
+        "PCB_03902730": {
+          "lowest_present_stock": 1000.0,
+          "stockout_count": 0,
+          "total_consumed": 0.0,
+          "total_arrived": 0.0
+        },
+        "PCB_03902835": {
+          "lowest_present_stock": 1000.0,
+          "stockout_count": 0,
+          "total_consumed": 100.0,
+          "total_arrived": 100.0
+        },
+        "PCB_03903208": {
+          "lowest_present_stock": 1000.0,
+          "stockout_count": 0,
+          "total_consumed": 0.0,
+          "total_arrived": 0.0
+        },
+        "PCB_03902781": {
+          "lowest_present_stock": 1000.0,
+          "stockout_count": 0,
+          "total_consumed": 100.0,
+          "total_arrived": 100.0
+        },
+        "PCB_03203315": {
+          "lowest_present_stock": 1000.0,
+          "stockout_count": 0,
+          "total_consumed": 100.0,
+          "total_arrived": 100.0
+        },
+        "PCB_03903388": {
+          "lowest_present_stock": 1000.0,
+          "stockout_count": 0,
+          "total_consumed": 100.0,
+          "total_arrived": 100.0
+        },
+        "PCB_03903391": {
+          "lowest_present_stock": 1000.0,
+          "stockout_count": 0,
+          "total_consumed": 100.0,
+          "total_arrived": 100.0
+        }
+      },
+      "equipment_op_time": {
+        "Line_1": {
+          "LoaderProcess": 204.0,
+          "ScreenPrinterProcess": 4386.0,
+          "SPIProcess": 1530.0,
+          "MounterProcess": 12750.0,
+          "ReflowProcess": 41820.0,
+          "UnloaderProcess": 510.0,
+          "AOIProcess": 3060.0
+        },
+        "Line_2": {
+          "LoaderProcess": 170.0,
+          "ScreenPrinterProcess": 3655.0,
+          "SPIProcess": 1275.0,
+          "MounterProcess": 10625.0,
+          "ReflowProcess": 34850.0,
+          "UnloaderProcess": 425.0,
+          "AOIProcess": 2550.0
+        }
+      }
+    },
+    "events": {
+      "schedule": [
+        {
+          "workstation": "WWM_FwInputLine",
+          "model": "MODEL_C",
+          "process_code": "NVD_20",
+          "start_sec": 32400.0,
+          "end_sec": 32420.0,
+          "unit_id": 2552160282528
+        },
+        {
+          "workstation": "WWM_FwInputLine",
+          "model": "MODEL_C",
+          "process_code": "NVD_20",
+          "start_sec": 32400.0,
+          "end_sec": 32420.0,
+          "unit_id": 2552160283200
+        },
+        "... (8411 more omitted)"
+      ],
+      "warehouse": [
+        {
+          "item_code": "PCB_03903388",
+          "t_sec": 32420.0,
+          "type": "consume",
+          "qty": -1.0,
+          "present_stock": 1000.0
+        },
+        {
+          "item_code": "PCB_03903388",
+          "t_sec": 32420.0,
+          "type": "consume",
+          "qty": -1.0,
+          "present_stock": 1000.0
+        },
+        "... (19485 more omitted)"
+      ],
+      "equipment": [
+        {
+          "equipment": "LoaderProcess",
+          "line": "Line_1",
+          "pcb_code": "PCB_03203145",
+          "start_sec": 32400.0,
+          "end_sec": 32402.0,
+          "power_kw": 0.33,
+          "energy_kwh": 0.00018333333333333334
+        },
+        {
+          "equipment": "ScreenPrinterProcess",
+          "line": "Line_1",
+          "pcb_code": "PCB_03203145",
+          "start_sec": 32402.0,
+          "end_sec": 32445.0,
+          "power_kw": 0.84,
+          "energy_kwh": 0.010033333333333333
+        },
+        "... (1307 more omitted)"
+      ]
+    },
+    "timeseries": {
+      "sample_sec": 600,
+      "t_sec": [
+        600,
+        1200,
+        "... (227 more omitted)"
+      ],
+      "cumulative_completed": [
+        0,
+        0,
+        "... (227 more omitted)"
+      ],
+      "completion_ratio": [
+        0.0,
+        0.0,
+        "... (227 more omitted)"
+      ],
+      "wip": [
+        0,
+        0,
+        "... (227 more omitted)"
+      ],
+      "active_workers": [
+        0,
+        0,
+        "... (227 more omitted)"
+      ],
+      "line_active_workers": {
+        "WWM_FwInputLine": [
+          0,
+          0,
+          "... (227 more omitted)"
+        ],
+        "WWM_LensHolderLine": [
+          0,
+          0,
+          "... (227 more omitted)"
+        ],
+        "WWM_FocusLine": [
+          0,
+          0,
+          "... (227 more omitted)"
+        ],
+        "WWM_SemiAssemblyLine": [
+          0,
+          0,
+          "... (227 more omitted)"
+        ],
+        "WWM_SetAssemblyLine": [
+          0,
+          0,
+          "... (227 more omitted)"
+        ],
+        "WWM_InspectionLine": [
+          0,
+          0,
+          "... (227 more omitted)"
+        ],
+        "WWM_AgingLine": [
+          0,
+          0,
+          "... (227 more omitted)"
+        ],
+        "WWM_OqcLine": [
+          0,
+          0,
+          "... (227 more omitted)"
+        ],
+        "WWM_RMALine": [
+          0,
+          0,
+          "... (227 more omitted)"
+        ],
+        "WWM_PackagingLine": [
+          0,
+          0,
+          "... (227 more omitted)"
+        ]
+      }
+    }
+  },
+  "carbon": {
+    "timeseries": {
+      "sample_sec": 600,
+      "t_sec": [
+        600,
+        1200,
+        "... (227 more omitted)"
+      ],
+      "instant_power_kw": [
+        0.0,
+        0.0,
+        "... (227 more omitted)"
+      ],
+      "cumulative_energy_kwh": [
+        0.0,
+        0.0,
+        "... (227 more omitted)"
+      ]
+    }
+  },
+  "meta": {
+    "sample_sec": 600,
+    "makespan_sec": 137280.0,
+    "makespan_days": 1.589,
+    "scenario_mode": "FINITE"
+  },
+  "energy_breakdown": {
+    "total_power_kwh": 924.3613527778074,
+    "idle_power_kwh": 121.33333333333333,
+    "assembly_active_kwh": 614.7062166666967,
+    "smt_power_kwh": 188.32180277777726,
+    "line_power_kwh": {
+      "WWM_FwInputLine": 2.123666666668386,
+      "WWM_SetAssemblyLine": 19.22328833333912,
+      "WWM_SemiAssemblyLine": 8.104638333333206,
+      "WWM_LensHolderLine": 0.0,
+      "WWM_FocusLine": 0.0,
+      "Line_1": 102.72098333333338,
+      "Line_2": 85.60081944444443,
+      "WWM_InspectionLine": 309.5365000000115,
+      "WWM_AgingLine": 175.04999999999742,
+      "WWM_PackagingLine": 99.5923733333471,
+      "WWM_OqcLine": 1.075749999999971
+    },
+    "makespan_sec": 137280.0
+  },
+  "due_improvement": {
+    "per_model": {
+      "MODEL_A": 0.93706492003367,
+      "MODEL_B": 0.9277830387205387,
+      "MODEL_C": 0.9695180976430976
+    },
+    "overall": 0.9277830387205387
+  },
+  "process_work_time_sec": {
+    "NVD_20": 2000.0,
+    "VD7_40": 2300.0,
+    "NVD_80": 2500.0,
+    "NVD_30": 6000.0,
+    "NVD_40": 10000.0,
+    "BT5_80": 4000.0,
+    "VD7_80": 5000.0,
+    "NVD_50": 5000.0,
+    "NVD_51": 6500.0,
+    "NVD_52": 7000.0,
+    "BT5_10": 2000.0,
+    "BT5_11": 2000.0,
+    "BT5_40": 5000.0,
+    "BT5_60": 5000.0,
+    "BT5_61": 5000.0,
+    "VD7_20": 10800.0,
+    "VD7_50": 6400.0,
+    "VD7_80_1": 5000.0,
+    "VD7_10": 2500.0,
+    "BT5_41": 5000.0,
+    "NVD_60": 8000.0,
+    "NVD_21": 2000.0,
+    "NVD_22": 2000.0,
+    "VD7_20_1": 10700.0,
+    "NVD_23": 2000.0,
+    "VD7_40_1": 2200.0,
+    "NVD_53": 3000.0,
+    "NVD_61": 11000.0,
+    "NVD_70": 4500.0,
+    "NVD_81": 2500.0,
+    "NVD_82": 4000.0,
+    "NVD_83": 5000.0,
+    "NVD_90": 8000.0,
+    "NVD_91": 8000.0,
+    "NVD_92": 8000.0,
+    "NVD_100": 11000.0,
+    "BT5_12A": 2000.0,
+    "BT5_12B": 2000.0,
+    "BT5_13A": 2000.0,
+    "BT5_13B": 2000.0,
+    "BT5_14A": 2000.0,
+    "BT5_14B": 2000.0,
+    "BT5_30": 6000.0,
+    "BT5_20": 10000.0,
+    "BT5_31": 6000.0,
+    "NVD_110": 1080000.0,
+    "NVD_120": 3800.0,
+    "NVD_121": 3800.0,
+    "NVD_122": 3700.0,
+    "NVD_123": 3700.0,
+    "OQC": 7800.0,
+    "VD7_10_1": 2500.0,
+    "VD7_10_2": 2500.0,
+    "VD7_10_3": 2500.0,
+    "VD7_30": 10000.0,
+    "VD7_50_1": 6300.0,
+    "VD7_50_2": 6300.0,
+    "VD7_60": 14400.0,
+    "VD7_70": 8000.0,
+    "VD7_70_1": 8000.0,
+    "VD7_70_2": 8000.0,
+    "VD7_90": 1000.0,
+    "VD7_100": 1080000.0,
+    "VD7_110": 3800.0,
+    "VD7_110_1": 3800.0,
+    "VD7_110_2": 3700.0,
+    "VD7_110_3": 3700.0,
+    "BT5_42": 4000.0,
+    "BT5_50": 5000.0,
+    "BT5_51": 5000.0,
+    "BT5_52": 5000.0,
+    "BT5_62": 5000.0,
+    "BT5_70": 1500.0,
+    "BT5_71": 1500.0,
+    "BT5_72": 1500.0,
+    "BT5_73": 1500.0,
+    "BT5_74": 1500.0,
+    "BT5_75": 1500.0,
+    "BT5_90": 6000.0,
+    "BT5_100": 1080000.0,
+    "BT5_110": 3000.0,
+    "BT5_120": 3800.0,
+    "BT5_121": 3800.0,
+    "BT5_122": 3700.0,
+    "BT5_123": 3700.0
+  },
+  "mcf_payload": {
+    "data": {
+      "production_qty": 300,
+      "total_time_sec": 137280.0,
+      "process_slot_work_time_sec": {
+        "NVD_20": [
+          1000.0,
+          1000.0
+        ],
+        "VD7_40": [
+          207.0,
+          207.0,
+          "... (10 more omitted)"
+        ],
+        "NVD_80": [
+          250.0,
+          225.0,
+          "... (9 more omitted)"
+        ],
+        "NVD_30": [
+          1500.0,
+          1500.0,
+          1500.0,
+          1500.0
+        ],
+        "NVD_40": [
+          3400.0,
+          3300.0,
+          3300.0
+        ],
+        "BT5_80": [
+          360.0,
+          360.0,
+          "... (10 more omitted)"
+        ],
+        "VD7_80": [
+          500.0,
+          450.0,
+          "... (9 more omitted)"
+        ],
+        "NVD_50": [
+          500.0,
+          500.0,
+          "... (9 more omitted)"
+        ],
+        "NVD_51": [
+          650.0,
+          650.0,
+          "... (10 more omitted)"
+        ],
+        "NVD_52": [
+          1820.0,
+          1610.0,
+          "... (5 more omitted)"
+        ],
+        "BT5_10": [
+          2000.0
+        ],
+        "BT5_11": [
+          2000.0
+        ],
+        "BT5_40": [
+          950.0,
+          950.0,
+          "... (4 more omitted)"
+        ],
+        "BT5_60": [
+          950.0,
+          950.0,
+          "... (4 more omitted)"
+        ],
+        "BT5_61": [
+          900.0,
+          900.0,
+          "... (7 more omitted)"
+        ],
+        "VD7_20": [
+          2700.0,
+          2700.0,
+          2700.0,
+          2700.0
+        ],
+        "VD7_50": [
+          640.0,
+          576.0,
+          "... (9 more omitted)"
+        ],
+        "VD7_80_1": [
+          500.0,
+          500.0,
+          "... (9 more omitted)"
+        ],
+        "VD7_10": [
+          1250.0,
+          1250.0
+        ],
+        "BT5_41": [
+          800.0,
+          800.0,
+          "... (7 more omitted)"
+        ],
+        "NVD_60": [
+          800.0,
+          720.0,
+          "... (9 more omitted)"
+        ],
+        "NVD_21": [
+          1980.0,
+          20.0
+        ],
+        "NVD_22": [
+          1520.0,
+          480.0
+        ],
+        "VD7_20_1": [
+          2675.0,
+          2675.0,
+          2675.0,
+          2675.0
+        ],
+        "NVD_23": [
+          2000.0
+        ],
+        "VD7_40_1": [
+          616.0,
+          572.0,
+          506.0,
+          506.0
+        ],
+        "NVD_53": [
+          2220.0,
+          780.0
+        ],
+        "NVD_61": [
+          1100.0,
+          990.0,
+          "... (9 more omitted)"
+        ],
+        "NVD_70": [
+          1980.0,
+          1125.0,
+          "... (5 more omitted)"
+        ],
+        "NVD_81": [
+          1625.0,
+          675.0,
+          100.0,
+          75.0,
+          25.0
+        ],
+        "NVD_82": [
+          2240.0,
+          1120.0,
+          360.0,
+          160.0,
+          120.0
+        ],
+        "NVD_83": [
+          2150.0,
+          1300.0,
+          "... (4 more omitted)"
+        ],
+        "NVD_90": [
+          5520.0,
+          2160.0,
+          240.0,
+          80.0
+        ],
+        "NVD_91": [
+          5360.0,
+          2320.0,
+          320.0
+        ],
+        "NVD_92": [
+          5520.0,
+          2160.0,
+          320.0
+        ],
+        "NVD_100": [
+          3960.0,
+          3630.0,
+          2640.0,
+          550.0,
+          220.0
+        ],
+        "BT5_12A": [
+          2000.0
+        ],
+        "BT5_12B": [
+          2000.0
+        ],
+        "BT5_13A": [
+          1960.0,
+          40.0
+        ],
+        "BT5_13B": [
+          2000.0
+        ],
+        "BT5_14A": [
+          2000.0
+        ],
+        "BT5_14B": [
+          2000.0
+        ],
+        "BT5_30": [
+          4800.0,
+          1200.0
+        ],
+        "BT5_20": [
+          5100.0,
+          4600.0,
+          300.0
+        ],
+        "BT5_31": [
+          4200.0,
+          1800.0
+        ],
+        "NVD_110": [
+          10800.0,
+          10800.0,
+          "... (98 more omitted)"
+        ],
+        "NVD_120": [
+          2584.0,
+          1064.0,
+          152.0
+        ],
+        "NVD_121": [
+          2584.0,
+          1064.0,
+          152.0
+        ],
+        "NVD_122": [
+          2516.0,
+          1036.0,
+          148.0
+        ],
+        "NVD_123": [
+          2516.0,
+          1036.0,
+          148.0
+        ],
+        "OQC": [
+          5400.0,
+          2400.0
+        ],
+        "VD7_10_1": [
+          1675.0,
+          825.0
+        ],
+        "VD7_10_2": [
+          1675.0,
+          825.0
+        ],
+        "VD7_10_3": [
+          1675.0,
+          825.0
+        ],
+        "VD7_30": [
+          3400.0,
+          3300.0,
+          3300.0
+        ],
+        "VD7_50_1": [
+          2142.0,
+          2079.0,
+          2079.0
+        ],
+        "VD7_50_2": [
+          2142.0,
+          2079.0,
+          2079.0
+        ],
+        "VD7_60": [
+          2592.0,
+          2448.0,
+          "... (4 more omitted)"
+        ],
+        "VD7_70": [
+          3200.0,
+          3200.0,
+          1600.0
+        ],
+        "VD7_70_1": [
+          3200.0,
+          3200.0,
+          1600.0
+        ],
+        "VD7_70_2": [
+          3200.0,
+          3200.0,
+          1600.0
+        ],
+        "VD7_90": [
+          840.0,
+          160.0
+        ],
+        "VD7_100": [
+          10800.0,
+          10800.0,
+          "... (98 more omitted)"
+        ],
+        "VD7_110": [
+          1748.0,
+          1216.0,
+          "... (4 more omitted)"
+        ],
+        "VD7_110_1": [
+          1786.0,
+          1254.0,
+          494.0,
+          190.0,
+          76.0
+        ],
+        "VD7_110_2": [
+          1776.0,
+          1221.0,
+          481.0,
+          185.0,
+          37.0
+        ],
+        "VD7_110_3": [
+          1776.0,
+          1258.0,
+          481.0,
+          148.0,
+          37.0
+        ],
+        "BT5_42": [
+          800.0,
+          760.0,
+          "... (6 more omitted)"
+        ],
+        "BT5_50": [
+          1250.0,
+          1150.0,
+          "... (7 more omitted)"
+        ],
+        "BT5_51": [
+          1250.0,
+          1200.0,
+          "... (6 more omitted)"
+        ],
+        "BT5_52": [
+          1250.0,
+          1200.0,
+          "... (6 more omitted)"
+        ],
+        "BT5_62": [
+          550.0,
+          550.0,
+          "... (10 more omitted)"
+        ],
+        "BT5_70": [
+          1140.0,
+          315.0,
+          30.0,
+          15.0
+        ],
+        "BT5_71": [
+          1170.0,
+          300.0,
+          15.0,
+          15.0
+        ],
+        "BT5_72": [
+          945.0,
+          525.0,
+          30.0
+        ],
+        "BT5_73": [
+          1065.0,
+          420.0,
+          15.0
+        ],
+        "BT5_74": [
+          1065.0,
+          405.0,
+          30.0
+        ],
+        "BT5_75": [
+          1155.0,
+          330.0,
+          15.0
+        ],
+        "BT5_90": [
+          1920.0,
+          1860.0,
+          1800.0,
+          300.0,
+          120.0
+        ],
+        "BT5_100": [
+          10800.0,
+          10800.0,
+          "... (98 more omitted)"
+        ],
+        "BT5_110": [
+          1530.0,
+          660.0,
+          "... (4 more omitted)"
+        ],
+        "BT5_120": [
+          1178.0,
+          798.0,
+          "... (4 more omitted)"
+        ],
+        "BT5_121": [
+          1178.0,
+          760.0,
+          "... (4 more omitted)"
+        ],
+        "BT5_122": [
+          1147.0,
+          814.0,
+          "... (4 more omitted)"
+        ],
+        "BT5_123": [
+          1184.0,
+          814.0,
+          "... (4 more omitted)"
+        ]
+      }
+    },
+    "request": "납기 대비 시간 절약(입력 납기 − 실제 완료)에 의한 탄소 배출 저감량 산정"
+  }
+}

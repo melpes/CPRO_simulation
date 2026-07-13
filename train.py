@@ -1,10 +1,3 @@
-# -*- coding: utf-8 -*-
-"""학습 진입점. AAS(5파일) 로드 → build.build_simulation/build_agent → train 루프.
-
-수량·납기일·에피소드 수는 전부 AAS(PurchaseOrder·SimulationConfig)에서 자동으로 읽는다.
-산출물: result/runs/run_<날짜시각>/ (rl_log.jsonl · agent_mod.pt).
-graceful 중단: run 폴더에 빈 STOP 파일 → 다음 에피소드 시작 시 안전 종료 + best 보존.
-"""
 from __future__ import annotations
 import os, time
 
@@ -13,20 +6,27 @@ import torch
 from util.rl_logger import RLLogger
 from simulation import EPISODE_DURATION_SEC
 
+_ROOT = os.path.dirname(os.path.abspath(__file__))
+
+RUNS_DIR        = os.path.join(_ROOT, 'result', 'runs')
+AAS_DIR         = os.path.join(_ROOT, 'aas_data')
+STOP_SENTINEL   = 'STOP'
+LOG_NAME        = 'rl_log.jsonl'
+CHECKPOINT_NAME = 'agent_mod.pt'
+DEPLOY_DIR      = 'deploy'
+
 
 def train(env, agent, MaxEpisodes, run_name=None, episode_max_sec=EPISODE_DURATION_SEC, resume=False):
-    _ROOT = os.path.dirname(os.path.abspath(__file__))
-
     if run_name is None:
         run_name = 'run_' + time.strftime('%Y-%m-%d_%H-%M-%S')
-    _OUT = os.path.join(_ROOT, 'result', 'runs', run_name)
-    os.makedirs(_OUT, exist_ok=True)
+    out_dir = os.path.join(RUNS_DIR, run_name)
+    os.makedirs(out_dir, exist_ok=True)
     print(f'[train] outputs → result/runs/{run_name}/', flush=True)
-    logger = RLLogger(os.path.join(_OUT, 'rl_log.jsonl'), resume=resume)
-    ckpt   = os.path.join(_OUT, 'agent_mod.pt')
+    logger = RLLogger(os.path.join(out_dir, LOG_NAME), resume=resume)
+    checkpoint_path = os.path.join(out_dir, CHECKPOINT_NAME)
 
     for episode in range(logger.next_episode, logger.next_episode + MaxEpisodes):
-        if os.path.exists(os.path.join(_OUT, 'STOP')):
+        if os.path.exists(os.path.join(out_dir, STOP_SENTINEL)):
             print(f'[ep {episode}] STOP sentinel — graceful exit', flush=True)
             break
         agent.reset_buffer()
@@ -42,9 +42,7 @@ def train(env, agent, MaxEpisodes, run_name=None, episode_max_sec=EPISODE_DURATI
             violations={'stock_shortage': env.StockShortageCount,
                         'stock_overflow': env.StockOverflowCount,
                         'idle_violation': env.IdleViolationCount,
-                        'due_pace_deficit': env.DuePaceDeficit,
-                        **{f'due_pace/{model_id}': value
-                           for model_id, value in env.DuePaceDeficitByModel.items()}},
+                        'due_pace_deficit': env.DuePaceDeficit},
             reward_terms=summary.get('RewardTerms'),
             line_energy=summary.get('LineEnergy'),
             idle_energy=summary.get('IdleEnergyKwh'),
@@ -54,26 +52,25 @@ def train(env, agent, MaxEpisodes, run_name=None, episode_max_sec=EPISODE_DURATI
             idle_time_total=summary.get('TotalIdleTime'),
             line_idle_time=summary.get('LineIdleTime'))
         if is_best:
-            torch.save({'model': agent.state_dict(), 'optim': agent.optimizer.state_dict()}, ckpt)
-        thru = ' '.join(f'{m}:{env.Throughput[m]}/{env.target_qty[m]}' for m in env.target_qty)
-        ev = (metrics or {}).get('critic/explained_variance')
+            torch.save({'model': agent.state_dict(), 'optim': agent.optimizer.state_dict()}, checkpoint_path)
+        throughput_line = ' '.join(f'{m}:{env.Throughput[m]}/{env.target_qty[m]}' for m in env.target_qty)
+        explained_variance = (metrics or {}).get('critic/explained_variance')
         print(f'[ep {episode:>4}] R={R:+.4f} decisions={decisions} '
               f'makespan={summary["makespan_sec"]:.0f} E={summary["EpisodeEnergyKwh"]:.2f} '
-              f'thru=[{thru}] ev={ev} {"BEST↑" if is_best else ""}', flush=True)
+              f'thru=[{throughput_line}] ev={explained_variance} {"BEST↑" if is_best else ""}', flush=True)
 
-    if os.path.exists(ckpt):
+    if os.path.exists(checkpoint_path):
         import package
-        pkg = package.build_package(ckpt, os.path.join(_OUT, 'deploy'))
-        print(f'[train] deploy package → {os.path.relpath(pkg, _ROOT)}/', flush=True)
+        package_dir = package.build_package(checkpoint_path, os.path.join(out_dir, DEPLOY_DIR))
+        print(f'[train] deploy package → {os.path.relpath(package_dir, _ROOT)}/', flush=True)
 
 
 if __name__ == '__main__':
     import path_extractor
     import build
 
-    _ROOT = os.path.dirname(os.path.abspath(__file__))
-    for _f in build.TRAINING_AAS_FILES:
-        path_extractor.load(os.path.join(_ROOT, 'aas_data', _f))
+    for filename in build.TRAINING_AAS_FILES:
+        path_extractor.load(os.path.join(AAS_DIR, filename))
 
     env   = build.build_simulation()
     agent = build.build_agent(env)
