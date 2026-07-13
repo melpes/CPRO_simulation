@@ -5,10 +5,10 @@ import os
 import path_extractor
 from path_extractor import AssetAdministrationShell, ProvisionofSimulationModelsAAS
 
-_EQUIPMENT_AAS_FILES  = ('1_Loader.json', '2_SPI.json', '3_ScreenPrinter.json', '4_Mounter.json',
-                         '5_AOI.json', '6_Reflow.json', '7_Unloader.json')
+_EQUIPMENT_AAS_FILES  = ('Loader.json', 'SPI.json', 'ScreenPrinter.json', 'Mounter.json',
+                         'AOI.json', 'Reflow.json', 'Unloader.json')
 
-TRAINING_AAS_FILES    = ('ProvisionOfSimulationModel.json', 'WorkstationWorkerMatchingDataAAS.json',
+TRAINING_AAS_FILES    = ('ProvisionOfSimulationModel.json', 'AssemblyByWorker.json',
                          'MODEL_A.json', 'MODEL_B.json', 'MODEL_C.json') + _EQUIPMENT_AAS_FILES
 
 DEFAULT_AAS_FILES     = TRAINING_AAS_FILES

@@ -1,10 +1,11 @@
 {
  "assetAdministrationShells": [
   {
-   "idShort": "WorkstationWorkerMatchingDataAAS",
-   "id": "https://example.com/ids/aas/8223_8080_5062_0020",
+   "idShort": "AssemblyByWorker",
+   "id": "https://www.smart-factory.kr/ids/aas/AssemblyByWorker/1/0",
    "assetInformation": {
-    "assetKind": "NotApplicable"
+    "assetKind": "Type",
+    "globalAssetId": "https://www.smart-factory.kr/ids/asset/AssemblyByWorker/1/0"
    },
    "submodels": [
     {

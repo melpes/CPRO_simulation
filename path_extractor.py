@@ -609,7 +609,7 @@ class AssetAdministrationShell:
 
     @property
     def workers(self) -> Dict[str, Dict[str, Any]]:
-        wwm = _aas_registry['WorkstationWorkerMatchingDataAAS']
+        wwm = _aas_registry['AssemblyByWorker']
         if not wwm.submodels:
             return {}
         workstation_info = (wwm.submodels['WorkstationWorkerMatchingData']
@@ -659,7 +659,7 @@ class AssetAdministrationShell:
 
 
 ProvisionofSimulationModelsAAS = AssetAdministrationShell()
-WorkstationWorkerMatchingDataAAS = AssetAdministrationShell()
+AssemblyByWorker = AssetAdministrationShell()
 ProductAAS: List[AssetAdministrationShell] = []
 EquipmentAAS: List[AssetAdministrationShell] = []
 
@@ -667,7 +667,7 @@ EquipmentAAS: List[AssetAdministrationShell] = []
 _aas_registry: Dict[str, AssetAdministrationShell | List[AssetAdministrationShell]] = {
     'ProductAAS': ProductAAS,
     'EquipmentAAS': EquipmentAAS,
-    'WorkstationWorkerMatchingDataAAS': WorkstationWorkerMatchingDataAAS,
+    'AssemblyByWorker': AssemblyByWorker,
     'ProvisionofSimulationModelsAAS': ProvisionofSimulationModelsAAS,
 }
 
@@ -681,8 +681,8 @@ def load(json_path: str) -> None:
 
     if aas_idShort == 'ProvisionofSimulationModelsAAS':
         target_aas = ProvisionofSimulationModelsAAS
-    elif aas_idShort == 'WorkstationWorkerMatchingDataAAS':
-        target_aas = WorkstationWorkerMatchingDataAAS
+    elif aas_idShort == 'AssemblyByWorker':
+        target_aas = AssemblyByWorker
     else:
         target_aas = AssetAdministrationShell()
         if any(submodel.get('idShort') == 'HierarchicalStructures' for submodel in raw_data.get('submodels', [])):

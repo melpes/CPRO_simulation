@@ -34,6 +34,8 @@ CLAUDE.md
 /UML.md
 ml_viz/
 mod_run/
+# aas_data .aasx — json=SoT에서 동기화한 파생물, 추적 (backup 제외)
+!aas_data/*.aasx
 # aas_data 참조 바이너리·템플릿 (시뮬 직접 미사용)
 aas_data/ProvisionOfSimulationModel_skeleton.json
 aas_data/AAS_스키마_데이터.xlsx
