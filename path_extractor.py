@@ -268,6 +268,8 @@ class RuntimeVariables(SubmodelElementCollection):
     def DuePaceDeficit(self, Throughput, target_qty, DueDay, now, DuePaceDeficit) -> float:
         deficit = 0.0
         for model_id in target_qty:
+            if not target_qty[model_id]:          # 주문 0 인 모델 — 페이스 요구 없음
+                continue
             required = min(now / DueDay[model_id], 1.0)
             progress = Throughput[model_id] / target_qty[model_id]
             deficit += max(0.0, required - progress)

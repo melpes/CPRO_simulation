@@ -415,7 +415,9 @@ class CproSimEnv:
         work_day = self.WorkEndTime - self.WorkStartTime - (self.break_end_sec - self.break_start_sec)
         features = []
         for model_id in self.target_qty:
-            features.append(self.Throughput[model_id] / self.target_qty[model_id])
+            # 주문 0 인 모델은 진행률 1(이미 충족) — 학습 시엔 target 0 이 없어 동작 불변
+            features.append(self.Throughput[model_id] / self.target_qty[model_id]
+                            if self.target_qty[model_id] else 1.0)
         features.append(self.env.now / max(work_day * total_target, 1.0))
         features.append(self.total_energy_kwh() / self.MaxEpisodeEnergyKwh)
         for ws, info in self.workers.items():
@@ -437,6 +439,8 @@ class CproSimEnv:
         features.append(idle_norm_sum / len(self.workers))
         due_deficit = 0.0
         for model_id in self.target_qty:
+            if not self.target_qty[model_id]:     # 주문 0 인 모델 — 페이스 요구 없음
+                continue
             required = min(self.env.now / self.DueDay[model_id], 1.0)
             due_deficit += max(0.0, required - self.Throughput[model_id] / self.target_qty[model_id])
         features.append(due_deficit / len(self.target_qty))

@@ -136,6 +136,16 @@ def build_payload(env, summary: Dict[str, Any], *, sample_sec: int = SAMPLE_SEC)
     throughput = {model_id: int(v) for model_id, v in (summary.get('Throughput') or env.Throughput).items()}
     base_power_kw = env.DefaultProcessConsumedPowerKw
     smt_events = list(getattr(env, 'smt_events', []))
+    # SMT 이벤트는 표시용 재구성(설비 cycle 전체 폭)이라 전력·에너지가 과대 —
+    # 설비별 시뮬 정산값(SMTEquipEnergy, 파이프라인 보정)에 맞게 (라인, 설비) 단위 배율로 정규화한다.
+    smt_event_kwh: Dict[tuple, float] = {}
+    for s in smt_events:
+        key = (s['line'], s['equipment'])
+        smt_event_kwh[key] = smt_event_kwh.get(key, 0.0) + s['energy_kwh']
+    smt_actual = summary.get('SMTEquipEnergy') or {}
+    smt_scale = {key: (float(smt_actual.get(key[0], {}).get(key[1], 0.0)) / kwh if kwh else 0.0)
+                 for key, kwh in smt_event_kwh.items()}
+    smt_equipment_names = sorted({s['equipment'] for s in smt_events})
 
     def _in_work(t: float) -> bool:
         sec_in_day = t % 86400.0
@@ -175,7 +185,8 @@ def build_payload(env, summary: Dict[str, Any], *, sample_sec: int = SAMPLE_SEC)
     unit_span: Dict[Any, dict] = {}
     for event in events:
         unit = unit_span.setdefault(event.get('unit_id', id(event)),
-                                    {'start': event['start_sec'], 'end': 0.0})
+                                    {'start': event['start_sec'], 'end': 0.0,
+                                     'model': event['model']})
         unit['start'] = min(unit['start'], event['start_sec'])
         if _is_terminal(env, event['process_code']):
             unit['end'] = max(unit['end'], event['end_sec'])
@@ -184,16 +195,36 @@ def build_payload(env, summary: Dict[str, Any], *, sample_sec: int = SAMPLE_SEC)
     # 시계열 — 완료·WIP·순간전력·누적에너지
     grid = _grid(makespan, sample_sec)
     t_series, cumulative_completed, completion_ratio, wip, active_workers = [], [], [], [], []
+    completed_by_model = {model_id: [] for model_id in target}
+    wip_by_model       = {model_id: [] for model_id in target}
     line_active: Dict[str, list] = {ws: [] for ws in env.workers}
     instant_power, cumulative_energy = [], []
+    instant_power_base, instant_power_assembly, instant_power_smt = [], [], []
+    work_elapsed_h = []
+    line_worker_idle_h: Dict[str, list] = {ws: [] for ws in env.workers}
+    line_occupancy: Dict[str, list] = {ws: [] for ws in env.workers}
+    energy_by_source: Dict[str, list] = {'base': [], 'SMT': [], **{ws: [] for ws in env.workers}}
+    smt_equipment_kwh: Dict[str, list] = {name: [] for name in smt_equipment_names}
     running_energy = 0.0
     for low, high, mid in grid:
         t_series.append(round(high, 1))
-        done = sum(1 for event in events
-                   if _is_terminal(env, event['process_code']) and event['end_sec'] <= high)
+        work_elapsed_h.append(round(env._work_elapsed(high) / 3600.0, 4))
+        done_per_model = {model_id: 0 for model_id in target}
+        for event in events:
+            if _is_terminal(env, event['process_code']) and event['end_sec'] <= high:
+                done_per_model[event['model']] = done_per_model.get(event['model'], 0) + 1
+        done = sum(done_per_model.values())
         cumulative_completed.append(done)
         completion_ratio.append(round(done / total_target, 4))
-        wip.append(sum(1 for unit in units if unit['start'] <= high and not (unit['end'] and unit['end'] <= high)))
+        for model_id in completed_by_model:
+            completed_by_model[model_id].append(done_per_model.get(model_id, 0))
+        wip_now = {model_id: 0 for model_id in target}
+        for unit in units:
+            if unit['start'] <= high and not (unit['end'] and unit['end'] <= high):
+                wip_now[unit['model']] = wip_now.get(unit['model'], 0) + 1
+        wip.append(sum(wip_now.values()))
+        for model_id in wip_by_model:
+            wip_by_model[model_id].append(wip_now.get(model_id, 0))
         per_line = {ws: 0 for ws in env.workers}
         for event in events:
             if event['start_sec'] <= mid < event['end_sec']:
@@ -206,16 +237,44 @@ def build_payload(env, summary: Dict[str, Any], *, sample_sec: int = SAMPLE_SEC)
         for event in events:
             if event['start_sec'] <= mid < event['end_sec']:
                 premium_power += KnowledgeGraph.nodes[event['process_code']].RatedPowerKw
-        smt_power = sum(s['power_kw'] for s in smt_events if s['start_sec'] <= mid < s['end_sec'])
-        instant_power.append(round((base_power_kw if _in_work(mid) else 0.0) + premium_power + smt_power, 3))
+        smt_power  = sum(s['power_kw'] * smt_scale[(s['line'], s['equipment'])]
+                         for s in smt_events if s['start_sec'] <= mid < s['end_sec'])
+        base_power = base_power_kw if _in_work(mid) else 0.0
+        instant_power_base.append(round(base_power, 3))
+        instant_power_assembly.append(round(premium_power, 3))
+        instant_power_smt.append(round(smt_power, 3))
+        instant_power.append(round(base_power + premium_power + smt_power, 3))
 
-        bucket_idle_kwh = base_power_kw * (env._work_elapsed(high) - env._work_elapsed(low)) / 3600.0
-        bucket_premium_kwh = 0.0
+        bucket_work_sec = env._work_elapsed(high) - env._work_elapsed(low)
+        bucket_idle_kwh = base_power_kw * bucket_work_sec / 3600.0
+        line_busy_sec  = {ws: 0.0 for ws in env.workers}
+        line_kwh       = {ws: 0.0 for ws in env.workers}
         for event in events:
-            bucket_premium_kwh += _overlap(event['start_sec'], event['end_sec'], low, high) \
-                                  * KnowledgeGraph.nodes[event['process_code']].RatedPowerKw / 3600.0
-        bucket_smt_kwh = sum(_overlap(s['start_sec'], s['end_sec'], low, high) * s['power_kw'] / 3600.0
-                             for s in smt_events)
+            overlap = _overlap(event['start_sec'], event['end_sec'], low, high)
+            if overlap:
+                ws = event['workstation']
+                line_busy_sec[ws] += overlap
+                line_kwh[ws] += overlap * KnowledgeGraph.nodes[event['process_code']].RatedPowerKw / 3600.0
+        bucket_premium_kwh = sum(line_kwh.values())
+        equip_bucket_kwh = {name: 0.0 for name in smt_equipment_names}
+        for s in smt_events:
+            overlap = _overlap(s['start_sec'], s['end_sec'], low, high)
+            if overlap:
+                equip_bucket_kwh[s['equipment']] += (overlap * s['power_kw'] / 3600.0
+                                                     * smt_scale[(s['line'], s['equipment'])])
+        for name in smt_equipment_names:
+            smt_equipment_kwh[name].append(round(equip_bucket_kwh[name], 4))
+        bucket_smt_kwh = sum(equip_bucket_kwh.values())
+        for ws, info in env.workers.items():
+            worker_count = info['worker_count'] or 1
+            idle_sec = max(0.0, worker_count * bucket_work_sec - line_busy_sec[ws])
+            line_worker_idle_h[ws].append(round(idle_sec / worker_count / 3600.0, 4))
+            # 동시 담당 슬롯 = 작업자 × 1인 담당 수(UnitsPerWorker, 에이징 등 다중 담당 라인)
+            slots = worker_count * (info.get('UnitsPerWorker') or 1)
+            line_occupancy[ws].append(round(min(1.0, line_busy_sec[ws] / (slots * (high - low))), 4))
+            energy_by_source[ws].append(round(line_kwh[ws], 4))
+        energy_by_source['base'].append(round(bucket_idle_kwh, 4))
+        energy_by_source['SMT'].append(round(bucket_smt_kwh, 4))
         running_energy += bucket_idle_kwh + bucket_premium_kwh + bucket_smt_kwh
         cumulative_energy.append(round(running_energy, 4))
 
@@ -225,6 +284,20 @@ def build_payload(env, summary: Dict[str, Any], *, sample_sec: int = SAMPLE_SEC)
     smt_kwh     = float(getattr(env, 'SMTEnergyKwh', 0.0))
     idle_kwh    = max(0.0, total_kwh - premium_kwh - smt_kwh)
     active_kwh  = total_kwh - idle_kwh
+
+    # SMT 설비별 집계 — 시뮬 정산값(SMTEquipEnergy, 파이프라인 보정) 기준.
+    # 가동시간은 에너지/정격전력으로 역산 (에너지 적산이 전력×가동시간이므로 정확).
+    smt_powers = {line_id: {name: power for name, _, power in equipment}
+                  for line_id, equipment in (getattr(env, 'SMTLines', None) or {}).items()}
+    smt_equipment = {}
+    for line_id, per_equip in (summary.get('SMTEquipEnergy') or {}).items():
+        smt_equipment[line_id] = {}
+        for name, kwh in per_equip.items():
+            power = smt_powers.get(line_id, {}).get(name)
+            smt_equipment[line_id][name] = {
+                'energy_kwh': round(float(kwh), 4),
+                'op_sec'    : round(float(kwh) * 3600.0 / power, 1) if power else None,
+            }
 
     # 창고 품목별 집계
     warehouse = env.warehouse
@@ -253,7 +326,7 @@ def build_payload(env, summary: Dict[str, Any], *, sample_sec: int = SAMPLE_SEC)
             'by_entity': {
                 'workers'            : workers,
                 'warehouse_by_item'  : warehouse_by_item,
-                'equipment_op_time'  : getattr(env, 'smt_op_time', {}),
+                'equipment'          : smt_equipment,
             },
             'events': {
                 'schedule'  : events,
@@ -263,11 +336,16 @@ def build_payload(env, summary: Dict[str, Any], *, sample_sec: int = SAMPLE_SEC)
             'timeseries': {
                 'sample_sec'         : sample_sec,
                 't_sec'              : t_series,
+                'work_elapsed_h'     : work_elapsed_h,
                 'cumulative_completed': cumulative_completed,
+                'cumulative_completed_by_model': completed_by_model,
                 'completion_ratio'   : completion_ratio,
                 'wip'                : wip,
+                'wip_by_model'       : wip_by_model,
                 'active_workers'     : active_workers,
                 'line_active_workers': line_active,
+                'line_worker_idle_h' : line_worker_idle_h,
+                'line_occupancy'     : line_occupancy,
             },
         },
         'carbon': {
@@ -278,10 +356,15 @@ def build_payload(env, summary: Dict[str, Any], *, sample_sec: int = SAMPLE_SEC)
                 'total_carbon_kgco2e': round(carbon.TotalEmission(total_kwh), 2),
             },
             'timeseries': {
-                'sample_sec'           : sample_sec,
-                't_sec'                : t_series,
-                'instant_power_kw'     : instant_power,
-                'cumulative_energy_kwh': cumulative_energy,
+                'sample_sec'               : sample_sec,
+                't_sec'                    : t_series,
+                'instant_power_kw'         : instant_power,
+                'instant_power_base_kw'    : instant_power_base,
+                'instant_power_assembly_kw': instant_power_assembly,
+                'instant_power_smt_kw'     : instant_power_smt,
+                'energy_kwh_by_source'     : energy_by_source,
+                'smt_equipment_kwh'        : smt_equipment_kwh,
+                'cumulative_energy_kwh'    : cumulative_energy,
             },
         },
     }

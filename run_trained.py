@@ -38,6 +38,8 @@ def _schedule_env_cls():
             self.events = []
             self.smt_events = []
             self.smt_op_time = {}
+            self._unit_seq  = {}   # id(done_set) -> 결정적 순번
+            self._unit_keep = []   # done_set 참조 보관 — GC 후 id 재사용 방지
             initial_stock = getattr(self, '_init_stock', None)
             if initial_stock:
                 for category, value in initial_stock.items():
@@ -46,16 +48,28 @@ def _schedule_env_cls():
                             item.present_stock = float(value)
             self.warehouse = export.RecordingWarehouse(self.warehouse, lambda: self.env.now)
 
+        def _unit_id(self, done_set):
+            """유닛의 결정적 식별자. done_set 객체가 유닛의 정체이나 id()는 메모리 주소라
+            실행마다 달라짐 → 최초 등장 순서로 순번을 부여(같은 시드면 순서도 동일)."""
+            key = id(done_set)
+            seq = self._unit_seq.get(key)
+            if seq is None:
+                seq = len(self._unit_seq)
+                self._unit_seq[key] = seq
+                self._unit_keep.append(done_set)
+            return seq
+
         def _run_job(self, ws, job, req):
             start_sec = self.env.now
             node = self.KnowledgeGraph.nodes[job['pc']]
+            unit_id = self._unit_id(job['done_set'])
             yield from super()._run_job(ws, job, req)
             self.events.append({'workstation'  : ws,
                                 'model'        : node.model_id,
                                 'process_code' : job['pc'],
                                 'start_sec'    : float(start_sec),
                                 'end_sec'      : float(start_sec + node.CycleTimeSec),
-                                'unit_id'      : id(job['done_set'])})
+                                'unit_id'      : unit_id})
 
         def smt_record(self, line_id, equipment, code, t_end, array_cycle, array_energy):
             cursor = float(t_end) - float(array_cycle)
@@ -228,6 +242,73 @@ class TrainedModel:
                 'makespan_sec'       : summary['makespan_sec'],
             },
         }
+
+def artifacts(env, summary, sample_sec: int = None) -> dict:
+    import export
+    payload = export.build_payload(env, summary,
+                                   **({'sample_sec': int(sample_sec)} if sample_sec else {}))
+    prod, carb, meta = payload['productivity'], payload['carbon'], payload['meta']
+
+    target     = dict(env.target_qty)
+    throughput = dict(env.Throughput)
+    metric = {
+        'makespan_sec'   : summary['makespan_sec'],
+        'makespan_days'  : summary['makespan_sec'] / 86400.0,
+        'order_quantity' : target,
+        'total_qty'      : sum(target.values()),
+        'throughput'     : throughput,
+        'target_met'     : bool(all(throughput[m] >= target[m] for m in target)),
+        'due_day'        : prod['kpi'].get('due_day'),
+        'actual_due_day' : prod['kpi'].get('actual_due_day'),
+        'due_improvement': _due_improvement(env, summary),
+        'power_kwh'      : {'total'          : float(summary['EpisodeEnergyKwh']),
+                            'idle'           : float(summary['IdleEnergyKwh']),
+                            'assembly_active': float(summary['ActivePremiumKwh']),
+                            'smt'            : float(summary['SMTEnergyKwh'])},
+        'carbon_kgco2e'  : carb['kpi'].get('total_carbon_kgco2e'),
+        'scenario_mode'  : meta.get('scenario_mode'),
+    }
+    history = {
+        'process'  : prod['events']['schedule'],
+        'equipment': prod['events']['equipment'],
+        'warehouse': prod['events']['warehouse'],
+    }
+    timeseries = {
+        'sample_sec': prod['timeseries']['sample_sec'],
+        't_sec'     : prod['timeseries']['t_sec'],
+        'features'  : {
+            'work_elapsed_h'                : prod['timeseries']['work_elapsed_h'],
+            'cumulative_completed'          : prod['timeseries']['cumulative_completed'],
+            'cumulative_completed_by_model' : prod['timeseries']['cumulative_completed_by_model'],
+            'completion_ratio'              : prod['timeseries']['completion_ratio'],
+            'wip'                           : prod['timeseries']['wip'],
+            'wip_by_model'                  : prod['timeseries']['wip_by_model'],
+            'active_workers'                : prod['timeseries']['active_workers'],
+            'line_active_workers'           : prod['timeseries']['line_active_workers'],
+            'line_worker_idle_h'            : prod['timeseries']['line_worker_idle_h'],
+            'line_occupancy'                : prod['timeseries']['line_occupancy'],
+            'instant_power_kw'              : carb['timeseries']['instant_power_kw'],
+            'instant_power_base_kw'         : carb['timeseries']['instant_power_base_kw'],
+            'instant_power_assembly_kw'     : carb['timeseries']['instant_power_assembly_kw'],
+            'instant_power_smt_kw'          : carb['timeseries']['instant_power_smt_kw'],
+            'energy_kwh_by_source'          : carb['timeseries']['energy_kwh_by_source'],
+            'smt_equipment_kwh'             : carb['timeseries']['smt_equipment_kwh'],
+            'cumulative_energy_kwh'         : carb['timeseries']['cumulative_energy_kwh'],
+        },
+    }
+    per_kind_summary = {
+        'process'     : _process_work_time(env),
+        'process_slot': _process_slot_work_time(env),
+        'line'        : {
+            'power_kwh'    : {k: float(v) for k, v in summary.get('LineEnergy', {}).items()},
+            'idle_time_sec': {k: float(v) for k, v in summary.get('LineIdleTime', {}).items()},
+        },
+        'equipment'   : prod['by_entity']['equipment'],
+        'worker'      : prod['by_entity']['workers'],
+        'item'        : prod['by_entity']['warehouse_by_item'],
+    }
+    return {'metric': metric, 'history': history,
+            'timeseries': timeseries, 'summary': per_kind_summary}
 
 
 # ---------- 시나리오 공용 산출 헬퍼 ----------
