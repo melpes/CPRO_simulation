@@ -211,12 +211,22 @@ class CproSimEnv:
             if not pending:
                 resource.release(req)
                 continue
-            distinct_pcs = list(dict.fromkeys(j['pc'] for j in pending))
+            # 당일 퇴근 전에 사이클이 끝나는 작업만 시작 가능 — 못 맞추면 다음 근무 시작까지 보류
+            remaining_sec = self.WorkEndTime - self.env.now % 86400
+            fitting = [j for j in pending
+                       if self.KnowledgeGraph.nodes[j['pc']].CycleTimeSec <= remaining_sec]
+            if not fitting:
+                resource.release(req)
+                self._disp_wake[ws] = self.env.event()
+                yield simpy.AnyOf(self.env, [self.env.timeout(self._off_hours_delta()),
+                                             self._disp_wake[ws]])
+                continue
+            distinct_pcs = list(dict.fromkeys(j['pc'] for j in fitting))
             if agent is not None and len(distinct_pcs) >= 2:
                 chosen_pc = agent.choose(distinct_pcs, self)
-                job = next(j for j in pending if j['pc'] == chosen_pc)
+                job = next(j for j in fitting if j['pc'] == chosen_pc)
             else:
-                job = pending[0]
+                job = fitting[0]
             pending.remove(job)
             self.env.process(self._run_job(ws, job, req))
 
