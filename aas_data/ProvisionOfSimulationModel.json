@@ -14755,6 +14755,69 @@
                   },
                   "valueType": "xs:float",
                   "modelType": "Property"
+                },
+                {
+                  "category": "PARAMETER",
+                  "idShort": "CurrentTariffRatio",
+                  "description": [
+                    {
+                      "language": "en",
+                      "text": "Electricity tariff multiplier applying at the current simulation clock time, relative to the normal-band price."
+                    }
+                  ],
+                  "semanticId": {
+                    "type": "ModelReference",
+                    "keys": [
+                      {
+                        "type": "ConceptDescription",
+                        "value": "https://www.smart-factory.kr/ids/cd/CurrentTariffRatio/1/0"
+                      }
+                    ]
+                  },
+                  "valueType": "xs:float",
+                  "modelType": "Property"
+                },
+                {
+                  "category": "PARAMETER",
+                  "idShort": "SecToTariffBandChange",
+                  "description": [
+                    {
+                      "language": "en",
+                      "text": "Time remaining until the next electricity tariff band boundary."
+                    }
+                  ],
+                  "semanticId": {
+                    "type": "ModelReference",
+                    "keys": [
+                      {
+                        "type": "ConceptDescription",
+                        "value": "https://www.smart-factory.kr/ids/cd/SecToTariffBandChange/1/0"
+                      }
+                    ]
+                  },
+                  "valueType": "xs:float",
+                  "modelType": "Property"
+                },
+                {
+                  "category": "PARAMETER",
+                  "idShort": "SecToWorkEnd",
+                  "description": [
+                    {
+                      "language": "en",
+                      "text": "Time remaining until the current day's work-end time."
+                    }
+                  ],
+                  "semanticId": {
+                    "type": "ModelReference",
+                    "keys": [
+                      {
+                        "type": "ConceptDescription",
+                        "value": "https://www.smart-factory.kr/ids/cd/SecToWorkEnd/1/0"
+                      }
+                    ]
+                  },
+                  "valueType": "xs:float",
+                  "modelType": "Property"
                 }
               ],
               "modelType": "SubmodelElementCollection"
@@ -16631,6 +16694,42 @@
                               {
                                 "type": "GlobalReference",
                                 "value": "https://www.smart-factory.kr/ids/cd/DuePaceDeficit/1/0"
+                              }
+                            ]
+                          }
+                        },
+                        {
+                          "modelType": "ReferenceElement",
+                          "value": {
+                            "type": "ExternalReference",
+                            "keys": [
+                              {
+                                "type": "GlobalReference",
+                                "value": "https://www.smart-factory.kr/ids/cd/CurrentTariffRatio/1/0"
+                              }
+                            ]
+                          }
+                        },
+                        {
+                          "modelType": "ReferenceElement",
+                          "value": {
+                            "type": "ExternalReference",
+                            "keys": [
+                              {
+                                "type": "GlobalReference",
+                                "value": "https://www.smart-factory.kr/ids/cd/SecToTariffBandChange/1/0"
+                              }
+                            ]
+                          }
+                        },
+                        {
+                          "modelType": "ReferenceElement",
+                          "value": {
+                            "type": "ExternalReference",
+                            "keys": [
+                              {
+                                "type": "GlobalReference",
+                                "value": "https://www.smart-factory.kr/ids/cd/SecToWorkEnd/1/0"
                               }
                             ]
                           }
@@ -64135,6 +64234,126 @@
               {
                 "language": "en",
                 "text": "The price of electrical energy expressed in Vietnamese dong per kilowatt-hour."
+              }
+            ],
+            "modelType": "DataSpecificationIec61360"
+          }
+        }
+      ],
+      "modelType": "ConceptDescription"
+    },
+    {
+      "idShort": "CurrentTariffRatio",
+      "description": [
+        {
+          "language": "en",
+          "text": "Electricity tariff multiplier applying at the current simulation clock time, relative to the normal-band price. State-vector source."
+        }
+      ],
+      "id": "https://www.smart-factory.kr/ids/cd/CurrentTariffRatio/1/0",
+      "embeddedDataSpecifications": [
+        {
+          "dataSpecification": {
+            "type": "ExternalReference",
+            "keys": [
+              {
+                "type": "GlobalReference",
+                "value": "https://admin-shell.io/DataSpecificationTemplates/DataSpecificationIec61360/3/0"
+              }
+            ]
+          },
+          "dataSpecificationContent": {
+            "preferredName": [
+              {
+                "language": "en",
+                "text": "CurrentTariffRatio"
+              }
+            ],
+            "dataType": "REAL_MEASURE",
+            "definition": [
+              {
+                "language": "en",
+                "text": "Electricity tariff multiplier applying at the current simulation clock time, relative to the normal-band price. State-vector source."
+              }
+            ],
+            "modelType": "DataSpecificationIec61360"
+          }
+        }
+      ],
+      "modelType": "ConceptDescription"
+    },
+    {
+      "idShort": "SecToTariffBandChange",
+      "description": [
+        {
+          "language": "en",
+          "text": "Time remaining until the next electricity tariff band boundary. State-vector source; saturation and normalisation in code."
+        }
+      ],
+      "id": "https://www.smart-factory.kr/ids/cd/SecToTariffBandChange/1/0",
+      "embeddedDataSpecifications": [
+        {
+          "dataSpecification": {
+            "type": "ExternalReference",
+            "keys": [
+              {
+                "type": "GlobalReference",
+                "value": "https://admin-shell.io/DataSpecificationTemplates/DataSpecificationIec61360/3/0"
+              }
+            ]
+          },
+          "dataSpecificationContent": {
+            "preferredName": [
+              {
+                "language": "en",
+                "text": "SecToTariffBandChange"
+              }
+            ],
+            "dataType": "REAL_MEASURE",
+            "definition": [
+              {
+                "language": "en",
+                "text": "Time remaining until the next electricity tariff band boundary. State-vector source; saturation and normalisation in code."
+              }
+            ],
+            "modelType": "DataSpecificationIec61360"
+          }
+        }
+      ],
+      "modelType": "ConceptDescription"
+    },
+    {
+      "idShort": "SecToWorkEnd",
+      "description": [
+        {
+          "language": "en",
+          "text": "Time remaining until the work-end time of the current day. State-vector source; saturation and normalisation in code."
+        }
+      ],
+      "id": "https://www.smart-factory.kr/ids/cd/SecToWorkEnd/1/0",
+      "embeddedDataSpecifications": [
+        {
+          "dataSpecification": {
+            "type": "ExternalReference",
+            "keys": [
+              {
+                "type": "GlobalReference",
+                "value": "https://admin-shell.io/DataSpecificationTemplates/DataSpecificationIec61360/3/0"
+              }
+            ]
+          },
+          "dataSpecificationContent": {
+            "preferredName": [
+              {
+                "language": "en",
+                "text": "SecToWorkEnd"
+              }
+            ],
+            "dataType": "REAL_MEASURE",
+            "definition": [
+              {
+                "language": "en",
+                "text": "Time remaining until the work-end time of the current day. State-vector source; saturation and normalisation in code."
               }
             ],
             "modelType": "DataSpecificationIec61360"
