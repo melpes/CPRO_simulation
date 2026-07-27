@@ -1,0 +1,5 @@
+# API 서버 의존 = 추론 런타임 + FastAPI/uvicorn
+#   pip install -r requirements-api.txt
+-r requirements-infer.txt
+fastapi==0.136.0
+uvicorn==0.45.0
