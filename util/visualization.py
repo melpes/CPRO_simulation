@@ -416,18 +416,20 @@ def render_gantt(label: str, events_path: str, out_png: str, xmax_disp_h: Option
 
     for sep in line_sep[1:]:
         ax.axhline(sep - 0.5, color='0.85', lw=0.6)
+    day_h = WORK_PER_DAY / 3600
     ndays = int(xmax * 3600 / WORK_PER_DAY) + 1
     for d in range(ndays + 1):
-        ax.axvline(d * 8, color='0.85', lw=0.7)
+        ax.axvline(d * day_h, color='0.85', lw=0.7)
     ax.axvline(own_disp_h, color='#444', lw=1.2, ls='--', alpha=0.7)
 
     if ndays > 10:
-        major  = [d * 8 for d in range(ndays + 1) if d * 8 <= xmax]
+        major  = [d * day_h for d in range(ndays + 1) if d * day_h <= xmax]
         labels = [f'D{d+1}' for d in range(len(major))]
-        minor  = [d * 8 + h for d in range(ndays + 1) for h in (2, 4, 6) if d * 8 + h <= xmax]
+        minor  = [d * day_h + h for d in range(ndays + 1) for h in range(2, int(day_h), 2)
+                  if d * day_h + h <= xmax]
     else:
         major  = [t for t in range(0, int(xmax) + 1, 2)]
-        labels = [f'D{t//8+1}' if t % 8 == 0 else f'+{t%8}h' for t in major]
+        labels = [f'D{int(t // day_h) + 1}' if t % day_h == 0 else f'+{t % day_h:g}h' for t in major]
         minor  = [i * 0.5 for i in range(int(xmax / 0.5) + 1) if (i * 0.5) % 2 != 0]
     ax.set_xticks(major); ax.set_xticklabels(labels, fontsize=9)
     ax.set_xticks(minor, minor=True)
@@ -467,7 +469,7 @@ def render_gantt(label: str, events_path: str, out_png: str, xmax_disp_h: Option
                   color=GANTT_COLOR[m], lw=1.6)
     ax_b.axvline(own_disp_h, color='#444', lw=1.0, ls='--', alpha=0.6)
     for d in range(ndays + 1):
-        ax_b.axvline(d * 8, color='0.85', lw=0.7)
+        ax_b.axvline(d * day_h, color='0.85', lw=0.7)
     ax_b.set_xlim(0, xmax)
     ax_b.set_ylim(0, max(len(ts) for ts in completions.values()) * 1.05)
     ax_b.set_ylabel('cumulative\ncompleted', fontsize=10)
