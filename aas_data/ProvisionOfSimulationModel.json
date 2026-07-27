@@ -14190,6 +14190,278 @@
                 },
                 {
                   "category": "PARAMETER",
+                  "idShort": "ElectricityTariffBands",
+                  "description": [
+                    {
+                      "language": "en",
+                      "text": "Time-of-use electricity tariff bands of the local power grid (Vietnam EVN). Each band records its actual electricity price in VND/kWh. The simulation weights power consumed within a band by the ratio of the band price to the Normal band price. Hours not covered by any band belong to the Normal band."
+                    }
+                  ],
+                  "semanticId": {
+                    "type": "ModelReference",
+                    "keys": [
+                      {
+                        "type": "ConceptDescription",
+                        "value": "https://www.smart-factory.kr/ids/cd/ElectricityTariffBands/1/0"
+                      }
+                    ]
+                  },
+                  "qualifiers": [
+                    {
+                      "kind": "TemplateQualifier",
+                      "type": "Multiplicity",
+                      "valueType": "xs:string",
+                      "value": "One"
+                    }
+                  ],
+                  "value": [
+                    {
+                      "category": "PARAMETER",
+                      "idShort": "Normal",
+                      "description": [
+                        {
+                          "language": "en",
+                          "text": "Reference band. Has no Duration; it covers all hours not claimed by other bands, and its price is the denominator of the weighting ratio."
+                        }
+                      ],
+                      "semanticId": {
+                        "type": "ModelReference",
+                        "keys": [
+                          {
+                            "type": "ConceptDescription",
+                            "value": "https://www.smart-factory.kr/ids/cd/ElectricityTariffBand/1/0"
+                          }
+                        ]
+                      },
+                      "qualifiers": [
+                        {
+                          "kind": "TemplateQualifier",
+                          "type": "Multiplicity",
+                          "valueType": "xs:string",
+                          "value": "ZeroToMany"
+                        }
+                      ],
+                      "value": [
+                        {
+                          "category": "PARAMETER",
+                          "idShort": "ElectricityPriceVndPerKwh",
+                          "description": [
+                            {
+                              "language": "en",
+                              "text": "Electricity price of this tariff band in Vietnamese dong per kilowatt-hour."
+                            }
+                          ],
+                          "semanticId": {
+                            "type": "ModelReference",
+                            "keys": [
+                              {
+                                "type": "ConceptDescription",
+                                "value": "https://www.smart-factory.kr/ids/cd/ElectricityPriceVndPerKwh/1/0"
+                              }
+                            ]
+                          },
+                          "qualifiers": [
+                            {
+                              "kind": "TemplateQualifier",
+                              "type": "Multiplicity",
+                              "valueType": "xs:string",
+                              "value": "One"
+                            }
+                          ],
+                          "valueType": "xs:int",
+                          "value": "1833",
+                          "modelType": "Property"
+                        }
+                      ],
+                      "modelType": "SubmodelElementCollection"
+                    },
+                    {
+                      "category": "PARAMETER",
+                      "idShort": "Peak",
+                      "description": [
+                        {
+                          "language": "en",
+                          "text": "EVN peak-rate band, applied every day; the EVN Sunday exemption is not modeled."
+                        }
+                      ],
+                      "semanticId": {
+                        "type": "ModelReference",
+                        "keys": [
+                          {
+                            "type": "ConceptDescription",
+                            "value": "https://www.smart-factory.kr/ids/cd/ElectricityTariffBand/1/0"
+                          }
+                        ]
+                      },
+                      "qualifiers": [
+                        {
+                          "kind": "TemplateQualifier",
+                          "type": "Multiplicity",
+                          "valueType": "xs:string",
+                          "value": "ZeroToMany"
+                        }
+                      ],
+                      "value": [
+                        {
+                          "category": "PARAMETER",
+                          "idShort": "Duration",
+                          "description": [
+                            {
+                              "language": "en",
+                              "text": "Daily time window during which this tariff band applies. Must not cross midnight; a band spanning midnight is split into two band entries."
+                            }
+                          ],
+                          "semanticId": {
+                            "type": "ModelReference",
+                            "keys": [
+                              {
+                                "type": "ConceptDescription",
+                                "value": "https://www.smart-factory.kr/ids/cd/Duration/1/0"
+                              }
+                            ]
+                          },
+                          "qualifiers": [
+                            {
+                              "kind": "TemplateQualifier",
+                              "type": "Multiplicity",
+                              "valueType": "xs:string",
+                              "value": "ZeroToOne"
+                            }
+                          ],
+                          "valueType": "xs:time",
+                          "min": "17:30:00",
+                          "max": "22:30:00",
+                          "modelType": "Range"
+                        },
+                        {
+                          "category": "PARAMETER",
+                          "idShort": "ElectricityPriceVndPerKwh",
+                          "description": [
+                            {
+                              "language": "en",
+                              "text": "Electricity price of this tariff band in Vietnamese dong per kilowatt-hour."
+                            }
+                          ],
+                          "semanticId": {
+                            "type": "ModelReference",
+                            "keys": [
+                              {
+                                "type": "ConceptDescription",
+                                "value": "https://www.smart-factory.kr/ids/cd/ElectricityPriceVndPerKwh/1/0"
+                              }
+                            ]
+                          },
+                          "qualifiers": [
+                            {
+                              "kind": "TemplateQualifier",
+                              "type": "Multiplicity",
+                              "valueType": "xs:string",
+                              "value": "One"
+                            }
+                          ],
+                          "valueType": "xs:int",
+                          "value": "3398",
+                          "modelType": "Property"
+                        }
+                      ],
+                      "modelType": "SubmodelElementCollection"
+                    },
+                    {
+                      "category": "PARAMETER",
+                      "idShort": "OffPeak",
+                      "description": [
+                        {
+                          "language": "en",
+                          "text": "EVN off-peak (night) band."
+                        }
+                      ],
+                      "semanticId": {
+                        "type": "ModelReference",
+                        "keys": [
+                          {
+                            "type": "ConceptDescription",
+                            "value": "https://www.smart-factory.kr/ids/cd/ElectricityTariffBand/1/0"
+                          }
+                        ]
+                      },
+                      "qualifiers": [
+                        {
+                          "kind": "TemplateQualifier",
+                          "type": "Multiplicity",
+                          "valueType": "xs:string",
+                          "value": "ZeroToMany"
+                        }
+                      ],
+                      "value": [
+                        {
+                          "category": "PARAMETER",
+                          "idShort": "Duration",
+                          "description": [
+                            {
+                              "language": "en",
+                              "text": "Daily time window during which this tariff band applies. Must not cross midnight; a band spanning midnight is split into two band entries."
+                            }
+                          ],
+                          "semanticId": {
+                            "type": "ModelReference",
+                            "keys": [
+                              {
+                                "type": "ConceptDescription",
+                                "value": "https://www.smart-factory.kr/ids/cd/Duration/1/0"
+                              }
+                            ]
+                          },
+                          "qualifiers": [
+                            {
+                              "kind": "TemplateQualifier",
+                              "type": "Multiplicity",
+                              "valueType": "xs:string",
+                              "value": "ZeroToOne"
+                            }
+                          ],
+                          "valueType": "xs:time",
+                          "min": "00:00:00",
+                          "max": "06:00:00",
+                          "modelType": "Range"
+                        },
+                        {
+                          "category": "PARAMETER",
+                          "idShort": "ElectricityPriceVndPerKwh",
+                          "description": [
+                            {
+                              "language": "en",
+                              "text": "Electricity price of this tariff band in Vietnamese dong per kilowatt-hour."
+                            }
+                          ],
+                          "semanticId": {
+                            "type": "ModelReference",
+                            "keys": [
+                              {
+                                "type": "ConceptDescription",
+                                "value": "https://www.smart-factory.kr/ids/cd/ElectricityPriceVndPerKwh/1/0"
+                              }
+                            ]
+                          },
+                          "qualifiers": [
+                            {
+                              "kind": "TemplateQualifier",
+                              "type": "Multiplicity",
+                              "valueType": "xs:string",
+                              "value": "One"
+                            }
+                          ],
+                          "valueType": "xs:int",
+                          "value": "1190",
+                          "modelType": "Property"
+                        }
+                      ],
+                      "modelType": "SubmodelElementCollection"
+                    }
+                  ],
+                  "modelType": "SubmodelElementCollection"
+                },
+                {
+                  "category": "PARAMETER",
                   "idShort": "InfiniteStock",
                   "description": [
                     {
@@ -63702,6 +63974,167 @@
               {
                 "language": "en",
                 "text": "Maximum episode length in seconds. In STEADY mode the episode ends when simulation time reaches this value; in FINITE mode the episode ends on target_qty completion (this acts as a safety cap). For valid steady-state throughput set it to at least 2-3x the longest model lead time (MODEL_B includes a 24h cure at BT5_42, ~27h lead)."
+              }
+            ],
+            "modelType": "DataSpecificationIec61360"
+          }
+        }
+      ],
+      "modelType": "ConceptDescription"
+    },
+    {
+      "idShort": "ElectricityTariffBands",
+      "displayName": [
+        {
+          "language": "en",
+          "text": "Electricity Tariff Bands"
+        }
+      ],
+      "id": "https://www.smart-factory.kr/ids/cd/ElectricityTariffBands/1/0",
+      "embeddedDataSpecifications": [
+        {
+          "dataSpecification": {
+            "type": "ExternalReference",
+            "keys": [
+              {
+                "type": "GlobalReference",
+                "value": "https://admin-shell.io/DataSpecificationTemplates/DataSpecificationIec61360/3/0"
+              }
+            ]
+          },
+          "dataSpecificationContent": {
+            "preferredName": [
+              {
+                "language": "en",
+                "text": "ElectricityTariffBands"
+              }
+            ],
+            "dataType": "STRING",
+            "definition": [
+              {
+                "language": "en",
+                "text": "A set of time-of-use electricity tariff bands, each defining a daily time window and its electricity price."
+              }
+            ],
+            "modelType": "DataSpecificationIec61360"
+          }
+        }
+      ],
+      "modelType": "ConceptDescription"
+    },
+    {
+      "idShort": "ElectricityTariffBand",
+      "displayName": [
+        {
+          "language": "en",
+          "text": "Electricity Tariff Band"
+        }
+      ],
+      "id": "https://www.smart-factory.kr/ids/cd/ElectricityTariffBand/1/0",
+      "embeddedDataSpecifications": [
+        {
+          "dataSpecification": {
+            "type": "ExternalReference",
+            "keys": [
+              {
+                "type": "GlobalReference",
+                "value": "https://admin-shell.io/DataSpecificationTemplates/DataSpecificationIec61360/3/0"
+              }
+            ]
+          },
+          "dataSpecificationContent": {
+            "preferredName": [
+              {
+                "language": "en",
+                "text": "ElectricityTariffBand"
+              }
+            ],
+            "dataType": "STRING",
+            "definition": [
+              {
+                "language": "en",
+                "text": "A single time-of-use tariff band consisting of an optional daily time window and an electricity price."
+              }
+            ],
+            "modelType": "DataSpecificationIec61360"
+          }
+        }
+      ],
+      "modelType": "ConceptDescription"
+    },
+    {
+      "idShort": "Duration",
+      "displayName": [
+        {
+          "language": "en",
+          "text": "Duration"
+        }
+      ],
+      "id": "https://www.smart-factory.kr/ids/cd/Duration/1/0",
+      "embeddedDataSpecifications": [
+        {
+          "dataSpecification": {
+            "type": "ExternalReference",
+            "keys": [
+              {
+                "type": "GlobalReference",
+                "value": "https://admin-shell.io/DataSpecificationTemplates/DataSpecificationIec61360/3/0"
+              }
+            ]
+          },
+          "dataSpecificationContent": {
+            "preferredName": [
+              {
+                "language": "en",
+                "text": "Duration"
+              }
+            ],
+            "dataType": "TIME",
+            "definition": [
+              {
+                "language": "en",
+                "text": "A daily time window expressed as a start and end time within one day."
+              }
+            ],
+            "modelType": "DataSpecificationIec61360"
+          }
+        }
+      ],
+      "modelType": "ConceptDescription"
+    },
+    {
+      "idShort": "ElectricityPriceVndPerKwh",
+      "displayName": [
+        {
+          "language": "en",
+          "text": "Electricity Price"
+        }
+      ],
+      "id": "https://www.smart-factory.kr/ids/cd/ElectricityPriceVndPerKwh/1/0",
+      "embeddedDataSpecifications": [
+        {
+          "dataSpecification": {
+            "type": "ExternalReference",
+            "keys": [
+              {
+                "type": "GlobalReference",
+                "value": "https://admin-shell.io/DataSpecificationTemplates/DataSpecificationIec61360/3/0"
+              }
+            ]
+          },
+          "dataSpecificationContent": {
+            "preferredName": [
+              {
+                "language": "en",
+                "text": "ElectricityPriceVndPerKwh"
+              }
+            ],
+            "unit": "VND/kWh",
+            "dataType": "INTEGER_CURRENCY",
+            "definition": [
+              {
+                "language": "en",
+                "text": "The price of electrical energy expressed in Vietnamese dong per kilowatt-hour."
               }
             ],
             "modelType": "DataSpecificationIec61360"

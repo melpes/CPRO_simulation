@@ -23,7 +23,8 @@ class CproSimEnv:
                  IdleWorkerThreshold, RuntimeVariables,
                  DefaultProcessConsumedPowerKw, SelfManagedBOM=None,
                  SMTLines=None, SmtArrayPcb=6, DueDay=None,
-                 InfiniteStock=False, ScenarioMode='FINITE', MaxEpisodeSec=None):
+                 InfiniteStock=False, ScenarioMode='FINITE', MaxEpisodeSec=None,
+                 ElectricityTariffBands=None):
         self.KnowledgeGraph       = KnowledgeGraph
         self.warehouse            = warehouse
         self.workers              = workers
@@ -50,6 +51,7 @@ class CproSimEnv:
         self.InfiniteStock        = InfiniteStock
         self.ScenarioMode         = ScenarioMode
         self.MaxEpisodeSec        = MaxEpisodeSec
+        self.ElectricityTariffBands = ElectricityTariffBands
         self.IdleRewardMode       = 'time'
         self.DueRewardMode        = 'sparse'
 
@@ -129,6 +131,22 @@ class CproSimEnv:
             return self.break_end_sec - sec_in_day
         return 86400 - sec_in_day + self.WorkStartTime
 
+    def _tariff_weighted_sec(self, t0: float, t1: float) -> float:
+        # [t0,t1] 소모 구간을 하루 내 시각으로 접어 요금밴드 비율로 가중한 초.
+        # 밴드 미설정(None)이면 그대로 실초 반환. 밴드 밖 시간대는 비율 1.0(보통).
+        dt = max(0.0, t1 - t0)
+        bands = self.ElectricityTariffBands
+        if not bands or dt == 0.0:
+            return dt
+        s0 = t0 % 86400.0
+        s1 = s0 + dt
+        weighted = dt
+        for start, end, ratio in bands:
+            for shift in (0.0, 86400.0):
+                overlap = max(0.0, min(s1, end + shift) - max(s0, start + shift))
+                weighted += overlap * (ratio - 1.0)
+        return weighted
+
     def _work_elapsed(self, t: float) -> float:
         day = 86400.0
         work_day = (self.WorkEndTime - self.WorkStartTime) - (self.break_end_sec - self.break_start_sec)
@@ -207,11 +225,13 @@ class CproSimEnv:
         node = self.KnowledgeGraph.nodes[pc]
         self._flush_idle(ws, self.env.now)
         self.in_progress[ws] = self.in_progress.get(ws, 0) + 1
+        start_sec = self.env.now
         yield self.env.timeout(node.CycleTimeSec)
         self.worker_resources[ws].release(req)
         energy_before = self.EpisodeEnergyKwh
         self.EpisodeEnergyKwh = self.RuntimeVariables.EpisodeEnergyKwh(
-            node, self.EpisodeEnergyKwh)
+            node, self.EpisodeEnergyKwh,
+            self._tariff_weighted_sec(start_sec, self.env.now))
         self.line_energy[ws] = self.line_energy.get(ws, 0.0) + (self.EpisodeEnergyKwh - energy_before)
         if node.InputBOM:
             ordered = self.warehouse.consume(node.InputBOM, deduct=not self.InfiniteStock)
@@ -349,7 +369,15 @@ class CproSimEnv:
 
     # 에너지·상태벡터·보상 (W1~W8)
     def baseline_energy_kwh(self) -> float:
-        return self._work_elapsed(self.env.now) * self.DefaultProcessConsumedPowerKw / 3600
+        # 기저부하는 출근~퇴근 연속 가동(점심 미차감) — _work_elapsed(점심 차감)와 기준이 다름
+        day    = 86400.0
+        window = max(0.0, self.WorkEndTime - self.WorkStartTime)
+        full   = int(self.env.now // day)
+        sec_in_day = self.env.now - full * day
+        partial    = min(max(sec_in_day - self.WorkStartTime, 0.0), window)
+        weighted_sec = (full * self._tariff_weighted_sec(self.WorkStartTime, self.WorkEndTime)
+                        + self._tariff_weighted_sec(self.WorkStartTime, self.WorkStartTime + partial))
+        return weighted_sec * self.DefaultProcessConsumedPowerKw / 3600
 
     def total_energy_kwh(self) -> float:
         return self.baseline_energy_kwh() + self.EpisodeEnergyKwh + self.SMTEnergyKwh

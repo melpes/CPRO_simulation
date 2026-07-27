@@ -72,6 +72,14 @@ def build_simulation(aas_dir: Optional[str] = None, *,
                      ) if 'InfiniteStock' in DefaultParameters.value else False
     MaxEpisodeSec = int(sim_config['MaxEpisodeSec'].value)
 
+    ElectricityTariffBands = None
+    if 'ElectricityTariffBands' in DefaultParameters.value:
+        tariff_entries = DefaultParameters.ElectricityTariffBands.value
+        normal_price   = float(tariff_entries['Normal'].ElectricityPriceVndPerKwh.value)
+        ElectricityTariffBands = [(band.Duration.min, band.Duration.max,
+                                   float(band.ElectricityPriceVndPerKwh.value) / normal_price)
+                                  for name, band in tariff_entries.items() if name != 'Normal']
+
     SMTLines = None
     SMTProcess = SimulationModel.value.get('SMTProcess') if enable_smt else None
     if SMTProcess is not None:
@@ -114,6 +122,7 @@ def build_simulation(aas_dir: Optional[str] = None, *,
         InfiniteStock           = InfiniteStock,
         ScenarioMode            = ScenarioMode,
         MaxEpisodeSec           = MaxEpisodeSec,
+        ElectricityTariffBands  = ElectricityTariffBands,
     )
 
 

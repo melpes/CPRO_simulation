@@ -222,8 +222,9 @@ class RuntimeVariables(SubmodelElementCollection):
         smt_max = smt_power_kw * horizon_sec / 3600
         return max(1e-6, active_max + baseline_max + smt_max)
 
-    def EpisodeEnergyKwh(self, graph_node, EpisodeEnergyKwh) -> float:
-        return EpisodeEnergyKwh + graph_node.CycleTimeSec * graph_node.RatedPowerKw / 3600
+    def EpisodeEnergyKwh(self, graph_node, EpisodeEnergyKwh, WeightedActiveSec=None) -> float:
+        active_sec = graph_node.CycleTimeSec if WeightedActiveSec is None else WeightedActiveSec
+        return EpisodeEnergyKwh + active_sec * graph_node.RatedPowerKw / 3600
 
     def CycleCompleted(self, ProcessCode, KnowledgeGraph) -> bool:
         return (ProcessCode in KnowledgeGraph.nodes

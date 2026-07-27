@@ -71,9 +71,11 @@ def smt_line_planned(sim, line_id, equipment, queue):
             produced += batch
             equip_energy = sim.smt_equip_energy.setdefault(line_id, {})
             kwh = 0.0
+            array_cycle  = flush if k == 0 else base_cycle
+            tariff_ratio = sim._tariff_weighted_sec(sim.env.now - array_cycle, sim.env.now) / array_cycle
             for name, cycle, power in equipment:
                 on_sec = cycle if k == 0 else min(cycle, base_cycle)
-                equip_kwh = power * on_sec / 3600
+                equip_kwh = power * on_sec * tariff_ratio / 3600
                 equip_energy[name] = equip_energy.get(name, 0.0) + equip_kwh
                 kwh += equip_kwh
             sim.SMTEnergyKwh += kwh
