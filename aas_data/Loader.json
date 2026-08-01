@@ -121,28 +121,6 @@
       ],
       "submodelElements": [
         {
-          "category": "PARAMETER",
-          "idShort": "CycleTimeSec",
-          "description": [
-            {
-              "language": "ko",
-              "text": "SMT 설비 사이클타임(초). SMTProcess 노드가 semanticId 로 lookup."
-            }
-          ],
-          "semanticId": {
-            "type": "ModelReference",
-            "keys": [
-              {
-                "type": "ConceptDescription",
-                "value": "https://www.smart-factory.kr/ids/cd/CycleTimeSec/1/0"
-              }
-            ]
-          },
-          "valueType": "xs:int",
-          "value": "2",
-          "modelType": "Property"
-        },
-        {
           "idShort": "GeneralInformation",
           "displayName": [
             {
@@ -1638,6 +1616,28 @@
                       },
                       "valueType": "xs:string",
                       "value": "120 (Upper:1, Lower:2)",
+                      "modelType": "Property"
+                    },
+                    {
+                      "category": "PARAMETER",
+                      "idShort": "CycleTimeSec",
+                      "description": [
+                        {
+                          "language": "ko",
+                          "text": "SMT 설비 사이클타임(초). SMTProcess 노드가 semanticId 로 lookup."
+                        }
+                      ],
+                      "semanticId": {
+                        "type": "ModelReference",
+                        "keys": [
+                          {
+                            "type": "ConceptDescription",
+                            "value": "https://www.smart-factory.kr/ids/cd/CycleTimeSec/1/0"
+                          }
+                        ]
+                      },
+                      "valueType": "xs:int",
+                      "value": "2",
                       "modelType": "Property"
                     }
                   ],
