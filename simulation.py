@@ -54,7 +54,6 @@ class CproSimEnv:
         self.ElectricityTariffBands = ElectricityTariffBands
         self.IdleRewardMode       = 'time'
         self.DueRewardMode        = 'sparse'
-        self.TariffObs            = True      # False = 요금 관측 3피처 제외(레거시 체크포인트 호환)
 
     def reset(self):
         self.env                  = simpy.Environment()
@@ -147,19 +146,6 @@ class CproSimEnv:
                 overlap = max(0.0, min(s1, end + shift) - max(s0, start + shift))
                 weighted += overlap * (ratio - 1.0)
         return weighted
-
-    def _tariff_obs(self) -> tuple:
-        # 현재 요금 비율, 다음 밴드 전환까지(4h 포화), 퇴근까지(12h 포화) — 시각 관측 3피처
-        sec_in_day = self.env.now % 86400.0
-        ratio = 1.0
-        boundaries = []
-        for start, end, band_ratio in (self.ElectricityTariffBands or []):
-            if start <= sec_in_day < end:
-                ratio = band_ratio
-            boundaries += [start, end]
-        next_change = min((b - sec_in_day for b in boundaries if b > sec_in_day), default=86400.0 - sec_in_day)
-        to_workend  = max(0.0, self.WorkEndTime - sec_in_day)
-        return ratio, min(next_change, 14400.0) / 14400.0, min(to_workend, 43200.0) / 43200.0
 
     def _work_elapsed(self, t: float) -> float:
         day = 86400.0
@@ -408,7 +394,7 @@ class CproSimEnv:
 
     @property
     def StateDim(self) -> int:
-        return len(self.target_qty) + 2 + len(self.workers) + 4 + (3 if self.TariffObs else 0)
+        return len(self.target_qty) + 2 + len(self.workers) + 4
 
     def StateVector(self) -> torch.Tensor:
         total_target = sum(self.target_qty.values())
@@ -444,8 +430,6 @@ class CproSimEnv:
             required = min(self.env.now / self.DueDay[model_id], 1.0)
             due_deficit += max(0.0, required - self.Throughput[model_id] / self.target_qty[model_id])
         features.append(due_deficit / len(self.target_qty))
-        if self.TariffObs:
-            features.extend(self._tariff_obs())
         return torch.tensor(features, dtype=torch.float32)
 
     def reward_terms(self) -> dict:
