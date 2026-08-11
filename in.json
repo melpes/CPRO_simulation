@@ -1,0 +1,1 @@
+{"scenario": "aging", "po": {"MODEL_A": {"qty": 8, "due_day": 22}, "MODEL_B": {"qty": 8, "due_day": 22}, "MODEL_C": {"qty": 8, "due_day": 22}}, "switch_count": 2, "port_count": 6, "units_per_worker": 4}

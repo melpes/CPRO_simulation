@@ -1,0 +1,38 @@
+{
+ "fileset": "default",
+ "seed": 1,
+ "due_day": 3,
+ "max_sec": 2592000,
+ "episodes": 1,
+ "mode": "trained",
+ "checkpoint": "result/runs/q180s__compbase-300ep/agent_last.pt",
+ "record_events": true,
+ "env_overrides": {
+  "DefaultProcessConsumedPowerKw": 107.0
+ },
+ "target_qty": {
+  "MODEL_A": 540,
+  "MODEL_B": 540,
+  "MODEL_C": 540
+ },
+ "rl_realloc": {
+  "enabled": false
+ },
+ "reward_override": {
+  "enabled": false
+ },
+ "run_name": "q540s__compbase__realloc-61111",
+ "sw_realloc": {
+  "enabled": true,
+  "src": "WWM_SemiAssemblyLine",
+  "moves": {
+   "WWM_FwInputLine": 6,
+   "WWM_LensHolderLine": 1,
+   "WWM_FocusLine": 1,
+   "WWM_SetAssemblyLine": 1,
+   "WWM_InspectionLine": 1
+  },
+  "idle_trigger_sec": 600,
+  "tick_sec": 30
+ }
+}

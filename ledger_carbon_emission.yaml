@@ -1,0 +1,806 @@
+mode: review
+entries:
+  - id: L-standards-hierarchy
+    kind: literature
+    t: 2026-07-16
+    by: CC
+    status: relevant
+    source:
+      title: "GHG Protocol Scope 3 Ch.4 + GLEC Framework v2/v3.2 + ISO 14083 — 운송 배출 산정법 위계"
+      authors: "GHG Protocol / Smart Freight Centre / ISO"
+      year: 2025
+      venue: "표준 원문 PDF (ghgprotocol.org, smartfreightcentre.org)"
+      url: "https://smart-freight-centre-media.s3.amazonaws.com/documents/GLEC_FRAMEWORK_v3.2_21_10_25_1.pdf"
+    claim: >-
+      세 표준이 공통 위계를 규정 — 연료 기반(실측 연료량×연료계수) 최우선,
+      거리 기반 차선, 기본값(default)/지출 기반은 최후 수단. GHG Protocol 원문:
+      "연료 소비가 배출과 직접 연관되므로 연료 기반이 거리 기반보다 정확".
+      GLEC은 ISO 14083:2023의 방법론적 모체. ISO 14083은 TTW(탱크-투-휠,
+      배기관 직접)와 WTW(웰-투-휠, 연료 생산 포함) 병기 보고를 요구하며 계산은
+      "에너지 소비량 × 연료 배출계수" 상향식.
+    relevance: >-
+      ③ 물류 시나리오 배출 산정의 뼈대. 시뮬레이션에서는 주유량 실측이 없으므로
+      거리 기반이 현실 선택지이고, 보고 산출물엔 TTW/WTW 두 값을 병기해야
+      표준 부합.
+    takeaway: "deep-research 3표 검증 — 병합 7건 전부 3-0, 원문 PDF 직접 대조."
+
+  - id: L-diesel-ef
+    kind: literature
+    t: 2026-07-16
+    by: CC
+    status: relevant
+    source:
+      title: "경유 배출계수 — GLEC v2/v3.2, EcoTransIT v4/2024, 인도 SFC, NTM, IPCC"
+      authors: "Smart Freight Centre / EcoTransIT / NTM"
+      year: 2025
+      venue: "표준 원문 PDF 4종 교차"
+      url: "https://www.ecotransit.org/wp-content/uploads/EcoTransIT_World_Methodology_Report_Version_4_ISO14083.pdf"
+    claim: >-
+      TTW(직접 배출): 2.67~2.68 kgCO2e/L — 4개 독립 1차 문서가 ±0.4% 이내 수렴
+      (IPCC 74,100 kgCO2/TJ 기본값과 일치). WTW: 3.2(NTM 보수 하한)~3.48
+      (GLEC v3.2·EcoTransIT, ecoinvent 3.9.1) kgCO2e/L. WTW/TTW 비율은 구판
+      1.20 → 현행 v3.2에서 1.30으로 상향(메탄 누출 데이터 갱신).
+    relevance: >-
+      연료→배출 환산의 고정 상수. TTW 2.68 kgCO2e/L은 어느 표준으로도 방어 가능,
+      WTW는 최신 기준 3.48 사용(보수 하한 3.2). 국가 기준 아님 — 연소 화학 상수
+      (IPCC 글로벌 기본값 계열)라 국가 불문 동일. 리터당으로 달라질 수 있는 유일한
+      실질 요인은 바이오디젤 혼합(O-biodiesel-sulfur).
+    takeaway: >-
+      원문 검증 위치(리터당 값은 문서에 직접 없고 곱셈으로 도출): ① EcoTransIT
+      Methodology v4 — Table 14 연료 물성(밀도 0.832 kg/L, 발열량 42.8 MJ/kg),
+      Table 54 연료계수(operational 75.26 / total 97.8 gCO2e/MJ) → 75.26×35.61
+      MJ/L=2,680 g/L. ② GLEC v3.2 — p.77 유럽 연료표 3.22 kgCO2e/kg × 0.83
+      kg/L=2.67. ③ 인도 SFC v1.2 — 리터당 직접 표기(TTW 2.675 + WTT 0.8058),
+      IPCC 기본값(74,100 kgCO2/TJ, NCV 43 TJ/Gg)에서 도출 명시. ④ NTM TN-13
+      웹페이지 — "international diesel 3.2 kg CO2e/L" 축자. IPCC 원 위치는
+      2006 가이드라인 Vol.2(에너지) Ch.3(이동연소) 도로수송 표(74,100)·Vol.2
+      Ch.1 발열량 표(43.0 TJ/Gg)로 추정 — 표 번호는 내 지식 기반, 원문 재확인
+      권장. 페이지·표 번호는 검증 에이전트의 원문 대조 기록이라 판본에 따라
+      밀릴 수 있음 — 표 제목으로 찾는 것이 안전.
+    caveat: >-
+      GLEC v2의 리터당 값(3.24) claim은 2-1 표결. NTM의 WTT 성분 산출 근거 서술
+      claim은 0-3 기각 — NTM 3.2 헤드라인 값만 생존. 인용 시 v3.2 값 기준 권장.
+
+  - id: L-glec-vehicle-defaults
+    kind: literature
+    t: 2026-07-16
+    by: CC
+    status: relevant
+    source:
+      title: "GLEC Framework v3.2 차량 등급별 tonne-km 기본값 + 아시아 지역 할증"
+      authors: "Smart Freight Centre (HBEFA 파생, 아시아 할증은 NTM/ICCT 실주행 데이터 외삽)"
+      year: 2025
+      venue: "GLEC v3.2 (2025-10-21 현행판)"
+      url: "https://smart-freight-centre-media.s3.amazonaws.com/documents/GLEC_FRAMEWORK_v3.2_21_10_25_1.pdf"
+    claim: >-
+      유럽 기본값(WTW, gCO2e/t-km): 밴(<3.5t) 840 / 도시트럭(3.5~7.5t) 335 /
+      중형(7.5~20t) 210 / 대형(>20t) 125 — 대형일수록 t-km당 약 7배 유리(규모의
+      경제). 적재율 60%·공차운행 17% 가정, +5% 우회거리 보정 내장. 베트남 포함
+      아시아(중국·인도 제외)는 국가표 없음 — 밴 +13%, 3.5t 초과 +22% 할증 적용
+      지시(v3.2 p.105 축자 확인, 'Vietnam' 전문 검색 0회). 아시아 적용값(산술):
+      밴 949 / 3.5~7.5t 409 / 7.5~20t 256 / >20t 152.5 gCO2e/t-km(WTW).
+    relevance: >-
+      t-km 지표가 필요할 때(원단위 보고·차급 비교) 쓸 유일한 GLEC 공식 지역값.
+      구판 v2 수치(680/370/200/92)는 이력 참조로만 — 신규 산정은 v3.2.
+    caveat: "아시아 적용값 4개는 할증률 산술 적용(내 계산) — 표에 직접 실린 수치 아님."
+
+  - id: L-ecotransit-fuel-defaults
+    kind: literature
+    t: 2026-07-16
+    by: CC
+    status: relevant
+    source:
+      title: "EcoTransIT World (ISO 14083 부합 도구) 차급별 에너지 소비 기본값"
+      authors: "EcoTransIT (HBEFA 4.2 출처)"
+      year: 2024
+      venue: "Methodology Report v4 + 2024 Update, Table 23~25/35~36"
+      url: "https://www.ecotransit.org/wp-content/uploads/20240308_Methodology_Report_Update_2024.pdf"
+    claim: >-
+      Euro VI 트럭 TTW 에너지(MJ/km, 공차/60%적재/만차): 3.5~7.5t 5.8/6.4/6.8,
+      7.5~12t 6.3/7.1/7.6, 12~20t 7.0/8.5/9.5, 20~26t 7.8/9.8/11.2,
+      26~40t 8.4/11.9/14.4. 예: 12~20t 60% 적재 8.5 MJ/km ≈ 23.9 L/100km ≈
+      TTW 약 640 g/km(WTW 약 832 g/km) — 산술 재검증 완료. 아시아·태평양(ASP)
+      지역 기본: 12~20t 강성트럭, EURO II, 황 5000ppm, 경사 'hilly', 베트남
+      국가 항목 없음(ASP 기본 그대로 적용).
+    relevance: >-
+      거리 기반 산정의 차급별 연비(L/100km) 출처. km당 g 값이 필요한 우리
+      시나리오에 가장 직접적.
+    caveat: >-
+      Euro VI 표는 유럽 모터웨이 조건. ASP 기본(EURO II·황 5000ppm)은 베트남
+      실제(황 ~500ppm, 2022~ 신차 Euro 5 연료)보다 보수적 — 그대로 쓰면 과대
+      산정 가능.
+
+  - id: L-india-sfc-template
+    kind: literature
+    t: 2026-07-16
+    by: CC
+    status: relevant
+    source:
+      title: "India Default GHG Emission Values (SFC, 2025-05, GLEC v3.01 보충)"
+      authors: "Smart Freight Centre India"
+      year: 2025
+      venue: "SFC 공식 보충문서"
+      url: "https://smart-freight-centre-media.s3.amazonaws.com/documents/India_Default_GHG_Emission_Values_SFC_INDIA_v1_2.pdf"
+    claim: >-
+      아시아 국가별 기본값의 최근접 선례이자 방법론 템플릿. 경유 TTW 2.675 +
+      WTT 0.8058 ≈ WTW 3.48 kgCO2e/L. 차급별(WTW): 소형(<3.5t) 8.4 L/100km·
+      379.5 g/t-km, 중형1(3~5t) 11.9·222.2, 중형2(5~12t) 14.9·140.0,
+      대형1(12~20t) 17.3·90.2, 트랙터-트레일러(30~60t) 30.8·55.1.
+      절차: 공차/만차 연비 → 평균 적재율·공차운행률 반영 → g/t-km, GWP는
+      IPCC AR6 100년, 거리는 Google Distance Matrix + 5% 할증(DAF).
+    relevance: >-
+      DVP→CPRO 산정 절차를 그대로 복제할 수 있는 구조(거리도 우리처럼 Google
+      기반 + 5% 할증). 베트남 값이 없는 상황에서 인도값은 아시아 신흥국 차급
+      연비의 참고 밴드로 사용.
+
+  - id: L-no-time-basis
+    kind: literature
+    t: 2026-07-16
+    by: CC
+    status: relevant
+    source:
+      title: "GLEC v3.2 — 시간(per-hour) 기준 산정법 부재 확인"
+      authors: "Smart Freight Centre"
+      year: 2025
+      venue: "GLEC v3.2 전문 검색"
+      url: "https://smart-freight-centre-media.s3.amazonaws.com/documents/GLEC_FRAMEWORK_v3.2_21_10_25_1.pdf"
+    claim: >-
+      GLEC의 도로 화물 배출원단위는 전부 tonne-km(또는 L/t-km) 기준. 시간당
+      연료/배출 항목은 전문 검색 0건(공회전은 시스템 경계에 포함된다는 언급만).
+      정체·공회전 영향의 표준 부합 반영 경로는 (a) 연료 기반 산정(실측에 자동
+      반영) 또는 (b) 도구의 도로유형·구배 보정.
+    relevance: >-
+      "시간 기준 vs 거리 기준" 질문에 대한 직접 답 — 시간 기준은 표준에 없다.
+      시간대(혼잡)는 배출계수가 아니라 소요시간 축으로 다루고, 배출은 거리 기반
+      고정이 표준 부합.
+    caveat: >-
+      소극적 확인(부재 증명)이며 confidence medium. 정체가 배출을 얼마나 올리는지
+      정량 claim은 검증 통과 실패(O-copert-congestion).
+    related:
+      - {type: raises, ref: O-copert-congestion}
+
+  - id: L-vn-factor-absent
+    kind: literature
+    t: 2026-07-16
+    by: CC
+    status: relevant
+    source:
+      title: "베트남 국가 공인 배출계수의 국제 프레임워크 내 부재 + 폴백(영국 DESNZ 2024)"
+      authors: "GLEC/EcoTransIT 전문 검색 + DESNZ"
+      year: 2024
+      venue: "GLEC v3.2·EcoTransIT 전문 grep, gov.uk 전환계수"
+      url: "https://www.gov.uk/government/publications/greenhouse-gas-reporting-conversion-factors-2024"
+    claim: >-
+      GLEC v3.2·EcoTransIT 어디에도 베트남 국가 항목 없음(전문 검색 0건, 국가표는
+      북미·유럽/남미·중국·인도뿐). 국가 공인계수 부재 시 공인 폴백으로 영국
+      DESNZ 2024 GHG 전환계수(GHG Protocol 인정 제3자 DB) 사용 가능 — 단 영국
+      차량·적재 평균 기반이라 베트남 보정치 아님.
+    relevance: >-
+      "베트남 공식 계수를 찾아 쓰면 되지 않나"에 대한 답 — 국제 프레임워크엔 없고,
+      GLEC 아시아 할증이 사실상 유일한 지역 공식값. MONRE 국내 고시는 미조사
+      (O-monre-domestic).
+    caveat: >-
+      부재 확인은 국제 문서 한정 — 베트남 환경부(MONRE)/공상부 국내 간행물 직접
+      조사는 안 됨.
+    related:
+      - {type: raises, ref: O-monre-domestic}
+
+  - id: F-carbon-calc-recommendation
+    kind: finding
+    t: 2026-07-16
+    by: CC
+    status: active
+    claim: >-
+      DVP→CPRO 셔틀(48.9~49.6km) 배출 산정 권고 — ① 기준: 거리 기반(km).
+      시간 기준은 표준에 없으므로 시간대(혼잡) 축은 소요시간·연료에만 반영하고
+      배출계수는 거리 고정. ② 계산식: 배출량(kgCO2e) = 거리(km) × 연비(L/km) ×
+      2.68(TTW) [보고 시 WTW 3.48 병기]. ③ 차급별 연비 기본값(L/100km):
+      EcoTransIT Euro VI 표(예: 12~20t 60% 적재 23.9) 또는 인도 SFC 표(소형 8.4
+      ~ 트랙터 30.8)를 밴드로 사용, GLEC 아시아 할증(+22%)로 보수 보정 가능.
+      ④ t-km 원단위 보고가 필요하면 GLEC v3.2 아시아 적용값(밴 949 / 409 / 256 /
+      152.5 gCO2e/t-km WTW). ⑤ 편도 거리 산정은 Google 거리 + 5% 할증(DAF,
+      GLEC·인도 SFC 공통 관례) — 51.3~52.1km. 차급 선택이 지배 변수: 같은 화물량
+      이면 대형 집약 운송이 t-km당 최대 ~7배 유리하나, 왕복 공차율이 기본 가정
+      (17%)보다 크면(셔틀 ~50% 가능) 원단위가 크게 나빠짐(O-shuttle-empty-run).
+    basis: >-
+      deep-research 2026-07-16: 23/25 클레임 확정(대부분 3-0), 표준 원문 PDF 직접
+      대조(L-standards-hierarchy, L-diesel-ef, L-glec-vehicle-defaults,
+      L-ecotransit-fuel-defaults, L-india-sfc-template, L-no-time-basis).
+      거리는 ledger_dvp_cpro_route#L-gmaps-dvp-cpro-tou 실측.
+    related:
+      - {type: based-on, ref: L-standards-hierarchy}
+      - {type: based-on, ref: L-diesel-ef}
+      - {type: based-on, ref: L-glec-vehicle-defaults}
+      - {type: based-on, ref: L-ecotransit-fuel-defaults}
+      - {type: based-on, ref: L-india-sfc-template}
+      - {type: based-on, ref: L-no-time-basis}
+      - {type: depends-on, ref: "ledger_dvp_cpro_route#L-gmaps-dvp-cpro-tou"}
+      - {type: raises, ref: O-shuttle-empty-run}
+      - {type: raises, ref: O-biodiesel-sulfur}
+
+  - id: O-monre-domestic
+    kind: open
+    t: 2026-07-16
+    by: CC
+    status: open
+    question: >-
+      베트남 환경부(MONRE)·공상부가 국가 GHG 인벤토리/MRV 규정에서 도로 화물용
+      공인 배출계수를 발행했는지 — 국제 프레임워크 부재만 확인됨, 베트남 국내
+      문헌(베트남어 고시) 직접 조사 미완.
+
+  - id: O-copert-congestion
+    kind: open
+    t: 2026-07-16
+    by: CC
+    status: open
+    question: >-
+      COPERT/HBEFA 속도-배출 곡선 기준으로 하노이권 정체(평균 20~30km/h)가
+      g/km 배출을 정량적으로 얼마나 올리는지 — 관련 claim이 검증을 통과하지
+      못해 미확인. 시간(속도) 보정이 유의미해지는 임계 조건 미상.
+
+  - id: O-shuttle-empty-run
+    kind: open
+    t: 2026-07-16
+    by: CC
+    status: open
+    question: >-
+      DVP→CPRO 셔틀의 실제 운행 구조 — 복화(귀로 화물) 여부, 공차운행률, 평균
+      적재율. GLEC 기본 가정(적재 60%, 공차 17%)과 달리 왕복 셔틀은 공차율
+      ~50%일 수 있어 t-km 원단위가 크게 달라짐. KETI-77의 '트럭당 적재량
+      assumption'과 함께 시나리오 설계에서 확정할 것.
+
+  - id: O-biodiesel-sulfur
+    kind: open
+    t: 2026-07-16
+    by: CC
+    status: open
+    question: >-
+      베트남 시판 경유의 바이오디젤 혼합률(B5 등)·실제 황 함량이 연료 배출계수
+      (TTW 2.68 kgCO2e/L 가정)에 주는 보정 폭.
+
+  - id: L-single-echelon-levers
+    kind: literature
+    t: 2026-08-05
+    by: CC
+    status: relevant
+    source:
+      title: >-
+        단일 공급처에서도 성립하는 운송 탄소 결정변수 — Boone & Ganeshan
+        (Sustainability 17:4135, 2025) / Sebatjane (Annals of OR, 2025,
+        DOI 10.1007/s10479-025-06466-2) / Tang et al. (IJPE 164:339-350, 2015)
+      authors: "Boone & Ganeshan; Sebatjane; Tang, Wang, Cheng, Lai, Ji"
+      year: 2025
+      venue: "Sustainability / Annals of Operations Research / Int. J. Production Economics"
+      url: "https://doi.org/10.3390/su17094135"
+    claim: >-
+      선행 연구는 '공급자 선정'을 결정변수로 요구하지 않는다 — 단일 계층
+      (single-echelon)·단일 링크가 오히려 표준 설정이다. Boone & Ganeshan은
+      500마일 거리의 단일 공급자를 고정하고 발주량 Q·재주문점 r·운송수단 m
+      (LTL/TL/TOFC/Rail/Air)만 결정변수로 둔다(거리 D는 상수, 다중 원산지는
+      향후 과제로 명시). Sebatjane은 창고-소매 단일 FTL 링크에서 소매 발주량
+      Q_r 과 사이클당 출하 횟수 n 두 개만 둔다. Tang et al.은 공급처·경로를
+      바꾸지 않고 정기검토 재고정책의 검토주기·발주량만 조정해 중간 수준
+      감축목표를 총비용 영향 제한적으로 달성.
+    relevance: >-
+      ③ 물류 시나리오의 핵심 반론 해소 — CPRO는 공급기업이 DVP 한 곳뿐이라
+      "최적화 자유도가 없다"고 보였으나, 문헌 기준으로 남는 레버는 넷:
+      발주량(로트크기)·재주문점·출하 빈도·운송수단. 단, 이 레버가 실제로
+      작동하려면 CPRO가 DVP의 보충 타이밍을 통제할 수 있어야 함
+      (O-cpro-controls-schedule).
+    caveat: >-
+      전문 직접 확인은 Boone & Ganeshan 뿐. Sebatjane·Tang은 초록·메타데이터
+      수준 검증. Sebatjane의 레버는 고정 단일 링크의 FTL 배칭·로트사이징이지
+      다지점 경유 consolidation 이 아니므로 인용 시 표기 주의.
+    takeaway: "deep-research 2026-08-04: 구성 claim 3건 전부 3-0 만장일치."
+    related:
+      - {type: raises, ref: O-cpro-controls-schedule}
+      - {type: raises, ref: O-shipment-fixed-term}
+
+  - id: L-shipment-freq-needs-fixed-term
+    kind: literature
+    t: 2026-08-05
+    by: CC
+    status: relevant
+    source:
+      title: "출하 빈도 레버의 성립 조건 — Sebatjane(2025) 배출항 구조 대조"
+      authors: "Sebatjane; Tang et al."
+      year: 2025
+      venue: "Annals of Operations Research / Int. J. Production Economics"
+      url: "https://link.springer.com/article/10.1007/s10479-025-06466-2"
+    claim: >-
+      출하 빈도(shipment frequency)를 레버로 쓰려면 배출 산정식에 '출하 1회당
+      고정 배출항'이 있어야 한다 — 순수 tkm 계수(중량×거리)만 쓰면 빈도가
+      수식에서 소거되어 효과가 정확히 0이 된다. Sebatjane은 이를 배출항에 트럭
+      운행횟수 올림항 ceil(n·Q_r/T_c) 과 적재량 의존 연비
+      (MPG_0 − α·n·Q_r·W_i/ceil(·)) 를 넣어 회피한다.
+    relevance: >-
+      우리 산정식(F-carbon-calc-recommendation)은 거리 기반 고정 — 즉 현재
+      구조로는 출하 빈도·묶음배송 레버가 배출에 반영되지 않는다. 시나리오
+      설계 전에 산정식부터 확장할지 결정해야 함(O-shipment-fixed-term).
+    caveat: >-
+      원 claim(Tang et al. 빈도 감축 효과)은 3-0이나 본 항목은 검증자 단서를
+      승격한 것. Tang et al. 결과 자체의 경계조건: 공격적 감축목표는 미해결,
+      감축비용이 단위 결품비용·리드타임에 비례, 보관측 배출은 모델 밖.
+    related:
+      - {type: raises, ref: O-shipment-fixed-term}
+      - {type: contradicts, ref: F-carbon-calc-recommendation}
+
+  - id: L-constraints-and-objective
+    kind: literature
+    t: 2026-08-05
+    by: CC
+    status: relevant
+    source:
+      title: >-
+        제약 표준 세트와 비용-배출 목적함수 처리 — Boone & Ganeshan(2025) /
+        Kabadurmus & Erdogan(Gazi Univ. MMF Dergisi, 2022,
+        DOI 10.17341/gazimmfd.633583) / Rout et al.(JCLP 316:128256, 2021) /
+        혼합선단 EVRP(ESwA, DOI 10.1016/j.eswa.2022.119228)
+      authors: "Boone & Ganeshan; Kabadurmus & Erdogan; Rout, Paul, Kumar, Chakraborty, Goswami"
+      year: 2025
+      venue: "Sustainability / Gazi Univ. J. Fac. Eng. Arch. / J. Cleaner Production / Expert Systems with Applications"
+      url: "https://doi.org/10.3390/su17094135"
+    claim: >-
+      제약 표준 세트는 셋 — (1) 서비스수준(결품률 또는 시간창 위반),
+      (2) 차량·수단 적재용량, (3) 배출 상한(연간 탄소예산). 대체연료·전기차를
+      다루면 주행거리 제한·충전소 수가 추가. Boone & Ganeshan 제약은 정확히
+      이 셋이고 탄소예산 수치예제는 10,000 kgCO2/yr.
+      목적함수 처리는 세 갈래이며 단순 가중합은 조사된 1차 논문 중 어디에서도
+      채택되지 않았다 — (a) 규제(탄소세/cap-and-trade/cap-and-offset)로
+      금전화 후 단일 이익·비용 목적, (b) 비용 최소화 + 배출 하드캡(ε-제약형,
+      저자 축자: "we treated the carbon budget as a hard constraint rather
+      than a price-based mechanism"), (c) 명시적 2목적 파레토(ε-제약법으로
+      해 열거). 혼합선단 EVRP 수치: 비용 3% 미만 증가 수용 시 배출 18% 이상
+      감축, 충전출력 90→350kW 시 비용 5% 감소.
+      다만 MILP + ε-제약 전수 열거는 약 20노드에서 시간 제한 — 이 확장성
+      한계가 메타휴리스틱이 최다 해법군인 이유.
+    relevance: >-
+      CPRO 운송 시나리오의 정식화 틀. 우리 상황에 직접 이식 가능한 형태는
+      (b) — 총비용 최소화 + 연간 배출 상한을 스윕. 가중치(비용·배출 가중합)로
+      시나리오를 표현하지 말라는 기존 입장과도 정합.
+    caveat: >-
+      '비용-배출 다목적이 GVRP 표준 형태'는 과잉일반화 — 단일 목적
+      (pollution-routing 계열)이 상당 비중이므로 '흔한 정식화 계열'로만 표기.
+      ε-제약 선호도 분야 규범이 아니라 개별 논문의 선택. Rout et al.·ESwA
+      논문은 초록 수준 검증이라 다목적 해법의 구체는 미확정. 운전시간 규정
+      (driver hours)은 근거 미확보.
+
+  - id: L-carbon-regulation-as-scenario
+    kind: literature
+    t: 2026-08-05
+    by: CC
+    status: relevant
+    source:
+      title: "탄소 규제 방식 자체를 시나리오 축으로 — Rout et al.(2021), Sebatjane(2025)"
+      authors: "Rout, Paul, Kumar, Chakraborty, Goswami; Sebatjane"
+      year: 2021
+      venue: "Journal of Cleaner Production 316:128256"
+      url: "https://www.sciencedirect.com/science/article/abs/pii/S0959652621024719"
+    claim: >-
+      탄소세(carbon tax)·cap-and-offset·cap-and-trade를 각각 수식화해 병렬
+      모델 변형으로 비교하는 것이 이 문헌의 표준 구성이며, Benjaafar, Li &
+      Daskin(2013, IEEE T-ASE) 이래의 관행이다. Sebatjane 비교 결과:
+      cap-and-trade 가 배출 약 4.4% 낮고, cap-and-offset 이 이익 약 1% 높음.
+    relevance: >-
+      CPRO 함의가 직접적 — 공급처가 하나여도 '규제 방식'은 결정변수와 독립적인
+      시나리오 축을 하나 더 준다. 결정변수 자유도가 좁을 때 시나리오 폭을
+      확보하는 문헌적 근거.
+    takeaway: "3-0 만장일치."
+
+  - id: L-modal-shift-not-only-lever
+    kind: literature
+    t: 2026-08-05
+    by: CC
+    status: relevant
+    source:
+      title: "연비 개선이 모달 시프트의 대체재 — Boone & Ganeshan 4.2절 민감도 분석"
+      authors: "Boone & Ganeshan"
+      year: 2025
+      venue: "Sustainability 17:4135"
+      url: "https://doi.org/10.3390/su17094135"
+    claim: >-
+      연 10만 단위에서 LTL은 연비 100 ton-mile/gallon 일 때 5,166 kgCO2.
+      상한을 5,000 kg 로 조이면 LTL 탈락하고 더 비싼 TOFC 로 강제 전환
+      (연 USD 9,422 추가). 그러나 연비를 150 ton-mile/gallon 으로 올리면
+      3,465 kg 으로 떨어져 상한 아래 복귀 — 개선 투자비가 수단 전환
+      프리미엄보다 싸면 수단을 바꾸지 않는 것이 최적.
+    relevance: >-
+      CPRO는 DVP→CPRO 단일 육상 링크라 모달 시프트 자체가 불가능에 가까운데,
+      그 경우에도 '적재효율·차급' 레버가 같은 자리를 대신한다는 근거.
+      기존 F-carbon-calc-recommendation 의 "차급 선택이 지배 변수" 관찰과 정합.
+    caveat: >-
+      CPG 산업 대표값 예시일 뿐 실기업 데이터 아님. 100→150 은 50% 개선이라
+      기술적 달성가능성을 논문이 평가하지 않음. 2-1 표결.
+    related:
+      - {type: supports, ref: F-carbon-calc-recommendation}
+
+  - id: L-optimization-papers-ignore-standards
+    kind: literature
+    t: 2026-08-05
+    by: CC
+    status: relevant
+    source:
+      title: "최적화 논문의 배출 산정 정밀도 편차 — Boone & Ganeshan(2025) vs Kabadurmus & Erdogan(2022)"
+      authors: "Boone & Ganeshan; Kabadurmus & Erdogan"
+      year: 2025
+      venue: "Sustainability / Gazi Univ. J. Fac. Eng. Arch."
+      url: "https://doi.org/10.3390/su17094135"
+    claim: >-
+      조사된 1차 논문 중 GLEC framework·ISO 14083·EN 16258 을 명시적으로 채택한
+      사례는 없다. 정밀한 축은 Boone & Ganeshan — 중량-거리 M=QwD 를 수단별
+      연비로 나눠 연료량을 구하고 연료 배출계수를 곱함(디젤 10.19 kgCO2/gallon),
+      논거는 GHG Protocol Scope 3 뿐이고 저자는 "there is no universal standard
+      to calculate emissions" 라 적는다. 거친 축은 Kabadurmus & Erdogan —
+      총 배출이 총 주행거리에 단순 비례, 적재중량도 속도 의존도 없음.
+      Boone & Ganeshan 수치예제 배출 배분은 운송 5,105 / 재고 61.41 kg-yr
+      (운송 98.8%).
+    relevance: >-
+      우리는 반대 방향 — 산정은 이미 표준(L-standards-hierarchy) 기반으로
+      잡혀 있고 최적화 쪽이 비어 있다. 즉 표준 준거 산정식 위에 최적화를 얹는
+      구성은 문헌 대비 오히려 강점이며, 이걸 기여점으로 서술 가능.
+    caveat: >-
+      '표준을 안 쓴다'는 이 논문들의 누락이지 표준의 부적합 근거가 아니다.
+      ISO 14083 은 2023년 제정이라 이전 논문의 미언급은 당연. Boone & Ganeshan
+      참고문헌 전수 확인은 MDPI 차단으로 미완 — '방법론 절 미언급'만 확정.
+    related:
+      - {type: supports, ref: L-standards-hierarchy}
+      - {type: raises, ref: O-standards-in-optimization}
+
+  - id: L-rl-absent-in-gvrp-review
+    kind: literature
+    t: 2026-08-05
+    by: CC
+    status: relevant
+    source:
+      title: "The green vehicle routing problem: A systematic literature review"
+      authors: "Moghdani, Salimifard, Demir, Benyettou"
+      year: 2020
+      venue: "Journal of Cleaner Production 279:123691 (Cardiff ORCA eprint 134285 전문)"
+      url: "https://www.sciencedirect.com/science/article/abs/pii/S0959652620337367"
+    claim: >-
+      2006–2019 GVRP 문헌 309편 리뷰의 해법 분류에 RL/ML 범주 자체가 없다.
+      전문 키워드 계수: reinforcement=0, learning=0, machine learning=0.
+      해법 분류는 5개 범주로 닫혀 있음(메타휴리스틱 41%, Exact 18%,
+      Exact Solver 16%, Hybrid 14%, Heuristic 7%, Software 4%).
+    relevance: >-
+      RL 사용의 정당화 근거로 쓸 수 없다 — 이 근거는 '2019년까지 GVRP 실무에
+      RL이 없었다'만 지지하고 'RL이 그린 라우팅에 부적합/유망하다' 어느 쪽도
+      지지하지 않는다. CPRO가 RL을 운송에 쓰려면 별도 근거가 필요
+      (O-rl-drl-since-2021).
+    caveat: >-
+      Figure 6 백분율은 'Not Applicable' 17편을 뺀 292편 기준이라 '309편 전체'는
+      느슨한 표현. EVRP/GVRP 용 DRL 은 2021년경(Lin et al., IEEE T-ITS 2021)부터
+      등장함이 검증자 독립조사에서 확인됨. 2-1 표결.
+    related:
+      - {type: raises, ref: O-rl-drl-since-2021}
+
+  - id: O-rl-drl-since-2021
+    kind: open
+    t: 2026-08-05
+    by: CC
+    status: open
+    question: >-
+      2021년 이후 EVRP/GVRP 대상 DRL 연구(Lin et al. IEEE T-ITS 2021 계열)에서
+      상태·행동·보상은 어떻게 설계되며, 어떤 하위문제(동적 주문 도착·확률적
+      수요·실시간 재배차)에서 MILP/메타휴리스틱 대비 실측 이득이 보고됐는가.
+      2026-08-04 deep-research 에서 RL 관련 후보 claim 4건이 전부 0-3 기각 —
+      유효 근거 0건이므로 별도 재조사 없이는 보고서에 RL 서술을 쓰면 안 된다.
+      2026-08-05 2차 조사(다지점 시나리오)에서도 재차 0건 — 검증 통과 16개
+      주장 어디에도 DRL 논문이 없고, 확인된 해법은 전부 MILP·분기절단·
+      NSGA-II/III·MOEA/D·SPEA2·VND 계열이었다. 두 번 연속 실패한 원인은
+      조사 각도가 매번 '운송 탄소 최적화' 전체에 분산되어 RL 축에 예산이
+      1/5 씩만 배분된 것으로 보임(검증자 WebSearch 예산 200/200 소진 보고).
+      3차는 이 축만 단독으로 떼어 조사할 것.
+
+  - id: O-shipment-fixed-term
+    kind: open
+    t: 2026-08-05
+    by: CC
+    status: open
+    question: >-
+      CPRO 운송 배출 산정식에 '출하 1회당 고정 배출항'(차량 운행횟수 올림,
+      적재율 의존 연비)을 넣을 것인가. 현재 권고식(F-carbon-calc-recommendation)
+      은 거리 기반 고정이라 출하 빈도·묶음배송 레버의 효과가 수식상 0이다.
+      시나리오 설계보다 먼저 결정해야 하는 항목.
+
+  - id: O-cpro-controls-schedule
+    kind: open
+    t: 2026-08-05
+    by: CC
+    status: open
+    question: >-
+      CPRO 가 DVP 의 보충 주기·로트 크기·출하 타이밍을 실제로 통제할 수 있는가,
+      아니면 DVP 가 정한 배송 일정을 받기만 하는가. 후자라면 문헌의 핵심 레버
+      셋(빈도·로트·타이밍)이 모두 결정변수가 아니게 되어 남는 것은 차급·적재율
+      뿐이다. 시나리오 자유도의 최상위 분기.
+
+  - id: O-standards-in-optimization
+    kind: open
+    t: 2026-08-05
+    by: CC
+    status: open
+    question: >-
+      GLEC framework / ISO 14083:2023 / EN 16258 / GHG Protocol Scope 3 cat.4 를
+      실제로 적용한 운송 최적화 논문이 존재하는가 — 이번 조사에서 확인된 1차
+      논문은 전부 임의 배출계수를 썼다. 존재한다면 선례로, 없다면 기여점으로
+      서술 방향이 갈린다.
+
+  - id: O-uncovered-levers
+    kind: open
+    t: 2026-08-05
+    by: CC
+    status: open
+    question: >-
+      운전시간 규정(driver hours), 창고/허브 위치, 재고-운송 통합
+      (inventory-routing)은 조사 질문에 포함됐으나 검증 통과 claim이 0건 —
+      조사 자체가 미완인지 문헌 비중이 낮은지 구분되지 않았다.
+
+  - id: L-milkrun-2evrpspdtw
+    kind: literature
+    t: 2026-08-05
+    by: CC
+    status: relevant
+    source:
+      title: >-
+        Route optimization of simultaneous delivery and pick-up in automotive
+        inbound logistics under the milk-run mode in a dual-carbon background
+      authors: "Zhang W."
+      year: 2025
+      venue: "Engineering Computations (Emerald)"
+      url: "https://doi.org/10.1108/EC-12-2024-1056"
+    claim: >-
+      자동차 인바운드 밀크런의 표준 정식화는 2단계 VRP + 시간창 + 동시 납입·수거
+      — 원문 명칭 'Two-echelon Vehicle Routing Problem with Time Windows and
+      Simultaneous Delivery and Pickup (2E-VRPSPDTW)'. 구조는 공급자→통합센터
+      →OEM. 사례 규모: 공급자 30곳, 자사 물류센터 2곳, OEM 1곳(3PL 실데이터),
+      일 650 컨테이너, 차급 3종(6.8m/7t/31컨, 9.6m/16t/45컨, 13m/30t/62컨).
+      빈 컨테이너를 능동 관리 변수로 취급(중첩 시 적재 1/5). 목적 3개 =
+      총비용(차량 기동·운송·통합센터·페널티) / CO2 / 서비스수준(시간창 충족률
+      + 주문충족률 가중 합성). 처리는 가중합·ε-제약이 아닌 비지배정렬 기반
+      INSGA-II 파레토, 벤치마크도 전부 파레토 MOEA(MOEA/D, SPEA2, Pareto-TS).
+    relevance: >-
+      CPRO에 공급처가 늘 때 쓸 정식화 골격. 특히 '빈 용기 회수'를 결정변수로
+      두는 구조는 DVP 셔틀의 왕복 공차 문제(O-shuttle-empty-run)와 직결 —
+      귀로에 빈 용기·트레이를 싣는 순간 공차구간이 유상구간으로 바뀐다.
+    caveat: >-
+      보고된 정량 성과는 알고리즘 품질(HV가 표준 NSGA-II 대비 약 10% 향상)뿐이며
+      '밀크런 도입으로 배출 X% 감소' 수치는 이 논문에서 인용 불가(해당 주장은
+      1-2로 기각). 서비스수준 목적 내부엔 가중치가 있으므로 '가중치 없음'으로
+      읽으면 안 됨. 30-공급자 인스턴스라 2~5개 소규모 질문의 근거는 아님.
+    related:
+      - {type: supports, ref: O-shuttle-empty-run}
+
+  - id: L-multistop-objective-taxonomy
+    kind: literature
+    t: 2026-08-05
+    by: CC
+    status: relevant
+    source:
+      title: >-
+        다지점 운송 문헌의 비용-배출 처리 4갈래 — Zhang(EC 2025) / Shi & Lin
+        (J. Phys. Conf. Ser. 2583:012008, 2023) / Fang, Du & Qiu
+        (Sustainability 9(12):2198, 2017) / Mukherjee et al.
+        (Mathematics 11(13):2880, 2023) / Xu, Huang & Xiao (Sustainability 15(9):7639, 2023)
+      authors: "Zhang; Shi & Lin; Fang, Du & Qiu; Mukherjee et al.; Xu, Huang & Xiao"
+      year: 2023
+      venue: "Engineering Computations / J. Phys. Conf. Ser. / Sustainability / Mathematics"
+      url: "https://doi.org/10.1088/1742-6596/2583/1/012008"
+    claim: >-
+      '다목적'이라는 통칭으로 묶으면 오독된다 — 최소 네 갈래다.
+      (a) 파레토형: Shi & Lin 의 open multi-depot green VRPTW 는 비용·배출을
+      별도 목적으로 NSGA-III 파레토(비지배해 26개). 최종해는 비용단일최적 대비
+      비용 -9.12%/배출 +17.79%, 배출단일최적 대비 배출 -13.82%/비용 +138.26%.
+      (b) 탄소가격 내재화(사실상 가중합): Fang et al. 목적 = 비용 +
+      p_c(총배출 − E). 캡 E 가 상수라 argmin 에서 소거되어 캡 수준은 결정을
+      바꾸지 못하고 탄소가격만 작동.
+      (c) 비용화 + 하드캡: Mukherjee et al.(역물류 크로스도킹) 은 단일 목적에
+      탄소요금을 포함하면서 별도로 엄격 탄소상한 부등식(식 9)을 부과. 녹색기술
+      투자 시 총비용 +약 2%, 배출 -23%.
+      (d) 배출항 아예 없음: Xu et al.(중국 자동차부품 밀크런 3PL) 은 목적이
+      운송비+페널티뿐이고 배출은 결론에서 '향후 연구'로 미룸.
+    relevance: >-
+      1차 조사의 3갈래(L-constraints-and-objective)를 다지점 문헌에서 재확인·
+      확장. CPRO 정식화 선택 시 (b)의 함정을 특히 주의 — 탄소가격 내재화형은
+      캡을 넣어도 캡이 결정을 바꾸지 않는다.
+    caveat: >-
+      (b)의 '캡이 결정을 못 바꾼다'는 성질은 배출권 매매가 단일가·무제한이라는
+      가정에서만 성립 — 매수/매도가가 다르거나 거래량 상한·하드캡이 있으면
+      캡이 실행가능성에 들어와 결정을 바꾼다. cap-and-trade 일반으로 확장 금지.
+      J. Phys. Conf. Ser. 는 경량 심사 논문집이라 수치 인용 신중.
+    related:
+      - {type: supports, ref: L-constraints-and-objective}
+
+  - id: L-carbon-price-moves-frequency
+    kind: literature
+    t: 2026-08-05
+    by: CC
+    status: relevant
+    source:
+      title: "탄소가격의 실제 레버는 차량 대수가 아니라 방문 빈도 — Fang, Du & Qiu Table 5"
+      authors: "Fang, Du & Qiu"
+      year: 2017
+      venue: "Sustainability 9(12):2198"
+      url: "https://doi.org/10.3390/su9122198"
+    claim: >-
+      기본설정(Class I, n=15, |T|=6, |K|=4)에서 탄소가격 p_c=0 → 총비용 8284,
+      총배출 17,314, 방문수 38.4, 사용차량 3대. p_c=0.7 → 총비용 9904,
+      총배출 17,195, 방문수 10.6, 사용차량 3대. 즉 방문수는 -72% 급감하나
+      차량대수는 전 행에서 3대 고정(4개 클래스 전부 동일 패턴).
+      기전: 연료비 675.8→579.7, 경로배출 3134→2688.1(-14%)인 반면 재고비
+      1307.6→1580.3, 재고배출 1568→1895(+21%) — 적게·크게·덜 자주 실어 나르고
+      재고로 흡수. 총배출은 p_c=0.3 에서 최소(17,119, -1.1%) 후 재상승,
+      본문 원문 "total emission levels do not decrease monotonically".
+    relevance: >-
+      CPRO 시나리오 설계의 가장 실용적 신호 두 가지. ① 탄소가격을 축으로 두면
+      움직이는 건 배차 대수가 아니라 납입 빈도다 — 1차 조사의 '출하 빈도가
+      핵심 레버'(L-single-echelon-levers)와 독립적으로 수렴.
+      ② '탄소가격 올리면 배출 준다'는 전제가 실증에서 깨진다. 경로배출 감소를
+      재고배출 증가가 상쇄하므로, 재고측 배출을 모델에 넣지 않으면 결론이
+      뒤집힌다.
+    caveat: >-
+      (a) 'NVI 가 레버'라는 해석은 표 판독 추론이며 저자 본문 주장이 아님(2-1).
+      (b) 총배출 17,314 중 생산배출 12,612 가 상수라 -1.1% 는 희석된 값이고
+      운송 성분만 보면 -12~14%. (c) 차량 3대 고정은 가용 4대·수요 규모에 종속.
+      (d) 합성 인스턴스 1개·유도탐색 해라 0.2~1% 진동은 솔버 갭 수준일 수 있음.
+      (e) 아웃바운드 생산-경로 문제로 인바운드 밀크런과 구조가 다름.
+    related:
+      - {type: supports, ref: L-single-echelon-levers}
+      - {type: raises, ref: O-lineside-inventory-cap}
+
+  - id: L-multistop-papers-use-fuel-backcalc
+    kind: literature
+    t: 2026-08-05
+    by: CC
+    status: relevant
+    source:
+      title: "다지점 문헌 6편 전수의 배출 산정 방식 — 연료소비 역산, tkm 아님"
+      authors: "Zhang; Fang et al.; Mukherjee et al.; Shi & Lin; Purba et al.; Xu et al."
+      year: 2025
+      venue: "6편 전문 키워드 검색"
+      url: "https://doi.org/10.3390/su9122198"
+    claim: >-
+      확인된 6편 전수에서 GLEC/ISO 14083/Scope 3/tkm 키워드가 전문 검색상 0건.
+      대신 세 계열 — (1) 연료소비율×거리 후 국가 환산계수: Zhang 의
+      MinEco2g = Eag×γ×τ, γ=1.471(표준석탄 환산), τ=2.925, 차급별 연료소비율
+      0.2/0.27/0.35 per km(γ·τ는 중국 GB/T 2589 계열, 국제 일반값 아님).
+      (2) 적재의존 역학 연료모델(Bektas-Laporte pollution-routing):
+      Fang et al. P_ijt = α_ij(ω + u_ijt + v_ijt)l_ij + β(l_ij/τ_ij)^2 l_ij,
+      ω=공차중량, 속도는 전 arc 40km/h 고정. (3) 속도의존 함수:
+      Mukherjee et al. (a0 + a1·V + a2·V^3 + a3/V^2). Shi & Lin 은 거리 비례
+      단순형, Purba et al. 은 계산 없이 '트럭 대수 감소'로 정성 귀속.
+    relevance: >-
+      1차 조사 결론(L-optimization-papers-ignore-standards)의 다지점 문헌 재확인
+      — 표본 6편 전수라 더 강한 증거. 중요한 실질 함의: 적재의존 모델은 공차중량
+      ω 가 배출에 직접 들어가므로 그 이득 구조가 tkm 선형계수로는 표현되지
+      않는다. CPRO 가 tkm 산정을 채택하면 이 논문들의 감축 메커니즘 일부가
+      원리적으로 재현되지 않으며, %수치도 직접 비교 불가.
+    caveat: >-
+      Zhang 논문은 연료소비율을 RMB/km 로 표기하면서 Eag 를 물리 연료량으로
+      다루는 단위 불일치가 있어 수치 재현 불가.
+    related:
+      - {type: supports, ref: L-optimization-papers-ignore-standards}
+      - {type: raises, ref: O-tkm-vs-fuel-model-gap}
+
+  - id: L-milkrun-screening-warning
+    kind: literature
+    t: 2026-08-05
+    by: CC
+    status: relevant
+    source:
+      title: >-
+        '밀크런/통합' 표제어 논문의 오분류 — Xu, Huang & Xiao (Sustainability
+        15(9):7639, 2023) / Wei, Çetinkaya & Cline (Transportation Research
+        Part E, 2023)
+      authors: "Xu, Huang & Xiao; Wei, Çetinkaya & Cline"
+      year: 2023
+      venue: "Sustainability / Transportation Research Part E"
+      url: "https://doi.org/10.1016/j.tre.2023.103135"
+    claim: >-
+      (a) Xu et al. 은 중국 자동차부품 밀크런 3PL 사례임에도 목적이 운송비+
+      페널티뿐 — carbon/CO2/emission/fuel/tkm 실질 히트 4건이 전부 서론 동기부여·
+      참고문헌·'향후 연구' 언급. 배출 감축 수치 0건.
+      (b) Wei et al. 'Inbound replenishment and outbound dispatch decisions
+      under hybrid shipment consolidation policies' 는 표제어와 달리 단일 창고의
+      재고-운송 동기화를 renewal theory 로 푸는 확률모형이며, 다공급자 픽업
+      경로설계·크로스도킹·RL 어느 것도 없다. 목적은 순수 비용, 배출항 없음.
+    relevance: >-
+      문헌 선별 규율 — 제목·저널명(Sustainability 등)이 아니라 목적함수를 직접
+      확인해야 한다. 관련연구 절을 쓸 때 이 두 편을 '밀크런 배출 최적화 선행연구'
+      로 인용하면 오귀속이 된다.
+    caveat: >-
+      Wei et al. 은 Elsevier 전문 접근 불가로 서론의 지나가는 배출 언급 가능성은
+      배제 못 함(결론은 불변).
+
+  - id: L-asia-milkrun-qualitative-only
+    kind: literature
+    t: 2026-08-05
+    by: CC
+    status: relevant
+    source:
+      title: "Control and integration of milk-run operation in Japanese automotive company in Indonesia"
+      authors: "Purba, Fitra & Nindiani"
+      year: 2019
+      venue: "Management and Production Engineering Review 10(1), 79-88 (폴란드 과학아카데미, 골드 OA)"
+      url: "https://doi.org/10.24425/mper.2019.128246"
+    claim: >-
+      아시아 신흥국 조립공장 인바운드 밀크런 실사례. 2005년 도입, TVSM
+      (Transportation Value Stream Mapping)으로 JIT 납입을 먼저 구현한 뒤
+      밀크런 운영. 개도국 도심 혼잡·도로여건 제약 명시. 배출 관련 서술은
+      "supports green logistics in decreasing emission of CO2 by reducing the
+      number of trucks used" 뿐 — 전문 10쪽에서 tkm 0회, GLEC 0회,
+      ISO 14083 0회, GHG 0회, 배출량 수치 0건. CO2 언급 5회 전부 트럭 대수·
+      적재율 개선에 정성 귀속.
+    relevance: >-
+      신흥국 산업단지 맥락의 유일한 실사례로 인용 가능하되 정량 근거로는 불가.
+      주목할 순서: JIT 납입 주기를 먼저 잡고 그 위에 밀크런을 얹었다 — CPRO도
+      라인사이드 납입 주기가 선결 조건일 가능성.
+    caveat: "베트남·박닌 산업단지 사례는 이번 조사에서 0건."
+
+  - id: L-fiveshipper-milkrun-gain
+    kind: literature
+    t: 2026-08-05
+    by: CC
+    status: relevant
+    source:
+      title: "공유운송(밀크런) vs 비공유 복합운송 vs 전구간 직송 비교 — 충칭 공단 5개 수출기업 가상 사례"
+      authors: "Wang & Wang"
+      year: 2025
+      venue: "Frontiers in Marine Science 12:1686552"
+      url: "https://www.frontiersin.org/journals/marine-science/articles/10.3389/fmars.2025.1686552/full"
+    claim: >-
+      기업 5곳(기업 간 7km, 공단→드라이포트 120km, 충칭→친저우항 1,300km)에서
+      S1(공유운송=순회 집하) vs S2(비공유 복합운송) vs S3(전구간 직송 도로) 비교.
+      S1이 S2 대비 집하거리 30km 일 때 2.15%, 120km 일 때 26.68% 절감
+      (48 RMB/tCO2 환산 시 사이클당 0.66~13.49위안).
+    relevance: >-
+      '공급처가 적으면 최적화 무의미'에 대한 존재 증명 — 5곳 규모에서도 이득이
+      0은 아니다. 다만 이득이 집하 반경 대비 간선 거리 구조에 강하게 좌우되며,
+      CPRO 조건(편도 49km 단일 링크)은 이 곡선의 저구간(30km에서 2.15%)에 가깝다.
+    caveat: >-
+      **절대 수치 인용 금지.** 논문에 '64.13x10 kg' 표기 오류와 'S2가 S3 대비
+      305.75% 절감'(100% 초과 감축)이라는 산술적으로 불가능한 값이 있고,
+      이 논문에서 파생된 임계치·조건 명제 3건이 검증에서 전부 0-3 기각됐다.
+      절감률을 쓰려면 논문의 배출계수로 재유도해야 함. 또한 가상 사례이며
+      아웃바운드 수출 통합 구조(인바운드 부품 공급 아님), 밀크런 구간은 시간창·
+      용량 제약을 푼 VRP 가 아니라 해석적 통합. 게재지도 내륙 육상물류에 부적합.
+    related:
+      - {type: raises, ref: O-direct-vs-milkrun-threshold}
+
+  - id: O-direct-vs-milkrun-threshold
+    kind: open
+    t: 2026-08-05
+    by: CC
+    status: open
+    question: >-
+      공급처 2~5개 구간에서 직송이 밀크런보다 우월하다는 결론을 낸 논문이 실제로
+      존재하는가. 2차 조사에서 해당 후보(doi 10.22610/jsds.v4i2.734)의 주장 4건이
+      전부 1-2 또는 0-3 기각되어 '적은 공급처에서는 직송 우월'이라는 대칭 근거가
+      0건으로 남았다 — 이 비대칭(밀크런 이득 쪽만 근거 있음)을 결론에 그대로
+      반영하면 편향된다. 밀크런 이득이 사라지는 최소 조건(공급자 수·지리적
+      분산·물량·픽업 빈도) 민감도 분석 논문을 표적 재조사 필요.
+      단, CPRO 조건(편도 49km)에 대한 답은 문헌보다 자체 파라미터 감도분석이
+      빠를 가능성이 높다.
+
+  - id: O-lineside-inventory-cap
+    kind: open
+    t: 2026-08-05
+    by: CC
+    status: open
+    question: >-
+      배출 레버가 방문 빈도(로트 대형화 + 재고 흡수)로 작동할 때, 늘어난
+      라인사이드 재고와 JIT 납입 주기 제약이 어디서 실제 상한을 거는가.
+      Fang et al. 에서 재고배출 +21% 가 경로배출 -14% 를 상쇄한 사례가 있으므로,
+      CPRO 조립공장의 라인사이드 재고 한계를 제약으로 넣지 않으면 결론이
+      뒤집힐 수 있다.
+
+  - id: O-tkm-vs-fuel-model-gap
+    kind: open
+    t: 2026-08-05
+    by: CC
+    status: open
+    question: >-
+      GLEC Framework 또는 ISO 14083 의 tkm 기반 산정을 실제로 적용해 밀크런·
+      통합운송 감축량을 보고한 연구가 존재하는가. 존재한다면 연료 역산 방식과
+      결과가 얼마나 갈리는가 — 적재의존 모델(공차중량이 배출에 직접 들어감)의
+      이득이 tkm 선형계수로는 표현되지 않으므로, CPRO 가 Scope 3 cat.4 체계를
+      쓸 경우 이 대조가 곧 방법론 선택 근거가 된다.

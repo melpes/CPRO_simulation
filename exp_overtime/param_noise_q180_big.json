@@ -1,0 +1,210 @@
+[
+ {
+  "sigma": 0.0,
+  "rep": 0,
+  "wall_sec": 23.4,
+  "makespan_days": 1.695138888888889,
+  "work_time_h": 16.683333333333334,
+  "total_kwh": 2650.0006751013925,
+  "weighted_kwh": 2436.00067510138,
+  "peak_kwh": 301.7475317110996,
+  "target_met": true,
+  "throughput": {
+   "MODEL_A": 180,
+   "MODEL_B": 180,
+   "MODEL_C": 180
+  }
+ },
+ {
+  "sigma": 0.3,
+  "rep": 0,
+  "wall_sec": 20.2,
+  "makespan_days": 1.6947916666666667,
+  "work_time_h": 16.675,
+  "total_kwh": 2649.109008434732,
+  "weighted_kwh": 2435.109008434713,
+  "peak_kwh": 301.7475317110996,
+  "target_met": true,
+  "throughput": {
+   "MODEL_A": 180,
+   "MODEL_B": 180,
+   "MODEL_C": 180
+  }
+ },
+ {
+  "sigma": 0.3,
+  "rep": 1,
+  "wall_sec": 19.5,
+  "makespan_days": 1.695138888888889,
+  "work_time_h": 16.683333333333334,
+  "total_kwh": 2650.0006751013984,
+  "weighted_kwh": 2436.00067510138,
+  "peak_kwh": 301.7475317110996,
+  "target_met": true,
+  "throughput": {
+   "MODEL_A": 180,
+   "MODEL_B": 180,
+   "MODEL_C": 180
+  }
+ },
+ {
+  "sigma": 0.3,
+  "rep": 2,
+  "wall_sec": 19.6,
+  "makespan_days": 1.695138888888889,
+  "work_time_h": 16.683333333333334,
+  "total_kwh": 2650.0006751013925,
+  "weighted_kwh": 2436.00067510138,
+  "peak_kwh": 301.7475317110996,
+  "target_met": true,
+  "throughput": {
+   "MODEL_A": 180,
+   "MODEL_B": 180,
+   "MODEL_C": 180
+  }
+ },
+ {
+  "sigma": 0.5,
+  "rep": 0,
+  "wall_sec": 19.2,
+  "makespan_days": 1.695138888888889,
+  "work_time_h": 16.683333333333334,
+  "total_kwh": 2650.067385443885,
+  "weighted_kwh": 2436.067385443866,
+  "peak_kwh": 301.82566593332166,
+  "target_met": true,
+  "throughput": {
+   "MODEL_A": 180,
+   "MODEL_B": 180,
+   "MODEL_C": 180
+  }
+ },
+ {
+  "sigma": 0.5,
+  "rep": 1,
+  "wall_sec": 19.5,
+  "makespan_days": 1.6947916666666667,
+  "work_time_h": 16.675,
+  "total_kwh": 2649.1090084347325,
+  "weighted_kwh": 2435.109008434713,
+  "peak_kwh": 301.7475317110996,
+  "target_met": true,
+  "throughput": {
+   "MODEL_A": 180,
+   "MODEL_B": 180,
+   "MODEL_C": 180
+  }
+ },
+ {
+  "sigma": 0.5,
+  "rep": 2,
+  "wall_sec": 19.1,
+  "makespan_days": 1.6989583333333333,
+  "work_time_h": 16.775,
+  "total_kwh": 2660.789787920253,
+  "weighted_kwh": 2446.7897879202405,
+  "peak_kwh": 302.89626576665586,
+  "target_met": true,
+  "throughput": {
+   "MODEL_A": 180,
+   "MODEL_B": 180,
+   "MODEL_C": 180
+  }
+ },
+ {
+  "sigma": 1.0,
+  "rep": 0,
+  "wall_sec": 20.4,
+  "makespan_days": 1.7322916666666666,
+  "work_time_h": 17.575,
+  "total_kwh": 2747.355625360294,
+  "weighted_kwh": 2533.3556253602637,
+  "peak_kwh": 304.0274990110986,
+  "target_met": true,
+  "throughput": {
+   "MODEL_A": 180,
+   "MODEL_B": 180,
+   "MODEL_C": 180
+  }
+ },
+ {
+  "sigma": 1.0,
+  "rep": 1,
+  "wall_sec": 18.4,
+  "makespan_days": 1.7427083333333333,
+  "work_time_h": 17.825,
+  "total_kwh": 2796.4644079458913,
+  "weighted_kwh": 2582.46440794584,
+  "peak_kwh": 330.2151338222006,
+  "target_met": true,
+  "throughput": {
+   "MODEL_A": 180,
+   "MODEL_B": 180,
+   "MODEL_C": 180
+  }
+ },
+ {
+  "sigma": 1.0,
+  "rep": 2,
+  "wall_sec": 18.8,
+  "makespan_days": 1.6989583333333333,
+  "work_time_h": 16.775,
+  "total_kwh": 2659.55387172702,
+  "weighted_kwh": 2445.553871727005,
+  "peak_kwh": 301.44870386109966,
+  "target_met": true,
+  "throughput": {
+   "MODEL_A": 180,
+   "MODEL_B": 180,
+   "MODEL_C": 180
+  }
+ },
+ {
+  "sigma": 2.0,
+  "rep": 0,
+  "wall_sec": 20.7,
+  "makespan_days": 1.7555555555555555,
+  "work_time_h": 18.133333333333333,
+  "total_kwh": 2846.8653076286555,
+  "weighted_kwh": 2632.865307628692,
+  "peak_kwh": 350.6056284666666,
+  "target_met": true,
+  "throughput": {
+   "MODEL_A": 180,
+   "MODEL_B": 180,
+   "MODEL_C": 180
+  }
+ },
+ {
+  "sigma": 2.0,
+  "rep": 1,
+  "wall_sec": 19.2,
+  "makespan_days": 1.695486111111111,
+  "work_time_h": 16.691666666666666,
+  "total_kwh": 2650.9709904318224,
+  "weighted_kwh": 2436.970990431803,
+  "peak_kwh": 301.8396486444328,
+  "target_met": true,
+  "throughput": {
+   "MODEL_A": 180,
+   "MODEL_B": 180,
+   "MODEL_C": 180
+  }
+ },
+ {
+  "sigma": 2.0,
+  "rep": 2,
+  "wall_sec": 20.2,
+  "makespan_days": 1.6909722222222223,
+  "work_time_h": 16.583333333333332,
+  "total_kwh": 2623.6934638836046,
+  "weighted_kwh": 2409.69346388374,
+  "peak_kwh": 283.4676479014027,
+  "target_met": true,
+  "throughput": {
+   "MODEL_A": 180,
+   "MODEL_B": 180,
+   "MODEL_C": 180
+  }
+ }
+]

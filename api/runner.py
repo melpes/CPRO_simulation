@@ -38,6 +38,8 @@ def execute(run_input: dict, seed: int, run_dir: str) -> dict:
     결과(수 MB)를 부모로 피클링해 돌려보내지 않고 파일로 넘긴다."""
     import run_trained
 
+    import export
+
     po = run_input['po']
     target_qty = {model_id: int(spec['qty']) for model_id, spec in po.items()}
     due_day    = {model_id: int(spec['due_day']) for model_id, spec in po.items()}
@@ -45,9 +47,11 @@ def execute(run_input: dict, seed: int, run_dir: str) -> dict:
                                    overrides={}, seed=seed)
     sample_sec = int(os.getenv('CPRO_SAMPLE_SEC', '1800'))   # 문서 예시 샘플링 주기 0.5h
     artifacts = run_trained.artifacts(env, summary, sample_sec=sample_sec)
+    snap = export.snapshot(env, summary)   # GET 요청 시 다른 주기로 재버킷하기 위한 원자료
 
     os.makedirs(run_dir, exist_ok=True)
     _atomic_json(os.path.join(run_dir, 'artifacts.json'), artifacts)
+    _atomic_json(os.path.join(run_dir, 'snapshot.json'), snap)
 
     metric = artifacts['metric']
     summary_line = (f"makespan={metric['makespan_days']:.2f}d "

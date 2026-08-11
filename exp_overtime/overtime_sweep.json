@@ -1,0 +1,512 @@
+[
+ {
+  "end_hour": 18.0,
+  "seed": 0,
+  "wall_sec": 6.6,
+  "makespan_days": 1.5628472222222223,
+  "completion_days": {
+   "MODEL_A": 0.6851157407407408,
+   "MODEL_B": 1.5627430555555555,
+   "MODEL_C": 0.5827430555555555
+  },
+  "tardiness_days_sum": 0.0,
+  "target_met": true,
+  "total_kwh": 625.7444244444563,
+  "tou_kwh": {
+   "normal": 620.74,
+   "peak": 5.0,
+   "night": 0.0
+  },
+  "cost_vnd": 1196333.6620200253,
+  "energy_check": {
+   "baseline_kwh": [
+    115.08,
+    115.08
+   ],
+   "assembly_kwh": [
+    369.01,
+    369.01
+   ],
+   "smt_kwh": [
+    141.66,
+    141.66
+   ]
+  }
+ },
+ {
+  "end_hour": 18.0,
+  "seed": 1,
+  "wall_sec": 6.6,
+  "makespan_days": 1.5628472222222223,
+  "completion_days": {
+   "MODEL_A": 0.6851157407407408,
+   "MODEL_B": 1.5627430555555555,
+   "MODEL_C": 0.5827430555555555
+  },
+  "tardiness_days_sum": 0.0,
+  "target_met": true,
+  "total_kwh": 626.3236744444563,
+  "tou_kwh": {
+   "normal": 621.32,
+   "peak": 5.0,
+   "night": 0.0
+  },
+  "cost_vnd": 1197433.6577700253,
+  "energy_check": {
+   "baseline_kwh": [
+    115.08,
+    115.08
+   ],
+   "assembly_kwh": [
+    369.59,
+    369.59
+   ],
+   "smt_kwh": [
+    141.66,
+    141.66
+   ]
+  }
+ },
+ {
+  "end_hour": 18.0,
+  "seed": 2,
+  "wall_sec": 6.6,
+  "makespan_days": 1.5628472222222223,
+  "completion_days": {
+   "MODEL_A": 0.6851157407407408,
+   "MODEL_B": 1.5627430555555555,
+   "MODEL_C": 0.5827430555555555
+  },
+  "tardiness_days_sum": 0.0,
+  "target_met": true,
+  "total_kwh": 625.9926744444563,
+  "tou_kwh": {
+   "normal": 620.99,
+   "peak": 5.0,
+   "night": 0.0
+  },
+  "cost_vnd": 1196805.0887700252,
+  "energy_check": {
+   "baseline_kwh": [
+    115.08,
+    115.08
+   ],
+   "assembly_kwh": [
+    369.25,
+    369.25
+   ],
+   "smt_kwh": [
+    141.66,
+    141.66
+   ]
+  }
+ },
+ {
+  "end_hour": 19.0,
+  "seed": 0,
+  "wall_sec": 7.2,
+  "makespan_days": 1.5628472222222223,
+  "completion_days": {
+   "MODEL_A": 0.6855671296296296,
+   "MODEL_B": 1.5627430555555555,
+   "MODEL_C": 0.5827430555555555
+  },
+  "tardiness_days_sum": 0.0,
+  "target_met": true,
+  "total_kwh": 635.7444244444563,
+  "tou_kwh": {
+   "normal": 620.74,
+   "peak": 15.0,
+   "night": 0.0
+  },
+  "cost_vnd": 1231413.6620200253,
+  "energy_check": {
+   "baseline_kwh": [
+    125.08,
+    125.08
+   ],
+   "assembly_kwh": [
+    369.01,
+    369.01
+   ],
+   "smt_kwh": [
+    141.66,
+    141.66
+   ]
+  }
+ },
+ {
+  "end_hour": 19.0,
+  "seed": 1,
+  "wall_sec": 6.6,
+  "makespan_days": 1.5628472222222223,
+  "completion_days": {
+   "MODEL_A": 0.6855671296296296,
+   "MODEL_B": 1.5627430555555555,
+   "MODEL_C": 0.5827430555555555
+  },
+  "tardiness_days_sum": 0.0,
+  "target_met": true,
+  "total_kwh": 636.3236744444563,
+  "tou_kwh": {
+   "normal": 621.32,
+   "peak": 15.0,
+   "night": 0.0
+  },
+  "cost_vnd": 1232513.6577700253,
+  "energy_check": {
+   "baseline_kwh": [
+    125.08,
+    125.08
+   ],
+   "assembly_kwh": [
+    369.59,
+    369.59
+   ],
+   "smt_kwh": [
+    141.66,
+    141.66
+   ]
+  }
+ },
+ {
+  "end_hour": 19.0,
+  "seed": 2,
+  "wall_sec": 6.4,
+  "makespan_days": 1.5628472222222223,
+  "completion_days": {
+   "MODEL_A": 0.6855671296296296,
+   "MODEL_B": 1.5627430555555555,
+   "MODEL_C": 0.5827430555555555
+  },
+  "tardiness_days_sum": 0.0,
+  "target_met": true,
+  "total_kwh": 635.9926744444563,
+  "tou_kwh": {
+   "normal": 620.99,
+   "peak": 15.0,
+   "night": 0.0
+  },
+  "cost_vnd": 1231885.0887700252,
+  "energy_check": {
+   "baseline_kwh": [
+    125.08,
+    125.08
+   ],
+   "assembly_kwh": [
+    369.25,
+    369.25
+   ],
+   "smt_kwh": [
+    141.66,
+    141.66
+   ]
+  }
+ },
+ {
+  "end_hour": 20.0,
+  "seed": 0,
+  "wall_sec": 6.4,
+  "makespan_days": 1.5628472222222223,
+  "completion_days": {
+   "MODEL_A": 0.6851157407407408,
+   "MODEL_B": 1.5627430555555555,
+   "MODEL_C": 0.5827430555555555
+  },
+  "tardiness_days_sum": 0.0,
+  "target_met": true,
+  "total_kwh": 645.7444244444563,
+  "tou_kwh": {
+   "normal": 620.74,
+   "peak": 25.0,
+   "night": 0.0
+  },
+  "cost_vnd": 1266493.6620200253,
+  "energy_check": {
+   "baseline_kwh": [
+    135.08,
+    135.08
+   ],
+   "assembly_kwh": [
+    369.01,
+    369.01
+   ],
+   "smt_kwh": [
+    141.66,
+    141.66
+   ]
+  }
+ },
+ {
+  "end_hour": 20.0,
+  "seed": 1,
+  "wall_sec": 6.1,
+  "makespan_days": 1.5628472222222223,
+  "completion_days": {
+   "MODEL_A": 0.6851157407407408,
+   "MODEL_B": 1.5627430555555555,
+   "MODEL_C": 0.5827430555555555
+  },
+  "tardiness_days_sum": 0.0,
+  "target_met": true,
+  "total_kwh": 646.3236744444563,
+  "tou_kwh": {
+   "normal": 621.32,
+   "peak": 25.0,
+   "night": 0.0
+  },
+  "cost_vnd": 1267593.6577700253,
+  "energy_check": {
+   "baseline_kwh": [
+    135.08,
+    135.08
+   ],
+   "assembly_kwh": [
+    369.59,
+    369.59
+   ],
+   "smt_kwh": [
+    141.66,
+    141.66
+   ]
+  }
+ },
+ {
+  "end_hour": 20.0,
+  "seed": 2,
+  "wall_sec": 6.1,
+  "makespan_days": 1.5628472222222223,
+  "completion_days": {
+   "MODEL_A": 0.6851157407407408,
+   "MODEL_B": 1.5627430555555555,
+   "MODEL_C": 0.5827430555555555
+  },
+  "tardiness_days_sum": 0.0,
+  "target_met": true,
+  "total_kwh": 645.9926744444563,
+  "tou_kwh": {
+   "normal": 620.99,
+   "peak": 25.0,
+   "night": 0.0
+  },
+  "cost_vnd": 1266965.0887700252,
+  "energy_check": {
+   "baseline_kwh": [
+    135.08,
+    135.08
+   ],
+   "assembly_kwh": [
+    369.25,
+    369.25
+   ],
+   "smt_kwh": [
+    141.66,
+    141.66
+   ]
+  }
+ },
+ {
+  "end_hour": 21.0,
+  "seed": 0,
+  "wall_sec": 6.3,
+  "makespan_days": 1.5628472222222223,
+  "completion_days": {
+   "MODEL_A": 0.6851157407407408,
+   "MODEL_B": 1.5627430555555555,
+   "MODEL_C": 0.5827430555555555
+  },
+  "tardiness_days_sum": 0.0,
+  "target_met": true,
+  "total_kwh": 655.7444244444563,
+  "tou_kwh": {
+   "normal": 620.74,
+   "peak": 35.0,
+   "night": 0.0
+  },
+  "cost_vnd": 1301573.6620200253,
+  "energy_check": {
+   "baseline_kwh": [
+    145.08,
+    145.08
+   ],
+   "assembly_kwh": [
+    369.01,
+    369.01
+   ],
+   "smt_kwh": [
+    141.66,
+    141.66
+   ]
+  }
+ },
+ {
+  "end_hour": 21.0,
+  "seed": 1,
+  "wall_sec": 6.2,
+  "makespan_days": 1.5628472222222223,
+  "completion_days": {
+   "MODEL_A": 0.6851157407407408,
+   "MODEL_B": 1.5627430555555555,
+   "MODEL_C": 0.5827430555555555
+  },
+  "tardiness_days_sum": 0.0,
+  "target_met": true,
+  "total_kwh": 656.3236744444563,
+  "tou_kwh": {
+   "normal": 621.32,
+   "peak": 35.0,
+   "night": 0.0
+  },
+  "cost_vnd": 1302673.6577700253,
+  "energy_check": {
+   "baseline_kwh": [
+    145.08,
+    145.08
+   ],
+   "assembly_kwh": [
+    369.59,
+    369.59
+   ],
+   "smt_kwh": [
+    141.66,
+    141.66
+   ]
+  }
+ },
+ {
+  "end_hour": 21.0,
+  "seed": 2,
+  "wall_sec": 6.1,
+  "makespan_days": 1.5628472222222223,
+  "completion_days": {
+   "MODEL_A": 0.6851157407407408,
+   "MODEL_B": 1.5627430555555555,
+   "MODEL_C": 0.5827430555555555
+  },
+  "tardiness_days_sum": 0.0,
+  "target_met": true,
+  "total_kwh": 655.9926744444563,
+  "tou_kwh": {
+   "normal": 620.99,
+   "peak": 35.0,
+   "night": 0.0
+  },
+  "cost_vnd": 1302045.0887700252,
+  "energy_check": {
+   "baseline_kwh": [
+    145.08,
+    145.08
+   ],
+   "assembly_kwh": [
+    369.25,
+    369.25
+   ],
+   "smt_kwh": [
+    141.66,
+    141.66
+   ]
+  }
+ },
+ {
+  "end_hour": 22.5,
+  "seed": 0,
+  "wall_sec": 6.2,
+  "makespan_days": 1.5628472222222223,
+  "completion_days": {
+   "MODEL_A": 0.6851157407407408,
+   "MODEL_B": 1.5627430555555555,
+   "MODEL_C": 0.5827430555555555
+  },
+  "tardiness_days_sum": 0.0,
+  "target_met": true,
+  "total_kwh": 670.7444244444563,
+  "tou_kwh": {
+   "normal": 620.74,
+   "peak": 50.0,
+   "night": 0.0
+  },
+  "cost_vnd": 1354193.6620200253,
+  "energy_check": {
+   "baseline_kwh": [
+    160.08,
+    160.08
+   ],
+   "assembly_kwh": [
+    369.01,
+    369.01
+   ],
+   "smt_kwh": [
+    141.66,
+    141.66
+   ]
+  }
+ },
+ {
+  "end_hour": 22.5,
+  "seed": 1,
+  "wall_sec": 6.1,
+  "makespan_days": 1.5628472222222223,
+  "completion_days": {
+   "MODEL_A": 0.6851157407407408,
+   "MODEL_B": 1.5627430555555555,
+   "MODEL_C": 0.5827430555555555
+  },
+  "tardiness_days_sum": 0.0,
+  "target_met": true,
+  "total_kwh": 671.3236744444563,
+  "tou_kwh": {
+   "normal": 621.32,
+   "peak": 50.0,
+   "night": 0.0
+  },
+  "cost_vnd": 1355293.6577700253,
+  "energy_check": {
+   "baseline_kwh": [
+    160.08,
+    160.08
+   ],
+   "assembly_kwh": [
+    369.59,
+    369.59
+   ],
+   "smt_kwh": [
+    141.66,
+    141.66
+   ]
+  }
+ },
+ {
+  "end_hour": 22.5,
+  "seed": 2,
+  "wall_sec": 6.1,
+  "makespan_days": 1.5628472222222223,
+  "completion_days": {
+   "MODEL_A": 0.6851157407407408,
+   "MODEL_B": 1.5627430555555555,
+   "MODEL_C": 0.5827430555555555
+  },
+  "tardiness_days_sum": 0.0,
+  "target_met": true,
+  "total_kwh": 670.9926744444563,
+  "tou_kwh": {
+   "normal": 620.99,
+   "peak": 50.0,
+   "night": 0.0
+  },
+  "cost_vnd": 1354665.0887700252,
+  "energy_check": {
+   "baseline_kwh": [
+    160.08,
+    160.08
+   ],
+   "assembly_kwh": [
+    369.25,
+    369.25
+   ],
+   "smt_kwh": [
+    141.66,
+    141.66
+   ]
+  }
+ }
+]

@@ -120,6 +120,10 @@ class JobStore:
         path = self.run_dir(run_id) / 'artifacts.json'
         return _read_json(path) if path.exists() else None
 
+    def snapshot(self, run_id: str):
+        path = self.run_dir(run_id) / 'snapshot.json'
+        return _read_json(path) if path.exists() else None
+
     def reap_orphans(self) -> int:
         """기동 시 남아있는 queued/running 잡은 프로세스가 죽은 것 → failed(interrupted)."""
         n = 0

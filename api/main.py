@@ -209,43 +209,64 @@ def _current_artifacts() -> dict:
     return STORE.artifacts(run_id)
 
 
+# 공통 쿼리 파라미터 — 샘플링 주기(분). 생략 시 실행 때 저장된 기본 주기(CPRO_SAMPLE_SEC, 기본 30분).
+_PERIOD_QUERY = Query(None, ge=1, le=1440, alias='샘플링주기_분',
+                     description='시계열 샘플링 주기 (분). 생략 시 기본 30분. '
+                                 '시뮬 재실행 없이 저장된 원자료를 다시 묶어 응답한다.')
+
+
+def _dashboard_artifacts(sample_min: Optional[int]) -> dict:
+    """주기 미지정이면 저장된 결과 그대로, 지정이면 원자료(snapshot)로 즉석 재버킷."""
+    artifacts = _current_artifacts()
+    if sample_min is None or sample_min * 60 == artifacts['timeseries']['sample_sec']:
+        return artifacts
+    import export
+    snap = STORE.snapshot(app.state.current_run_id)
+    if snap is None:
+        _error(409, 'no_snapshot',
+              '이 실행에는 재버킷용 원자료가 없습니다(구버전 실행). 다시 POST 하세요.')
+    features = export.bucketize(snap, sample_min * 60)
+    return {'timeseries': {'sample_sec': features['sample_sec'],
+                           't_sec': features['t_sec'], 'features': features}}
+
+
 @app.get('/api/v1/dashboard/실시간/모델별-누적-생산량', tags=['대시보드'],
          summary='모델별 누적 생산량', dependencies=[Depends(require_api_key)])
-def get_production_by_model():
+def get_production_by_model(sample_min: Optional[int] = _PERIOD_QUERY):
     """대시보드 1 — 모델별 누적 생산량."""
-    return views.production_by_model(_current_artifacts())
+    return views.production_by_model(_dashboard_artifacts(sample_min))
 
 
 @app.get('/api/v1/dashboard/실시간/작업자-라인별-점유비율', tags=['대시보드'],
          summary='라인별 작업자 점유비율', dependencies=[Depends(require_api_key)])
-def get_line_occupancy():
+def get_line_occupancy(sample_min: Optional[int] = _PERIOD_QUERY):
     """대시보드 2 — 라인별 작업자 점유비율 (0~1)."""
-    return views.line_occupancy(_current_artifacts())
+    return views.line_occupancy(_dashboard_artifacts(sample_min))
 
 
 @app.get('/api/v1/dashboard/실시간/생산진행수량', tags=['대시보드'],
          summary='생산 진행 수량 (전체)', dependencies=[Depends(require_api_key)])
-def get_wip_total():
+def get_wip_total(sample_min: Optional[int] = _PERIOD_QUERY):
     """대시보드 3 — 생산 진행 수량 (전체)."""
-    return views.wip_total(_current_artifacts())
+    return views.wip_total(_dashboard_artifacts(sample_min))
 
 
 @app.get('/api/v1/dashboard/실시간/생산진행수량-모델별', tags=['대시보드'],
          summary='생산 진행 수량 (모델별)', dependencies=[Depends(require_api_key)])
-def get_wip_by_model():
+def get_wip_by_model(sample_min: Optional[int] = _PERIOD_QUERY):
     """대시보드 3b — 생산 진행 수량 (모델별)."""
-    return views.wip_by_model(_current_artifacts())
+    return views.wip_by_model(_dashboard_artifacts(sample_min))
 
 
 @app.get('/api/v1/dashboard/실시간/가동-전력', tags=['대시보드'],
          summary='공장 가동 전력', dependencies=[Depends(require_api_key)])
-def get_instant_power():
+def get_instant_power(sample_min: Optional[int] = _PERIOD_QUERY):
     """대시보드 4 — 공장 실시간 가동 전력 (kW)."""
-    return views.instant_power(_current_artifacts())
+    return views.instant_power(_dashboard_artifacts(sample_min))
 
 
 @app.get('/api/v1/dashboard/실시간/전력-사용-비율', tags=['대시보드'],
          summary='전력 사용 비율', dependencies=[Depends(require_api_key)])
-def get_power_usage_ratio():
+def get_power_usage_ratio(sample_min: Optional[int] = _PERIOD_QUERY):
     """대시보드 5 — 전력 사용 비율 3종: 전체(조립 공정/SMT 공정/기저 부하) · 조립 라인별 · SMT 설비별."""
-    return views.power_usage_ratio(_current_artifacts())
+    return views.power_usage_ratio(_dashboard_artifacts(sample_min))

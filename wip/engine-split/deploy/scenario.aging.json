@@ -1,0 +1,23 @@
+{
+  "scenario": "aging",
+  "po": {
+    "MODEL_A": {
+      "qty": 100,
+      "due_day": 22
+    },
+    "MODEL_B": {
+      "qty": 100,
+      "due_day": 22
+    },
+    "MODEL_C": {
+      "qty": 100,
+      "due_day": 22
+    }
+  },
+  "switch_count": 6,
+  "port_count": 8,
+  "units_per_worker": 45,
+  "overrides": {
+    "seed": 42
+  }
+}

@@ -1,0 +1,202 @@
+[
+ {
+  "policy_seed": 1,
+  "wall": 21.2,
+  "makespan_days": 1.66875,
+  "work_time_h": 16.05,
+  "weighted_kwh": 2368.793171106233,
+  "peak_kwh": 302.40244875694395,
+  "total_kwh": 2582.7931711061574,
+  "met": true
+ },
+ {
+  "policy_seed": 2,
+  "wall": 18.0,
+  "makespan_days": 1.6291666666666667,
+  "work_time_h": 15.1,
+  "weighted_kwh": 2267.85625111855,
+  "peak_kwh": 303.23764087361013,
+  "total_kwh": 2481.8562511184937,
+  "met": true
+ },
+ {
+  "policy_seed": 3,
+  "wall": 17.6,
+  "makespan_days": 1.6736111111111112,
+  "work_time_h": 16.166666666666668,
+  "weighted_kwh": 2379.842016558866,
+  "peak_kwh": 300.8192311624979,
+  "total_kwh": 2593.8420165588,
+  "met": true
+ },
+ {
+  "policy_seed": 4,
+  "wall": 18.2,
+  "makespan_days": 1.6701388888888888,
+  "work_time_h": 16.083333333333332,
+  "weighted_kwh": 2368.4702222893775,
+  "peak_kwh": 297.94367276250034,
+  "total_kwh": 2582.470222289297,
+  "met": true
+ },
+ {
+  "policy_seed": 5,
+  "wall": 18.0,
+  "makespan_days": 1.66875,
+  "work_time_h": 16.05,
+  "weighted_kwh": 2370.245672916407,
+  "peak_kwh": 304.10368570138917,
+  "total_kwh": 2584.2456729163355,
+  "met": true
+ },
+ {
+  "policy_seed": 6,
+  "wall": 18.9,
+  "makespan_days": 1.6736111111111112,
+  "work_time_h": 16.166666666666668,
+  "weighted_kwh": 2380.145378125675,
+  "peak_kwh": 301.1745421861108,
+  "total_kwh": 2594.145378125604,
+  "met": true
+ },
+ {
+  "policy_seed": 7,
+  "wall": 18.6,
+  "makespan_days": 1.6743055555555555,
+  "work_time_h": 16.183333333333334,
+  "weighted_kwh": 2379.322727664111,
+  "peak_kwh": 298.12229407361207,
+  "total_kwh": 2593.3227276640314,
+  "met": true
+ },
+ {
+  "policy_seed": 8,
+  "wall": 18.7,
+  "makespan_days": 1.6736111111111112,
+  "work_time_h": 16.166666666666668,
+  "weighted_kwh": 2381.0908849212547,
+  "peak_kwh": 302.2819632444443,
+  "total_kwh": 2595.09088492118,
+  "met": true
+ },
+ {
+  "policy_seed": 9,
+  "wall": 18.6,
+  "makespan_days": 1.6298611111111112,
+  "work_time_h": 15.116666666666667,
+  "weighted_kwh": 2270.328957641992,
+  "peak_kwh": 304.0450664694428,
+  "total_kwh": 2484.328957641931,
+  "met": true
+ },
+ {
+  "policy_seed": 10,
+  "wall": 18.4,
+  "makespan_days": 1.6743055555555555,
+  "work_time_h": 16.183333333333334,
+  "weighted_kwh": 2382.5548072034317,
+  "peak_kwh": 301.9078543263868,
+  "total_kwh": 2596.554807203364,
+  "met": true
+ },
+ {
+  "policy_seed": 11,
+  "wall": 17.7,
+  "makespan_days": 1.6697916666666666,
+  "work_time_h": 16.075,
+  "weighted_kwh": 2371.4501144598216,
+  "peak_kwh": 302.38129998194506,
+  "total_kwh": 2585.4501144597443,
+  "met": true
+ },
+ {
+  "policy_seed": 12,
+  "wall": 17.6,
+  "makespan_days": 1.6274305555555555,
+  "work_time_h": 15.058333333333334,
+  "weighted_kwh": 2258.3004271065547,
+  "peak_kwh": 297.26722527361,
+  "total_kwh": 2472.3004271064806,
+  "met": true
+ },
+ {
+  "policy_seed": 13,
+  "wall": 17.4,
+  "makespan_days": 1.6736111111111112,
+  "work_time_h": 16.166666666666668,
+  "weighted_kwh": 2378.74489230573,
+  "peak_kwh": 299.53422876249726,
+  "total_kwh": 2592.7448923056627,
+  "met": true
+ },
+ {
+  "policy_seed": 14,
+  "wall": 17.2,
+  "makespan_days": 1.6302083333333333,
+  "work_time_h": 15.125,
+  "weighted_kwh": 2268.0542336462304,
+  "peak_kwh": 300.3364440513895,
+  "total_kwh": 2482.0542336461494,
+  "met": true
+ },
+ {
+  "policy_seed": 15,
+  "wall": 17.6,
+  "makespan_days": 1.6309027777777778,
+  "work_time_h": 15.141666666666667,
+  "weighted_kwh": 2274.6240143907794,
+  "peak_kwh": 306.03947207361034,
+  "total_kwh": 2488.624014390725,
+  "met": true
+ },
+ {
+  "policy_seed": 16,
+  "wall": 17.8,
+  "makespan_days": 1.66875,
+  "work_time_h": 16.05,
+  "weighted_kwh": 2374.2209058019553,
+  "peak_kwh": 308.7596613430556,
+  "total_kwh": 2588.220905801933,
+  "met": true
+ },
+ {
+  "policy_seed": 17,
+  "wall": 27.4,
+  "makespan_days": 1.628125,
+  "work_time_h": 15.075,
+  "weighted_kwh": 2263.734215092384,
+  "peak_kwh": 301.63972631388816,
+  "total_kwh": 2477.7342150923523,
+  "met": true
+ },
+ {
+  "policy_seed": 18,
+  "wall": 27.8,
+  "makespan_days": 1.6736111111111112,
+  "work_time_h": 16.166666666666668,
+  "weighted_kwh": 2379.635353751777,
+  "peak_kwh": 300.5771781750033,
+  "total_kwh": 2593.635353751688,
+  "met": true
+ },
+ {
+  "policy_seed": 19,
+  "wall": 28.3,
+  "makespan_days": 1.6704861111111111,
+  "work_time_h": 16.091666666666665,
+  "weighted_kwh": 2375.9600945406155,
+  "peak_kwh": 305.6717947027771,
+  "total_kwh": 2589.9600945405427,
+  "met": true
+ },
+ {
+  "policy_seed": 20,
+  "wall": 27.7,
+  "makespan_days": 1.6701388888888888,
+  "work_time_h": 16.083333333333332,
+  "weighted_kwh": 2369.867627350631,
+  "peak_kwh": 299.4834572527776,
+  "total_kwh": 2583.8676273505544,
+  "met": true
+ }
+]

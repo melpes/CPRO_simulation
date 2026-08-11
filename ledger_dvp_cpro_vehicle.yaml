@@ -1,0 +1,1279 @@
+mode: review
+entries:
+  - id: L-vn-truck-market-tiers
+    kind: literature
+    t: 2026-07-17
+    by: CC
+    status: relevant
+    source:
+      title: "베트남 상용차 시장 차급별 라인업 — Thaco(로컬 1위)·Hyundai(TC Motor)·Isuzu/Hino(법인 TCO)·중국계 신규진입"
+      authors: "Astute Analytica 시장분석 + 딜러 스펙 페이지(xetaihanoi.edu.vn, thanhphongauto.com) 교차"
+      year: 2026
+      venue: "Vietnam Commercial Vehicle Market 리포트 + Thaco 딜러 공식 페이지"
+      url: "https://www.astuteanalytica.com/industry-report/vietnam-commercial-vehicle-market"
+    claim: >-
+      Thaco(베트남 최대 로컬 제조사, 전문 상용차 시장 20~25% 점유) 차급 라인업 —
+      Towner(750~990kg) / Frontier(1.49~2.5t) / Ollin(1.9~7t) / Forland(2.43~8t) /
+      Foton·Auman(9.3~17t). Hyundai Porter H150/Mighty(TC Motor 조립, 판매 2위)·
+      Isuzu·Hino(법인 물류 TCO 우위 세그먼트 장악)·중국계(Dongfeng·Howo·Foton,
+      2024년부터 신규 진입) 확인. 2.5톤 또는 1.5톤 미만 차량은 도심 주간 통행
+      예외 허용된다는 서술 있음.
+    relevance: >-
+      DVP→CPRO 차급 후보군의 시장 지도. 로컬(Thaco)=저가~중가, 일본계(Hino/Isuzu)=
+      법인 TCO 우위라는 구도가 차급별 후보 압축의 1차 필터.
+    caveat: >-
+      "2.5톤 또는 1.5톤 미만 예외" 서술은 출처가 시장분석 요약이라 정확한 톤수
+      경계·법령 근거는 미상 — ledger_dvp_cpro_route#L-hanoi-truck-ban-2026의
+      "2톤 이상 주간금지" 규정과 방향은 일치하나 숫자 표기가 정확히 겹치지 않음
+      (2.5 vs 2 vs 1.5), 재조사 없이 동일 규정으로 단정 금지.
+    related:
+      - {type: compares-to, ref: "ledger_dvp_cpro_route#L-hanoi-truck-ban-2026"}
+
+  - id: L-hyundai-porter-h150
+    kind: literature
+    t: 2026-07-17
+    by: CC
+    status: relevant
+    source:
+      title: "Hyundai Porter H150 (1.5톤급, TC Motor 베트남 조립) 스펙"
+      authors: "Hyundai 딜러 공식 스펙 페이지"
+      year: 2026
+      venue: "hyundainamphat.com.vn / hyundai-bacviet.vn / xetaisaigon.com"
+      url: "https://hyundainamphat.com.vn/xe-tai-hyundai-porter-h150-thung-kin-1-5-tan-thanh-cong"
+    claim: >-
+      적재중량 1,500kg(총중량 3,500kg). 밀폐 적재함 내부치수 3,130×1,630×
+      1,400~1,770mm(≈7~8㎥). 전체차량 5,240×1,760×2,650mm. 연비 만재 시
+      12L/100km, 도로상태에 따라 8~9L/100km.
+    relevance: >-
+      후보 최저 차급(1.5톤) 대표값. 2톤 미만이라 도심 통행 제약 사실상 없음
+      (F-truck-route-implication ①에 해당).
+    related:
+      - {type: compares-to, ref: "ledger_dvp_cpro_route#F-truck-route-implication"}
+
+  - id: L-thaco-3p5t-7t-classes
+    kind: literature
+    t: 2026-07-17
+    by: CC
+    status: relevant
+    source:
+      title: "Thaco Ollin/Forland 3.5~7톤급 스펙 (S700/FD700/500/720)"
+      authors: "Thaco 딜러 스펙 페이지"
+      year: 2026
+      venue: "xetaithaco24h.com / xetaithacohaugiang.com / xetaibaoloc.com / thacotaivinh.com / ototainghean.com"
+      url: "https://www.xetaithaco24h.com/san-pham/xe-tai-ollin-500-mui-bat-tai-trong-4-95-tan/"
+    claim: >-
+      Ollin S700(3.5톤): 적재 3.49t, 적재함 4,350×1,950×1,850mm, 엔진 110Ps,
+      연비 10~12L/100km. Forland FD700(3.5톤, 오픈형): 전체 5,910×2,310×2,790mm,
+      적재함 3,800×2,140×665mm(5.41㎥). Ollin 500/500B(5톤): 적재 4.95t, Weichai
+      3.8L 엔진 — 연비 수치는 확보 못함(gap). Ollin 720/S720(7톤): 적재 7t,
+      적재함 6,200×2,190×780~2,150mm, Weichai YZ4DB1-40(4,087cc) 140Ps, 연비
+      14~15L/100km.
+    relevance: >-
+      중간 차급(3.5~7톤) 후보 스펙트럼. 같은 3.5톤이라도 바디타입(밀폐 vs 오픈)에
+      따라 적재함 부피가 3배 이상 차이 — 화물 특성(다이캐스팅 부품, 방수·도난
+      우려)에 맞는 바디타입 선정이 필요함을 시사.
+    gap: "5톤급(Ollin 500/500B) 연비 수치 미확보."
+    caveat: "전부 딜러 판매 페이지 스펙 — 실도로 연비와 카탈로그 연비는 통상 괴리."
+
+  - id: L-hino-300-series
+    kind: literature
+    t: 2026-07-17
+    by: CC
+    status: relevant
+    source:
+      title: "Hino 300 시리즈(Dutro 기반, 베트남 조립) 3.5~8.5톤급 스펙"
+      authors: "Hino 딜러 스펙 페이지"
+      year: 2026
+      venue: "xetai-hino.vn / hino3svn.com / xehinovietnam.com.vn"
+      url: "https://xetai-hino.vn/gia-xe-hino/xe-tai-hino-300-75-dutro-model-wu352-130mdl/"
+    claim: >-
+      XZU352L: 적재 3,450kg/총중량 7,300kg. XZU720L: 적재허용 3.5톤/총중량
+      7,500kg. 밀폐 적재함(공통) 4,450×1,850×1,850mm. 연비: XZU650 9L/100km,
+      XZU720 10.5L/100km.
+    relevance: "일본계 대표 차급 — Thaco 대비 연비·내구성 비교군."
+    caveat: >-
+      XZU720이 "적재허용 3.5톤·총중량 7,500kg"으로 표기돼 있어, 명칭상 7톤급인지
+      실질 3.5톤급 변형인지 소스 간 불일치 — 구매 전 실제 등록증(카빗) 기준
+      재확인 필요.
+    related:
+      - {type: compares-to, ref: L-thaco-3p5t-7t-classes}
+
+  - id: L-8ton-dump-gap
+    kind: literature
+    t: 2026-07-17
+    by: CC
+    status: tangential
+    source:
+      title: "8톤급 검색 결과 — 대부분 덤프트럭(xe ben), 박스형 화물차 스펙 미확보"
+      authors: "Thaco/Isuzu 딜러 스펙 페이지"
+      year: 2026
+      venue: "xetaithacoansuong.com 등"
+      url: "https://xetaithacoansuong.com/san-pham/xe-ben-thaco-8-tan/"
+    claim: >-
+      8톤급 검색 상위 결과는 Thaco Forland FD850/FD140, Isuzu FVR34 등 덤프트럭
+      (xe ben) 위주. Forland FD850(덤프) 참고 스펙: 적재중량 7,820kg, 외형
+      6,160×2,330×2,750mm, 적재함(덤프베드) 6.5㎥, 연료탱크 140L, Yuchai
+      4,214cc 140Ps.
+    relevance: >-
+      8톤급이 실존 차급임은 확인되나, DVP→CPRO에 필요한 밀폐/박스형(thùng kín)
+      8톤급 실제 모델·연비·적재함 치수는 이번 조사로 못 잡음.
+    gap: "8톤급 박스형(비-덤프) 화물차 스펙 — 후속 조사 필요(O-8ton-box-spec)."
+    related:
+      - {type: raises, ref: O-8ton-box-spec}
+
+  - id: L-hino500-isuzu-fseries-15t
+    kind: literature
+    t: 2026-07-17
+    by: CC
+    status: relevant
+    source:
+      title: "Hino 500 시리즈(FL/FM, 15톤급 밀폐)·Isuzu F-시리즈(FVR/FVM) 스펙"
+      authors: "Hino/Isuzu 딜러 스펙 페이지"
+      year: 2026
+      venue: "xetainguyenphuong.com / hino3svn.com / thegioixetai.com / xetaivietnam.com.vn"
+      url: "https://xetainguyenphuong.com/hino-500-15-tan-thung-kin/"
+    claim: >-
+      Hino 500 FL/FM(15톤급, 밀폐): 적재중량 14,850kg/총중량 24,000kg, 적재함
+      9,400×2,360×2,150mm, 엔진 J08E-WD(Euro5), 연비 10~13L/100km. Isuzu
+      F-시리즈: FVR(7~8톤)·FVM(14.5~15톤) 대응 라인업 확인 — Isuzu가 Hino보다
+      연비 높다(더 소비)는 정성적 비교만 확보, 정량치는 gap.
+    relevance: "후보 최상단(15톤급) 대표값 — 최소 운행횟수·최대 1회 적재량 시나리오의 기준점."
+    gap: "Isuzu FVR/FVM 정량 연비 수치 미확보."
+
+  - id: F-vehicle-candidate-spectrum
+    kind: finding
+    t: 2026-07-17
+    by: CC
+    status: superseded
+    claim: >-
+      DVP→CPRO 셔틀(49km 편도) 차급 후보는 1.5톤(Hyundai Porter H150)부터
+      15톤(Hino 500 FL/FM)까지 스펙트럼이 존재하며, 대표 지점 6개로 압축됨 —
+      1.5t(적재함 ~7~8㎥, 연비 8~12L/100km) / 3.5t(밀폐 기준 적재함 ~15㎥,
+      연비 10~12L/100km) / 5t(적재 4.95t, 연비 데이터 gap) / 7t(적재함 ~24㎥,
+      연비 14~15L/100km) / 8t(박스형 스펙 gap, 참고로 덤프형 적재함 6.5㎥) /
+      15t(적재함 ~47㎥, 연비 10~13L/100km). 시장구도는 로컬(Thaco)=저가~중가
+      다수 차급 커버, 일본계(Hino/Isuzu)=법인 물류 TCO 우위 세그먼트. 2톤 미만
+      차급(1.5t)만 하노이 도심 통행 제약에서 사실상 자유롭고 나머지는
+      ledger_dvp_cpro_route#F-truck-route-implication의 등급별 제약을 그대로
+      적용받음.
+    basis: >-
+      L-vn-truck-market-tiers × L-hyundai-porter-h150 × L-thaco-3p5t-7t-classes ×
+      L-hino-300-series × L-8ton-dump-gap × L-hino500-isuzu-fseries-15t. 전부
+      2026-07-17 딜러 스펙 페이지 웹조사 기반 — 3표 교차검증(deep-research
+      파이프라인) 미실시, CC 단독 조사(review 모드, 사람 확인 전).
+    related:
+      - {type: based-on, ref: L-vn-truck-market-tiers}
+      - {type: based-on, ref: L-hyundai-porter-h150}
+      - {type: based-on, ref: L-thaco-3p5t-7t-classes}
+      - {type: based-on, ref: L-hino-300-series}
+      - {type: based-on, ref: L-8ton-dump-gap}
+      - {type: based-on, ref: L-hino500-isuzu-fseries-15t}
+      - {type: depends-on, ref: "ledger_dvp_cpro_route#F-truck-route-implication"}
+      - {type: raises, ref: O-dvp-cargo-unit-spec}
+      - {type: raises, ref: O-8ton-box-spec}
+
+  - id: O-dvp-cargo-unit-spec
+    kind: open
+    t: 2026-07-17
+    by: CC
+    status: answered
+    question: >-
+      DVP→CPRO 실제 적재물(다이캐스팅 알루미늄 하우징 케이스, 회의록
+      clean_133033.md 09:11/09:46 근거)의 개당 중량·포장(유닛박스/카톤박스/
+      파레트) 규격이 내부자료(회의록 4건·CPRO_QA.md·MCF/PCF xlsx 전체·견적서
+      PDF) 어디에도 없음. F-vehicle-candidate-spectrum의 차급별 적재중량·
+      적재함 부피만으로는 "차량당 몇 개 실리는지"를 계산할 수 없음 — 이
+      값(개당 중량/부피 또는 박스당 수량)이 확보돼야 후속 산정(이동빈도·
+      차량대수 최적화) 가능. KETI-83 최종 산정은 차급 후보만으론 완결 불가.
+    related:
+      - {type: depends-on, ref: F-vehicle-candidate-spectrum}
+      - {type: compares-to, ref: "ledger_carbon_emission#O-shuttle-empty-run"}
+
+  - id: O-8ton-box-spec
+    kind: open
+    t: 2026-07-17
+    by: CC
+    status: open
+    question: >-
+      8톤급 밀폐/박스형(thùng kín) 화물차의 실제 모델·적재함 치수·연비 — 이번
+      조사에서 검색된 8톤급은 전부 덤프트럭(xe ben)이라 참고용일 뿐, 후보
+      스펙트럼의 8톤 지점이 비어있음.
+    related:
+      - {type: raises, ref: L-8ton-dump-gap}
+
+  - id: L-dvp-part-unit-weights
+    kind: literature
+    t: 2026-07-17
+    by: CC
+    status: relevant
+    source:
+      title: "DVP 다이캐스팅 부품별 단위중량 및 월별 생산량 실측 (2024.07~2025.06)"
+      authors: "에코앤파트너스(ESG 데이터 수집대행), CPRO/DVP 현장 제공"
+      year: 2025
+      venue: "DVP 20250819.xlsx, 시트 'Rawdata_제품생산량'"
+      url: "C:\\Users\\KangTaehui\\KG\\keti\\CPRO_조립공정\\원본자료\\에코앤파트너스\\DVP 20250819.xlsx"
+    claim: >-
+      DVP가 생산하는 다이캐스팅 부품(전량 ADC12/ALDC12 알루미늄 합금) 82개
+      품번의 개당중량(kg/EA)과 2024.07~2025.06 월별 생산량(EA)이 품번별로
+      실측 기재돼 있음(데이터출처 'E COUNT' 표기, ERP 카운트 시스템으로 추정).
+      개당중량 분포: 최소 0.001kg~최대 1.171kg, 중앙값 0.14kg — 즉 낱개는
+      경량 소형부품(브래킷·케이스류)이 대부분. 월별 총 출하량: EA 기준
+      15,577~45,568개(월평균 29,893개), 중량 기준 2,046.6~6,576.1kg
+      (월평균 3,884.9kg). 연간 합계 358,718 EA / 46,619.2kg.
+    relevance: >-
+      DVP→CPRO 셔틀(F-vehicle-candidate-spectrum)의 "적재 가능 수량"을 실제로
+      계산할 수 있게 하는 1차 데이터. 월평균 3.9톤/월(≈897kg/주, 22근무일
+      기준 177kg/일)은 최소 후보 차급(1.5톤, 적재 1,500kg)의 적재중량보다도
+      작아 — 이 노선은 초기 가정과 달리 중량(kg) 제약이 아니라 부피(㎥)·
+      포장 효율 제약이 지배적일 가능성이 큼(O-dvp-packaging-volume).
+    caveat: >-
+      이 시트가 "DVP 총생산량"인지 "DVP→CPRO 출하량"인지 명시적 구분이
+      없음 — DVP가 CPRO 외 타 고객사에도 납품하는지 미확인(회의록에선 DVP를
+      CPRO 전용 협력사처럼 서술했으나 명시적 확인 아님). 0.001kg 최소값은
+      다이캐스팅 부품치고 비정상적으로 작아 오탈자 가능성(이상치, 전체
+      분포에 미치는 영향은 미미). 데이터 기간(2024.07~2025.06)이 route/전기
+      ledger의 다른 실측치(2025~2026)와 시점이 달라 최신 수요와 다를 수 있음.
+    related:
+      - {type: supports, ref: F-vehicle-candidate-spectrum}
+      - {type: answers, ref: O-dvp-cargo-unit-spec}
+      - {type: raises, ref: O-dvp-packaging-volume}
+      - {type: compares-to, ref: "ledger_vietnam_electricity#F-dvp-monthly-kwh-2024-reference"}
+
+  - id: F-dvp-shipment-mass-modest
+    kind: finding
+    t: 2026-07-17
+    by: CC
+    status: superseded
+    claim: >-
+      DVP→CPRO 다이캐스팅 부품 중량 흐름은 월평균 약 3.9톤(주 약 0.9톤,
+      영업일 기준 일 약 180kg)으로, 후보 차급 최소값(1.5톤 트럭, 적재중량
+      1,500kg)조차 중량 기준으로는 주 1회 운행으로 여유 있게 커버 가능한
+      규모다. 즉 KETI-83의 "이동 빈도·차량 수 최적화"는 중량 제약이 아니라
+      ① 포장 부피(부품이 가볍지만 형상이 커 적재함 부피를 먼저 채울 가능성),
+      ② 생산 스케줄과의 동기화(일단위 소량·다품종 82개 품번을 어떤 배치
+      주기로 묶어 보낼지), ③ 왕복 공차운행(귀로 화물 유무) 이 세 축이
+      지배 변수가 될 공산이 큼.
+    basis: >-
+      L-dvp-part-unit-weights(DVP 실측 생산량·단위중량, 2024.07~2025.06) ×
+      L-hyundai-porter-h150(1.5톤급 적재중량 1,500kg, F-vehicle-candidate-spectrum
+      기재값). 단, 이 finding은 "DVP 생산량=DVP→CPRO 출하량"이라는 미검증
+      전제 위에 있음(L-dvp-part-unit-weights caveat 참조) — 사람 확인 필요.
+    related:
+      - {type: based-on, ref: L-dvp-part-unit-weights}
+      - {type: based-on, ref: F-vehicle-candidate-spectrum}
+      - {type: raises, ref: O-dvp-packaging-volume}
+      - {type: contradicts, ref: D-exclude-dvp-production-volume}
+
+  - id: D-exclude-dvp-production-volume
+    kind: decision
+    t: 2026-07-17
+    by: user
+    status: active
+    decision: >-
+      DVP→CPRO 차급·적재량·이동빈도 산정에 DVP 생산량 실측(F-dvp-shipment-mass-modest,
+      L-dvp-part-unit-weights)을 근거로 쓰지 않는다.
+    reason: >-
+      월평균(29,893 EA/월≈3.9톤)을 주 단위로 나눠 "차급 최소값도 주 1회
+      운행으로 커버된다"고 결론낸 것이 성급했음 — 실제 생산은 하루
+      1,000~1,500개 단위로 연속 발생하는데, 이를 일주일치씩 쌓았다가 한 번에
+      수송한다는 전제 자체가 비현실적(그런 배치·저장 운영을 한다는 근거 없음).
+      월 단위 평균으로 시간축을 압축하면 실제 배치·부피 구조가 가려짐 — 이
+      집계 방식으로는 "며칠 주기로 몇 대"를 답할 수 없다. (사용자 확인,
+      2026-07-17)
+    scope: "KETI-83 — DVP→CPRO 차급·Capa·이동빈도 최적화 시나리오"
+    related:
+      - {type: contradicts, ref: F-dvp-shipment-mass-modest}
+      - {type: supersedes, ref: F-dvp-shipment-mass-modest}
+
+  - id: O-dvp-packaging-volume
+    kind: open
+    t: 2026-07-17
+    by: CC
+    status: answered
+    question: >-
+      다이캐스팅 부품의 실제 포장(유닛박스/카톤박스/파레트) 치수와 적재
+      효율(부품 형상상 빈 공간 비율)을 모름 — 개당중량은 확보했으나(경량,
+      중앙값 0.14kg) 대부분 소형 케이스·브래킷류라 형상 부피가 무게 대비
+      클 수 있음. F-dvp-shipment-mass-modest가 "중량은 여유"라고 결론냈지만,
+      부피 기준으로도 여유인지는 이 값 없이는 확정 불가 — 적재함 부피
+      제약(F-vehicle-candidate-spectrum의 차급별 적재함 ㎥)과 대조해야
+      "몇 대·며칠 주기"가 확정됨.
+    related:
+      - {type: raises, ref: F-dvp-shipment-mass-modest}
+      - {type: answers, ref: A-conservative-part-volume}
+
+  - id: L-work-standard-package-dims
+    kind: literature
+    t: 2026-07-17
+    by: CC
+    status: relevant
+    source:
+      title: "CPRO 작업표준서(VD7/BT5/NVD1) BOM 시트 — 완제품 유닛박스·카톤박스 실측 치수"
+      authors: "CPRO 사내 작업표준서"
+      year: 2026
+      venue: "작업표준서\\VD7(...)Rev2.0.xlsx, BT5(...)Rev2.1.xlsx, NVD1(...)Rev1.0.xlsx — 각 'BOM' 시트"
+      url: "C:\\Users\\KangTaehui\\KG\\keti\\CPRO_조립공정\\원본자료\\작업표준서"
+    claim: >-
+      3개 모델 작업표준서 BOM 시트에 완제품(조립 완료 카메라) 포장 치수가
+      실측 기재돼 있음 — VD7(Mini Dome류): 유닛박스 129×129×118mm(≈1.96L).
+      BT5(PT72/80·PI68/68T류, 터렛/PTZ 폼팩터): 유닛박스 315×140×125mm
+      (≈5.51L), 카톤박스 745×325×280mm(10EA입). NVD1(VD1류): 유닛박스
+      160×160×158mm(≈4.05L), 카톤박스 510×343×185mm(6EA입, 비율 0.166로 역산).
+      단, DC UPPER/FRONT/BOTTOM/REAR CASE 등 다이캐스팅 부품 자체의 개별
+      치수(가공 전 원부품 단품 치수)는 이 BOM 시트에 없음 — BOM규격란에는
+      재질·색상 코드만 있고 치수는 없음(예: 'DC UPPER CASE-MINI DOME-SBWH-UDP향'
+      → '(CP15DCT014-C) ALDC-12 AB#2000 0103(SBWH)').
+    relevance: >-
+      DVP가 공급하는 다이캐스팅 케이스는 조립 후 이 완제품 폼팩터의 외피가
+      되므로, 완제품 유닛박스 크기가 "부품 하나가 최대 이 정도 부피를 넘지
+      않는다"는 상한 참고치로 쓸 수 있음(단품은 내부 부품·패딩이 없어 실제로는
+      더 작을 가능성 높음 — 보수적 상한으로만 사용).
+    caveat: >-
+      완제품 패키지(하우징+PCB+렌즈+케이블+폼패딩 등 전부 포함)이지 다이캐스팅
+      부품 단품 치수가 아님 — 실제 원부품(가공 전 벌크 상태)은 이보다 작고,
+      또한 낱개 소매포장이 아니라 산업용 벌크 포장(트레이 적층 등)으로 운송될
+      가능성이 높아 실제 밀도는 이 추정보다 조밀(부피는 작음)할 수 있음. 82개
+      DVP 품번 중 이 3개 모델과 정확히 매칭되는 품번은 일부만 확인(예:
+      CP13DCT076-H↔BT5 CV74 계열) — 전체 매칭표는 없음.
+    related:
+      - {type: raises, ref: A-conservative-part-volume}
+      - {type: raises, ref: O-individual-part-dimensions}
+
+  - id: A-conservative-part-volume
+    kind: assumption
+    t: 2026-07-17
+    by: CC
+    status: retired
+    assumption: >-
+      DVP→CPRO 다이캐스팅 부품 1개당 적재 부피를 5.51L(=315×140×125mm급 완제품
+      유닛박스, BT5/터렛 폼팩터 — L-work-standard-package-dims 중 최대치)로
+      균일하게 잡는다. 82개 품번 전체(작은 브래킷 0.02kg부터 큰 케이스
+      1.17kg까지)에 이 단일값을 적용.
+    rationale: >-
+      실제 원부품(가공 전 단품) 치수 자료가 없어(O-individual-part-dimensions)
+      확보된 3개 참고치(1.96/4.05/5.51L, 전부 완제품 패키지) 중 최댓값을
+      상한으로 채택 — 사용자 지시("보수적으로 설정")에 따라 용량을 과소평가
+      하는 방향(= 필요 대수/빈도를 과대평가하는 안전한 방향)으로 고정.
+      실제로는 소형 브래킷류(중앙값 0.14kg, 다수는 이보다 훨씬 가벼움)가
+      이 값보다 훨씬 작은 부피일 가능성이 높아, 이 가정 하의 결론
+      (F-vehicle-count-frequency-table)은 실제 필요 대수·빈도의 상한으로
+      해석해야 함(실제는 이보다 적을 가능성 높음).
+    breaks_if: >-
+      실제 DVP 벌크 포장(박스/파레트) 규격이나 개별 부품 도면 치수가
+      확보되면 — 이 assumption을 그 실측치로 교체하고 하류 finding 재계산 필요.
+    related:
+      - {type: based-on, ref: L-work-standard-package-dims}
+      - {type: raises, ref: O-individual-part-dimensions}
+
+  - id: O-individual-part-dimensions
+    kind: open
+    t: 2026-07-17
+    by: CC
+    status: open
+    question: >-
+      DVP 82개 품번 각각의 가공 전 단품(다이캐스팅 원부품) 실제 치수(도면
+      기준)를 모름 — 작업표준서 BOM에는 재질/색상 코드만 있고 치수가 없고,
+      CAD 도면·부품 규격서는 텍스트 검색 가능한 형태로 못 찾음(이미지/PDF
+      도면 형태일 가능성). A-conservative-part-volume은 이 gap을 메우기 위한
+      임시 상한 가정.
+    related:
+      - {type: raises, ref: A-conservative-part-volume}
+      - {type: depends-on, ref: L-dvp-part-unit-weights}
+
+  - id: F-volume-bound-not-weight-bound
+    kind: finding
+    t: 2026-07-17
+    by: CC
+    status: active
+    claim: >-
+      A-conservative-part-volume(부품당 5.51L 상한 가정) 기준으로 계산하면,
+      후보 차급 전부(1.5t/3.5t/7t/15t, 부피 데이터 있는 것만) 중량 여유보다
+      부피 여유가 훨씬 작아 전부 "부피 제약"이 지배적이다 — 중량 기준 최대
+      적재개수는 부피 기준의 약 9~12배(예: 1.5t 트럭 중량기준 11,542개 vs
+      부피기준 1,296개). 즉 F-dvp-shipment-mass-modest(폐기됨)가 놓친 지점은
+      "물동량이 크다"가 아니라 "차급 선택의 실질 제약은 무게가 아니라
+      부피"라는 것.
+    basis: >-
+      A-conservative-part-volume × L-vn-truck-market-tiers 계열 차급 스펙
+      (1.5t H150 3.13×1.63×1.40m=7.14㎥, 3.5t Ollin S700 4.35×1.95×1.85m=
+      15.69㎥, 7t Ollin S720 6.2×2.19×(0.78~2.15)m=10.59~29.19㎥[높이 표기
+      불일치, O-ollin-s720-height-ambiguous], 15t Hino500 FL/FM 9.4×2.36×
+      2.15m=47.70㎥) × L-dvp-part-unit-weights(평균 0.13kg/EA, 유량가중).
+      단, A-conservative-part-volume이 상한 가정이라 이 finding도 그 가정에
+      종속 — 실제 부품이 이보다 작으면 중량 제약으로 역전될 여지 있음.
+    related:
+      - {type: based-on, ref: A-conservative-part-volume}
+      - {type: based-on, ref: L-dvp-part-unit-weights}
+      - {type: based-on, ref: F-vehicle-candidate-spectrum}
+      - {type: raises, ref: O-ollin-s720-height-ambiguous}
+      - {type: supports, ref: F-vehicle-count-frequency-table}
+
+  - id: F-vehicle-count-frequency-table
+    kind: finding
+    t: 2026-07-17
+    by: CC
+    status: superseded
+    claim: >-
+      A-conservative-part-volume 가정 하, 일 물동량 1,000~1,500EA(사용자 확인
+      범위, L-dvp-part-unit-weights의 월평균÷영업일과 정합) 기준 차급별 필요
+      운행빈도(부피 제약 기준, 1대 운용 시) — 1.5t: 0.9~1.3일에 1회(거의 매일).
+      3.5t(밀폐): 1.9~2.8일에 1회(이틀에 한 번꼴). 7t(낮은 쪽 780mm 해석):
+      1.3~1.9일에 1회 / 7t(높은 쪽 2,150mm 해석): 3.5~5.3일에 1회. 15t:
+      5.8~8.7일에 1회(주 1회 안팎). 5t·8t는 적재함 부피 데이터 gap으로
+      계산 불가(O-8ton-box-spec, O-ollin500-volume-gap) — 3.5t와 7t 사이/7t와
+      15t 사이 값으로 추정될 뿐 확정 아님.
+    basis: >-
+      F-volume-bound-not-weight-bound(부피 제약 확인) × 일 물동량
+      1,000~1,500EA(L-dvp-part-unit-weights 월평균/22영업일 ≈ 1,359EA/일,
+      사용자가 직접 제시한 범위와 일치) ÷ 차급별 부피기준 최대적재개수.
+      전부 A-conservative-part-volume(상한 가정)에 종속 — 실제 부품 부피가
+      가정보다 작으면 필요 빈도는 이보다 낮아짐(안전한 방향의 상한 추정).
+    related:
+      - {type: based-on, ref: F-volume-bound-not-weight-bound}
+      - {type: based-on, ref: L-dvp-part-unit-weights}
+      - {type: raises, ref: O-8ton-box-spec}
+      - {type: raises, ref: O-ollin500-volume-gap}
+
+  - id: O-ollin-s720-height-ambiguous
+    kind: open
+    t: 2026-07-17
+    by: CC
+    status: open
+    question: >-
+      Thaco Ollin S720(7t) 적재함 높이 표기 "780/2.15m"가 서로 다른 두
+      치수(측벽 높이 vs 포장덮개 하 유효높이)인지, 오탈자인지 불명확 —
+      780mm를 쓰면 부피기준 적재 1,922EA/트립, 2,150mm를 쓰면 5,298EA/트립로
+      2.75배 차이나 F-vehicle-count-frequency-table의 7t 행 신뢰도에 직접
+      영향.
+    related:
+      - {type: raises, ref: F-vehicle-count-frequency-table}
+
+  - id: O-ollin500-volume-gap
+    kind: open
+    t: 2026-07-17
+    by: CC
+    status: open
+    question: >-
+      Thaco Ollin 500(5t) 적재함 치수 미확보 — 3.5t(15.69㎥)와 7t(10.59~
+      29.19㎥) 사이 어딘가로 추정되나 확정 못 함. O-8ton-box-spec(8t 박스형
+      전체 gap)과 함께 후속 조사 필요.
+    related:
+      - {type: raises, ref: F-vehicle-count-frequency-table}
+      - {type: compares-to, ref: O-8ton-box-spec}
+
+  - id: F-frequency-affects-emissions
+    kind: finding
+    t: 2026-07-17
+    by: CC
+    status: superseded
+    claim: >-
+      차급·적재중량(capa)을 고정해도 차량 수·운행빈도 선택에 따라 총
+      탄소배출량은 달라질 여지가 크다. 메커니즘 3가지 — ① 적재율이 km당
+      연비 자체를 바꿈(같은 차급이라도 공차/60%적재/만재 연비가 다름).
+      ② 총 왕복횟수=f(차량수,빈도)가 배출량 계산식(거리×연비×2.68)의 거리
+      총량을 직접 결정 — 완전적재로 왕복횟수를 최소화하면 총배출량 최소,
+      물량을 잘게 나눠 자주 보내면(매번 덜 채운 채) 왕복횟수가 늘어 총배출량도
+      는다. ③ 귀로 공차운행(backhaul 없음) — 빈도가 늘수록 빈 채로 도는
+      구간의 총 km도 비례 증가. 즉 차급 선택뿐 아니라 같은 차급 안에서의
+      적재율·왕복빈도 선택도 배출량의 실질 레버다.
+    basis: >-
+      ledger_carbon_emission#L-ecotransit-fuel-defaults(차급별 공차/60%/만재
+      연비 차이) × ledger_carbon_emission#F-carbon-calc-recommendation(배출량=
+      거리×연비×2.68 공식) × F-vehicle-count-frequency-table(차급별 왕복빈도) ×
+      ledger_carbon_emission#O-shuttle-empty-run(귀로 공차 이슈) — 신규 조사
+      아니라 기존 두 ledger의 결합 종합.
+    related:
+      - {type: based-on, ref: "ledger_carbon_emission#L-ecotransit-fuel-defaults"}
+      - {type: based-on, ref: "ledger_carbon_emission#F-carbon-calc-recommendation"}
+      - {type: based-on, ref: F-vehicle-count-frequency-table}
+      - {type: based-on, ref: "ledger_carbon_emission#O-shuttle-empty-run"}
+      - {type: raises, ref: O-quantify-frequency-emissions}
+
+  - id: O-quantify-frequency-emissions
+    kind: open
+    t: 2026-07-17
+    by: CC
+    status: answered
+    question: >-
+      F-vehicle-count-frequency-table의 차급×빈도 조합별 실제 CO2e(kg)를 아직
+      정량 계산하지 않음 — F-fullload-tripcount-invariant로 "같은 차급 내
+      차량수·빈도 배분"은 배출량과 무관함이 확인돼 이 축의 정량화는 불필요.
+      남은 정량화 과제는 O-quantify-class-emissions(차급 간 비교)로 좁혀짐.
+    related:
+      - {type: raises, ref: F-frequency-affects-emissions}
+      - {type: answers, ref: F-fullload-tripcount-invariant}
+
+  - id: O-quantify-class-emissions
+    kind: open
+    t: 2026-07-17
+    by: CC
+    status: answered
+    question: >-
+      차급 간(1.5t~15t) 실제 CO2e(kg) 비교를 아직 정량 계산하지 않음 — 이미
+      확보된 차급별 연비(H150 8~12L/100km, Ollin S700 10~12L/100km, Ollin
+      S720 14~15L/100km, Hino500 10~13L/100km)와 배출계산식(거리×연비×2.68)을
+      F-vehicle-count-frequency-table의 차급별 필요 왕복횟수에 대입하면 산출
+      가능 — "차급 선택"이 배출량의 실질 레버(F-fullload-tripcount-invariant)
+      이므로 이 비교가 우선순위. → 딜러 연비 대신 EcoTransIT 밴드로 3개
+      구체 시나리오(F-scenario-loadfactor-sweep-15t, F-scenario-consolidation-vs-count-7t,
+      F-scenario-oversizing-penalty) 계산 완료 — 6개 차급 전수 비교표는 아직
+      (필요 시 추가 산출 가능).
+    related:
+      - {type: raises, ref: F-fullload-tripcount-invariant}
+      - {type: depends-on, ref: F-vehicle-count-frequency-table}
+      - {type: answers, ref: F-scenario-loadfactor-sweep-15t}
+
+  - id: F-fullload-tripcount-invariant
+    kind: finding
+    t: 2026-07-17
+    by: CC
+    status: active
+    claim: >-
+      적재율이 100%(풀)로 유지되는 한, "차량 수"와 "빈도"의 구체적 배분은
+      총배출량에 영향이 없다 — 동일 총물동량·동일 차급 하에서 필요한 총
+      왕복횟수는 (총물동량 ÷ 차량당 적재용량)으로 고정되며, 이를 트럭 1대가
+      자주 달성하든 트럭 여러 대가 덜 자주 달성하든 총 주행거리·총
+      연료소모·총배출량은 동일하다(예: 트럭 2대가 이틀마다 = 트럭 1대가
+      매일, 둘 다 '일 1회 왕복'이라는 같은 총 운행률). F-frequency-affects-emissions
+      의 ②번 메커니즘("총 왕복횟수=f(차량수,빈도)")은 표현이 부정확했음 —
+      정확히는 총왕복횟수=f(총물동량, 적재율)이고, 차량수·빈도는 그 왕복횟수를
+      어떻게 '조직'하느냐의 문제일 뿐 별도의 배출량 레버가 아니다. 배출량이
+      실제로 달라지는 경우는 ① 적재율이 100% 밑으로 떨어질 때(연비 자체가
+      나빠짐 + 필요 왕복횟수가 이론적 최소치보다 많아짐), ② 귀로 공차운행
+      (왕복횟수에 비례) 뿐 — 이 둘 다 결국 "왕복횟수·적재율" 문제로 수렴한다.
+      배출량의 진짜 레버는 ⓐ 차급 선택(대형일수록 t-km당 유리, 규모의 경제)과
+      ⓑ 적재율(풀로 채워 보내는가) 두 가지뿐이고, "같은 차급 내 차량수·빈도
+      배분"은 그 자체로는 중립적이다.
+    basis: >-
+      사용자 확인(2026-07-17) — "적재가 풀인 상태에서 두 차량이 이틀마다
+      이동하냐 한 차량이 하루마다 이동하냐는 동일할 것 같다"는 지적. 배출량
+      계산식(거리×연비×2.68, ledger_carbon_emission#F-carbon-calc-recommendation)에
+      대입하면 총거리=총왕복횟수×98km이고 총왕복횟수=총물동량/적재용량(풀
+      적재 가정)이라 차량수·빈도 배분과 무관하게 고정됨을 대수적으로 확인.
+    related:
+      - {type: supersedes, ref: F-frequency-affects-emissions}
+      - {type: based-on, ref: F-frequency-affects-emissions}
+      - {type: answers, ref: O-quantify-frequency-emissions}
+
+  - id: F-dealer-fuel-figures-unreliable
+    kind: finding
+    t: 2026-07-17
+    by: CC
+    status: superseded
+    claim: >-
+      베트남 딜러 사이트 연비 수치는 국제표준(EcoTransIT)의 "공차(0%적재)"
+      환산치보다도 낮은 경우가 3개 차급 모두에서 확인됨(전수 재검산,
+      2026-07-17) — ① Thaco Ollin S700(3.5t) 딜러표기 10~12L/100km <
+      EcoTransIT 3.5~7.5t밴드 공차 16.3L/100km. ② Thaco Ollin S720(7t)
+      딜러표기 14~15L/100km < EcoTransIT 7.5~12t밴드 공차 17.7L/100km.
+      ③ Hino 500 FL/FM(15t) 딜러표기 10~13L/100km < EcoTransIT 12~20t밴드
+      공차 19.7L/100km. 셋 다 "짐을 하나도 안 실어도 이보다 더 쓴다"는
+      모순 상태라 신뢰 불가. Hyundai Porter H150(1.5t, 딜러표기 8~12L/100km
+      만재)는 EcoTransIT 최소 밴드(3.5~7.5t)보다 작은 차급이라 비교할 밴드가
+      없어 미검증(신뢰 여부 불명, 불신 확정 아님). 이후 시나리오 계산
+      (F-scenario-loadfactor-sweep-15t 등)은 딜러 수치 대신 EcoTransIT
+      표준 밴드(공차/60%적재/만재, 3표 검증된 국제 물리량 기반)를 사용함 —
+      3.5t는 3.5~7.5t밴드(5.8/6.4/6.8 MJ/km), 7t는 7.5~12t밴드(6.3/7.1/7.6
+      MJ/km), 15t는 12~20t밴드(7.0/8.5/9.5 MJ/km)로 근사.
+    basis: >-
+      딜러 수치를 35.61 MJ/L(L-diesel-ef의 연료 물성치)로 MJ/km 환산해
+      L-ecotransit-fuel-defaults 밴드(공차/60%/만재)와 전 차급 대상으로
+      전수 대조 — 산술 확인(1.5t만 비교 밴드 부재로 제외).
+    related:
+      - {type: contradicts, ref: L-thaco-3p5t-7t-classes}
+      - {type: contradicts, ref: L-hino500-isuzu-fseries-15t}
+      - {type: based-on, ref: "ledger_carbon_emission#L-ecotransit-fuel-defaults"}
+      - {type: based-on, ref: "ledger_carbon_emission#L-diesel-ef"}
+      - {type: raises, ref: O-h150-fuel-unverified}
+
+  - id: O-h150-fuel-unverified
+    kind: open
+    t: 2026-07-17
+    by: CC
+    status: open
+    question: >-
+      Hyundai Porter H150(1.5t) 딜러표기 연비(8~12L/100km 만재)의 신뢰성을
+      아직 확인 못함 — EcoTransIT 최소 밴드가 3.5~7.5t부터라 H150(1.5t)과
+      비교할 국제표준 밴드가 없음. 3.5t/7t/15t 딜러수치가 전부 불신된 만큼
+      (F-dealer-fuel-figures-unreliable) H150도 낙관적으로 낮게 표기됐을
+      가능성을 배제 못함 — 현장 실측이나 더 작은 차급의 표준 밴드 확보 필요.
+    related:
+      - {type: raises, ref: F-dealer-fuel-figures-unreliable}
+
+  - id: F-scenario-loadfactor-sweep-15t
+    kind: finding
+    t: 2026-07-17
+    by: CC
+    status: superseded
+    claim: >-
+      큰 차급(15t, 12~20t밴드 근사)에서 총물동량을 고정하고 적재율을
+      100%→30%로 낮추며 왕복빈도로 보정하면, trip당 연비는 완만히 줄지만
+      (100%→50%에서 9.50→8.25 MJ/km, -13%) 필요 왕복횟수는 반비례로 늘어
+      (2.00배) 총배출량은 거의 선형에 가깝게 증가한다 — 50%적재 지점에서
+      총배출 +73.7%, 30%적재에서 +171.9%(100%적재=기준 1.000). 결론: 적재율
+      유지가 빈도 조절보다 배출량에 압도적으로 중요하다.
+    basis: >-
+      F-dealer-fuel-figures-unreliable의 EcoTransIT 12~20t밴드(7.0/8.5/9.5
+      MJ/km, 공차/60%/만재)를 구간별 선형보간(정확히 선형 — 기울기 0.025
+      MJ/km per 1%load로 3점 모두 일치 확인). 총배출=trips×거리×연비(km당),
+      trips∝1/적재율. 거리=DAF보정 왕복 102.6km(51.3km×2,
+      ledger_carbon_emission#F-carbon-calc-recommendation).
+    related:
+      - {type: based-on, ref: F-dealer-fuel-figures-unreliable}
+      - {type: based-on, ref: F-fullload-tripcount-invariant}
+      - {type: answers, ref: O-quantify-class-emissions}
+
+  - id: F-scenario-consolidation-vs-count-7t
+    kind: finding
+    t: 2026-07-17
+    by: CC
+    status: superseded
+    claim: >-
+      중간 차급(7t, 7.5~12t밴드 근사)에서 동일 총물동량(하루 0.75대분)을
+      "2대가 이틀마다 75%적재"로 옮기면 하루 환산 56.3kgCO2e(TTW), "1대가
+      1.33일마다 100%적재"로 옮기면 44.0kgCO2e(TTW) — 전자가 후자보다
+      +27.8% 많다. 같은 물량이면 대수를 늘려 덜 채우기보다 대수를 줄이고
+      꽉 채우는 쪽이 유리하다(F-fullload-tripcount-invariant의 "풀 적재
+      유지 시 차량수·빈도 배분 중립"과 정합 — 여기선 적재율이 75% vs 100%로
+      달라 중립이 깨짐).
+    basis: >-
+      F-dealer-fuel-figures-unreliable의 EcoTransIT 7.5~12t밴드(6.3/7.1/7.6
+      MJ/km) 선형보간, trip당 연비×총trip/day. 거리 동일 가정(F-scenario-loadfactor-sweep-15t
+      참조).
+    related:
+      - {type: based-on, ref: F-dealer-fuel-figures-unreliable}
+      - {type: supports, ref: F-fullload-tripcount-invariant}
+      - {type: answers, ref: O-quantify-class-emissions}
+
+  - id: F-scenario-oversizing-penalty
+    kind: finding
+    t: 2026-07-17
+    by: CC
+    status: superseded
+    claim: >-
+      같은 물량·같은 빈도를 "큰 차량(15t) 50%적재"로 옮기면 63.7kgCO2e/trip
+      (TTW), "중간 차량(7t) 100%적재"로 옮기면 58.7kgCO2e/trip(TTW) — 큰
+      차량 반적재가 중간 차량 완전적재보다 +8.6% 많다. 즉 "대형차가 t-km당
+      유리하다"(L-glec-vehicle-defaults의 규모의 경제)는 일반론은 만재를
+      전제로 하며, 절반만 채우면 그 이점이 사라지고 오히려 딱 맞는 차급을
+      꽉 채우는 쪽이 낫다 — 오버사이징(여유있게 큰 차 배치)은 배출량 관점
+      에서 손해.
+    basis: >-
+      F-dealer-fuel-figures-unreliable의 EcoTransIT 밴드(15t: 12~20t밴드
+      50%적재=8.25MJ/km, 7t: 7.5~12t밴드 100%적재=7.6MJ/km) × 동일 거리
+      102.6km 가정. "같은 물량·같은 빈도"는 15t 적재량(50%)=7t 적재량(100%)
+      이 되도록 사용자가 설정한 시나리오 전제(즉 15t 용량≈7t 용량의 약 2배로
+      간주) — 실제 우리 차급표의 정확한 2배 비율과는 근사치.
+    related:
+      - {type: based-on, ref: F-dealer-fuel-figures-unreliable}
+      - {type: compares-to, ref: "ledger_carbon_emission#L-glec-vehicle-defaults"}
+      - {type: answers, ref: O-quantify-class-emissions}
+
+  - id: F-representative-fuel-per-class
+    kind: finding
+    t: 2026-07-17
+    by: CC
+    status: superseded
+    claim: >-
+      딜러 연비가 3.5t/7t/15t에서 불신되고 5t/8t/1.5t는 아예 비교 밴드가
+      없는 상태(F-dealer-fuel-figures-unreliable, O-h150-fuel-unverified)를
+      메우기 위해, 6개 차급 전부에 GVW(총중량) 기준 EcoTransIT 5개 밴드
+      (3.5~7.5t/7.5~12t/12~20t/20~26t/26~40t, 각 밴드 중앙값 GVW를 대표점으로
+      선형보간)로 대표 단일값(만재 기준 L/100km)을 추정해 채움 — 1.5t(H150,
+      GVW 실측 3,500kg) 18.0 / 3.5t(Ollin S700, GVW 추정 7.0t=적재3.49t÷0.5)
+      19.9 / 5t(Ollin 500, GVW 추정 10.0t) 21.6 / 7t(Ollin S720, GVW 추정
+      14.0t) 25.0 / 8t(박스형 미상, GVW 14.0t — Forland FD850 8t덤프 실측
+      GVW14.01t 준용) 25.0 / 15t(Hino500 FL/FM, GVW 실측 24,000kg) 32.4.
+      GVW/적재중량 비율 0.5 가정(H150 실측 0.43, Hino500 실측 0.62 — 그
+      사이 중간값)은 3.5t/5t/7t/8t에 대한 추정이며 실측 아님.
+    basis: >-
+      L-ecotransit-fuel-defaults의 5개 밴드(공차/60%/만재 MJ/km, 밴드 중앙값
+      GVW 5.5/9.75/16/23/33t로 대표) × 각 차급 GVW(H150·Hino500은 실측값
+      "총중량"·"CPTGGT" 필드 직접 사용, 나머지는 적재중량÷0.5 추정) 선형보간
+      × 35.61MJ/L(L-diesel-ef) 환산. H150·Hino500 외 4개 차급은 GVW 자체가
+      추정치라 이중 근사(GVW 추정 + 밴드보간) — 신뢰도 낮음, 실측 대체 필요.
+    related:
+      - {type: based-on, ref: "ledger_carbon_emission#L-ecotransit-fuel-defaults"}
+      - {type: based-on, ref: F-dealer-fuel-figures-unreliable}
+      - {type: answers, ref: O-h150-fuel-unverified}
+      - {type: supersedes, ref: F-scenario-loadfactor-sweep-15t}
+      - {type: supersedes, ref: F-scenario-consolidation-vs-count-7t}
+      - {type: supersedes, ref: F-scenario-oversizing-penalty}
+      - {type: raises, ref: O-gvw-estimates-unverified}
+
+  - id: O-gvw-estimates-unverified
+    kind: open
+    t: 2026-07-17
+    by: CC
+    status: open
+    question: >-
+      3.5t(Ollin S700)·5t(Ollin 500)·7t(Ollin S720)·8t(박스형)의 실제 GVW
+      (총중량)를 확인 못함 — F-representative-fuel-per-class는 "GVW=적재
+      중량÷0.5"라는 미검증 추정 위에 있음. 실제 GVW(딜러 스펙시트의 "총중량"
+      "CPTGGT" 항목)를 확보하면 밴드 배정·연비 추정치가 달라질 수 있음.
+    related:
+      - {type: raises, ref: F-representative-fuel-per-class}
+
+  - id: F-scenario-loadfactor-sweep-15t-v2
+    kind: finding
+    t: 2026-07-17
+    by: CC
+    status: superseded
+    claim: >-
+      GVW보정판 — 15t(Hino500, GVW실측24t → 20~26t밴드) 적재율 스윕: 100%
+      적재 기준 대비 90%=+7.6%, 80%=+17.2%, 70%=+29.5%, 60%=+45.8%,
+      50%=+69.0%, 40%=+103.9%, 30%=+161.9%. 이전 판(12~20t밴드 오배정,
+      50%에서 +73.7%)과 방향·크기 모두 유사 — 결론(적재율 유지가 빈도
+      조절보다 압도적으로 중요)은 그대로 유지.
+    basis: >-
+      F-representative-fuel-per-class의 GVW기반 20~26t밴드(7.8/9.8/11.2
+      MJ/km, 실측 GVW 24t로 밴드 확정 — 이 차급은 밴드 배정 신뢰도 높음)
+      선형보간 × 총배출=trips×거리×연비, trips∝1/적재율. 거리=왕복102.6km
+      (ledger_carbon_emission#F-carbon-calc-recommendation).
+    related:
+      - {type: supersedes, ref: F-scenario-loadfactor-sweep-15t}
+      - {type: based-on, ref: F-representative-fuel-per-class}
+
+  - id: F-scenario-consolidation-vs-count-7t-v2
+    kind: finding
+    t: 2026-07-17
+    by: CC
+    status: superseded
+    claim: >-
+      GVW보정판 — 7t(Ollin S720, GVW추정14t → 12~20t밴드) "2대×이틀마다×
+      75%적재"(68.5kgCO2e/일) vs "1대×1.33일마다×100%적재"(55.0kgCO2e/일)
+      — 전자가 +24.6% 많음. 이전 판(7.5~12t밴드 오배정, +27.8%)과 방향·
+      크기 유사 — 결론(같은 물량이면 대수 늘려 덜 채우기보다 대수 줄이고
+      꽉 채우는 게 유리) 그대로 유지. 단 7t의 GVW는 추정치라
+      O-gvw-estimates-unverified 미해결.
+    basis: >-
+      F-representative-fuel-per-class의 GVW기반 12~20t밴드(7.0/8.5/9.5
+      MJ/km) 선형보간, trip당 연비×총trip/day.
+    related:
+      - {type: supersedes, ref: F-scenario-consolidation-vs-count-7t}
+      - {type: based-on, ref: F-representative-fuel-per-class}
+
+  - id: F-scenario-oversizing-penalty-v2
+    kind: finding
+    t: 2026-07-17
+    by: CC
+    status: superseded
+    claim: >-
+      GVW보정판 — 같은 물량·같은 빈도를 "큰 차량(15t, GVW실측24t) 50%적재"
+      (73.10kgCO2e/trip) vs "중간 차량(7t, GVW추정14t) 100%적재"
+      (73.36kgCO2e/trip)로 옮기면 **차이가 -0.4%(사실상 동률, 무시 가능)**
+      — 이전 판(15t를 12~20t밴드로 잘못 배정해 산출한 +8.6% "오버사이징
+      손해")은 밴드 오배정에 따른 결과였고, 15t의 실제 GVW(24t, 20~26t밴드)
+      로 바로잡으면 그 손해가 사실상 사라진다. 즉 "대형차 50%적재가 중형차
+      완전적재보다 확실히 나쁘다"는 이전 결론은 폐기 — 이 특정 비교(15t@50%
+      vs 7t@100%)에서는 둘이 거의 동등하다. 다만 7t의 GVW는 추정치이고
+      15t는 실측이라 비교의 신뢰도가 비대칭적(O-gvw-estimates-unverified) —
+      7t 실제 GVW가 추정보다 낮으면(예: 12t) 12~20t밴드 안에서도 연비가
+      낮아져 다시 "오버사이징 쪽이 나쁨" 방향으로 돌아갈 수 있음.
+    basis: >-
+      F-representative-fuel-per-class의 GVW기반 20~26t밴드(15t, 50%적재=
+      9.467MJ/km) vs 12~20t밴드(7t, 100%적재=9.5MJ/km) — 두 값이 우연히
+      거의 같음(9.467 vs 9.5). 동일 거리(왕복102.6km) 가정.
+    related:
+      - {type: supersedes, ref: F-scenario-oversizing-penalty}
+      - {type: based-on, ref: F-representative-fuel-per-class}
+      - {type: raises, ref: O-gvw-estimates-unverified}
+
+  - id: L-dinh-muc-fuel-benchmark
+    kind: literature
+    t: 2026-07-17
+    by: CC
+    status: relevant
+    source:
+      title: "베트남 화물트럭 톤급별 '정메(định mức) 연료소비' 업계 실무 기준표"
+      authors: "중고트럭 매매업체(thumuaxetaicu.vn, 舊 dailyxetaihyundai.vn) 블로그"
+      year: 미상
+      venue: "웹 아티클(운송비 견적·중고차 매매 실무 목적)"
+      url: "https://thumuaxetaicu.vn/tin-tuc-su-kien/dinh-muc-tieu-hao-nhien-lieu-xe-tai-cho-xe-1t-1t5-25t-35t7t-8t-9-tan-15-tan.html"
+    claim: >-
+      1~15톤급 화물트럭의 "정상 운행 조건" 연료소비 정메(실무 벤치마크,
+      L/100km, 만재/공차 구분 없음): 1t 7~9 / 1.5~2t 8~9 / 2~2.5t 10 /
+      3.5t 11 / 7~8t 12 / 9~10t 19~21 / 15t 30. 8~9t와 9~10t 사이에 급격한
+      단절(12→19~21, 거의 2배)이 있음 — 차대 구조(2축→3축 등) 전환점일
+      가능성, 원문에 설명 없음.
+    relevance: >-
+      베트남 현지 트럭 운영 실무의 톤급별 연료소비 감각치 — 딜러 판매페이지·
+      국제표준(EcoTransIT) 다음의 제3의 독립적(완전 독립은 아님) 참고선.
+      F-fuel-source-reconciliation에서 다른 두 출처와 교차 대조에 사용.
+    caveat: >-
+      정부 고시나 공인 시험성적서 아님 — 중고트럭 매매업체의 실무 경험치
+      블로그(출처 표기 빈약, "?"). 만재/공차 등 조건 구분이 없어 어느
+      적재상태의 값인지 불명 — 편의상 "만재 근접치"로 간주해 사용.
+
+  - id: F-fuel-source-reconciliation
+    kind: finding
+    t: 2026-07-17
+    by: CC
+    status: active
+    claim: >-
+      연비 데이터 3개 출처(딜러 스펙페이지·EcoTransIT 국제표준·베트남
+      업계실무 정메)를 전 차급에서 교차 대조한 결과, 이 구체 차량들에 대한
+      "신뢰할 만한 실측" 데이터는 사실상 없음 — 뚜렷한 패턴만 있음: ①
+      1.5t~8t(소형~중형)에서는 딜러표기와 업계실무 정메가 서로 정합(예:
+      3.5t 딜러10~12 vs 정메11, 7~8t 딜러14~15 vs 정메12)하고 EcoTransIT
+      (GVW기반 밴드 추정)만 약 2배 높게 나옴 — 즉 이 구간에선 F-dealer-fuel-figures-unreliable
+      의 "딜러 불신" 판정이 과했을 가능성. ② 15t(대형)에서는 반대로 업계
+      실무(30)와 EcoTransIT(32.4)가 정합하고 딜러(10~13)만 확연히 낮아
+      불신이 유지됨. 결론: 소형~중형은 EcoTransIT의 EU Euro VI 밴드가 실제
+      베트남 소형트럭보다 무거운 차량군을 대표해 과대추정하는 것으로 보이고,
+      대형(15t)에서만 EcoTransIT 밴드가 현실과 맞아떨어짐.
+    basis: >-
+      L-dinh-muc-fuel-benchmark × L-thaco-3p5t-7t-classes/L-hino500-isuzu-fseries-15t
+      (딜러) × F-representative-fuel-per-class(EcoTransIT GVW보간) 3자
+      직접 대조표(수치 산술 확인).
+    related:
+      - {type: based-on, ref: L-dinh-muc-fuel-benchmark}
+      - {type: based-on, ref: F-representative-fuel-per-class}
+      - {type: based-on, ref: F-dealer-fuel-figures-unreliable}
+      - {type: raises, ref: F-representative-fuel-final}
+
+  - id: F-representative-fuel-final
+    kind: finding
+    t: 2026-07-17
+    by: CC
+    status: active
+    claim: >-
+      F-fuel-source-reconciliation을 반영한 최종 재구성 — EcoTransIT
+      곡선의 "형태"(공차/60%적재/만재 간 비율, 물리적으로 그럴듯한 하중-연비
+      관계)는 유지하되, 절대수준은 베트남 업계실무 정메(L-dinh-muc-fuel-benchmark)
+      값에 맞춰 rescale(만재점을 정메값에 고정). 최종 대표 연비(공차/60%/
+      만재, L/100km): 1.5t 7.4/8.0/**8.5** · 3.5t 9.3/10.3/**11.0** ·
+      5t 9.5/10.7/**11.5**(3.5t·7~8t 사이 보간) · 7t 9.1/10.9/**12.0** ·
+      8t 9.1/10.9/**12.0**(7t와 동일 정메 구간) · 15t 20.5/26.0/**30.0**.
+      1.5t~8t는 rescale비율 0.47~0.55(EcoTransIT 원값의 절반 수준으로
+      대폭 하향), 15t는 0.93(EcoTransIT와 이미 근접해 소폭만 조정).
+    basis: >-
+      F-fuel-source-reconciliation의 패턴 인식 × EcoTransIT 밴드 형태
+      (공차:60%:만재 비율) × 정메 만재 anchor값 — 산술 rescale
+      (각 차급 EcoTransIT값 × 정메값/EcoTransIT만재값).
+    related:
+      - {type: based-on, ref: F-fuel-source-reconciliation}
+      - {type: supersedes, ref: F-representative-fuel-per-class}
+
+  - id: O-no-genuine-measured-fuel-data
+    kind: open
+    t: 2026-07-17
+    by: CC
+    status: open
+    question: >-
+      이 구체 차량 모델(Hyundai Porter H150, Thaco Ollin S700/500/S720,
+      Hino 500 FL/FM)에 대한 진짜 실측(공인 시험성적서·현직 운송사 실제
+      운행기록) 연료소비 데이터는 아직 하나도 없음 — 3개 출처(딜러/EcoTransIT/
+      정메) 전부 간접 추정·대체·재구성일 뿐. 시나리오 계산 결과가 출처
+      선택에 따라 크게 흔들림(예: "15t@50% vs 7t@100%" 비교가 시도판에
+      따라 -0.4%~+109%까지 벌어짐, F-scenario-oversizing-penalty 계열
+      참조) — 실제 의사결정에 쓰려면 현지 운송사 견적/실주행 로그 확보가
+      필수.
+    related:
+      - {type: raises, ref: F-representative-fuel-final}
+
+  - id: F-scenario-loadfactor-sweep-15t-v3
+    kind: finding
+    t: 2026-07-17
+    by: CC
+    status: active
+    claim: >-
+      최종 재구성판(정메 anchor) — 15t 적재율 스윕: 100%기준 대비 90%=+7.4%,
+      80%=+16.7%, 70%=+28.6%, 60%=+44.6%, 50%=+67.3%, 40%=+101.4%,
+      30%=+158.2%. v2(GVW밴드 원값 기준, 50%=+69.0%)와 거의 동일한 비율
+      (rescale은 절대수준만 바꾸고 상대 형태는 그대로라 당연) — 결론(적재율
+      유지가 압도적으로 중요) 재확인.
+    basis: >-
+      F-representative-fuel-final의 15t rescale 곡선(20.5/26.0/30.0
+      L/100km) × trips∝1/적재율 × 왕복102.6km.
+    related:
+      - {type: supersedes, ref: F-scenario-loadfactor-sweep-15t-v2}
+      - {type: based-on, ref: F-representative-fuel-final}
+
+  - id: F-scenario-consolidation-vs-count-7t-v3
+    kind: finding
+    t: 2026-07-17
+    by: CC
+    status: active
+    claim: >-
+      최종 재구성판 — 7t "2대×이틀×75%"(31.0kgCO2e/일) vs "1대×1.33일×
+      100%"(24.8kgCO2e/일) — 전자가 +25.3% 많음. v2(+24.6%)와 거의 동일
+      (같은 이유로 rescale에 불변) — 결론 재확인.
+    basis: >-
+      F-representative-fuel-final의 7t rescale 곡선(9.1/10.9/12.0
+      L/100km) × 총trip/day.
+    related:
+      - {type: supersedes, ref: F-scenario-consolidation-vs-count-7t-v2}
+      - {type: based-on, ref: F-representative-fuel-final}
+
+  - id: F-scenario-oversizing-penalty-v3
+    kind: finding
+    t: 2026-07-17
+    by: CC
+    status: active
+    claim: >-
+      최종 재구성판 — "큰 차량(15t) 50%적재"(69.0kgCO2e/trip) vs "중간
+      차량(7t) 100%적재"(33.0kgCO2e/trip) — 전자가 **+109.1%**(약 2배)
+      많음. v2(GVW밴드 원값끼리 비교, -0.4% 무승부)에서 큰 폭으로 재역전
+      — v2는 7t를 EcoTransIT 밴드로 과대추정(실제보다 2배 이상 비효율적으로
+      가정)해서 우연히 15t@50%와 비슷해진 인공물이었음. 정메로 절대수준을
+      바로잡으면 "오버사이징은 확실히 손해"라는 원래(v1) 방향의 결론이
+      되살아나되 그 폭은 v1(+8.6%)보다 훨씬 큼(+109%). **세 번의 시도에서
+      -0.4%~+109%까지 결론이 흔들렸다는 사실 자체가, 이 비교가 현재
+      데이터로는 확정할 수 없는 질문임을 보여줌**(O-no-genuine-measured-fuel-data).
+    basis: >-
+      F-representative-fuel-final의 15t(50%적재=25.09L/100km급) vs
+      7t(100%적재=12.0L/100km) rescale값 × 동일거리 가정.
+    related:
+      - {type: supersedes, ref: F-scenario-oversizing-penalty-v2}
+      - {type: based-on, ref: F-representative-fuel-final}
+      - {type: supports, ref: O-no-genuine-measured-fuel-data}
+
+  - id: A-part-volume-2L
+    kind: assumption
+    t: 2026-07-17
+    by: user
+    status: holding
+    assumption: >-
+      DVP→CPRO 다이캐스팅 부품 1개당 적재 부피를 2.0L로 낮춰 잡는다(기존
+      A-conservative-part-volume의 5.51L에서 하향 조정).
+    rationale: >-
+      사용자 지시(2026-07-17) — 5.51L(완제품 유닛박스 최댓값 proxy)은 낱개
+      원부품(가공 전, 미조립) 치고 과도하게 크다고 판단, 2L로 낮춰 재계산
+      하도록 명시적으로 요청함. 여전히 실측 개별 치수(O-individual-part-dimensions)
+      기반은 아니고 사용자가 지정한 조정값.
+    breaks_if: >-
+      실제 DVP 벌크 포장 규격이나 개별 부품 도면 치수가 확보되면 이 값을
+      그 실측치로 교체.
+    related:
+      - {type: supersedes, ref: A-conservative-part-volume}
+      - {type: raises, ref: O-individual-part-dimensions}
+
+  - id: L-korea-truck-cargo-reference
+    kind: literature
+    t: 2026-07-17
+    by: CC
+    status: relevant
+    source:
+      title: "한국 화물차 톤급별 적재함 규격·최대적재중량 업계 표준 참조표 (1~25톤, 카고/탑차·윙바디)"
+      authors: "한국화물(물류중개업체) 등 다수 화물중개 사이트가 공유하는 동일 계열 표"
+      year: 미상
+      venue: "18008880.co.kr 등 — 한국 퀵/화물 중개업체 다수가 사실상 동일한 표를 게시(업계 관행 표준)"
+      url: "https://www.18008880.co.kr/bbs/content.php?co_id=csize"
+    claim: >-
+      1t/1.4t/2.5t/5t/11t/25t 6개 톤급의 적재함 규격(길이×폭×높이, mm)과
+      최대적재중량(kg)이 카고형·탑차/윙바디형(엔클로즈드) 별로 정리돼 있음
+      — 1t: 2,850×1,600×1,700mm, 1,000kg. 1.4t: 3,100×1,700×1,800mm,
+      2,000kg. 2.5t: 4,300×1,800×2,200mm, 3,000kg. 5t: 6,200×2,230×
+      2,400mm, 5,000kg. 11t: 9,100×2,340×2,500mm, **13,000kg**(톤급명과
+      실제 최대적재량이 다름 — 11톤이라 불리지만 13톤 적재). 25t:
+      10,100×2,340×(높이 미기재), 25,000kg.
+    relevance: >-
+      베트남 딜러/업계표기가 톤급간 뒤섞이고 서로 모순됐던 문제(F-dealer-fuel-figures-unreliable,
+      F-fuel-source-reconciliation)와 달리, 이 표는 톤급이 커질수록 적재함
+      규격·적재중량이 예외 없이 단조증가해 체급별 구분이 명확함. 사용자
+      지시(베트남 한정 없이 확실히 구분되는 차급 조사)에 부합하는 대체
+      차급 세트로 채택.
+    caveat: >-
+      정부 고시나 공인 검사성적서 아님 — 한국 화물 중개(퀵서비스) 업계의
+      실무 참조표(여러 업체가 거의 동일한 수치를 게시하는 것으로 보아
+      업계 내 사실상 표준으로 통용되나, 원 출처·최초 발행 기관 불명).
+      25t 적재함 높이는 원자료에 없어 11t와 동일(2.5m)로 보수적 가정
+      (O-25t-height-assumed). 이 트럭들이 실제 베트남 DVP-CPRO 노선에서
+      운용 가능한지(현지 조달·통관·번호판 등)는 별도 확인 필요 —
+      "확실히 구분되는 체급 시나리오" 목적의 대체 참조이지 베트남 현지
+      실사용 차량 확정 아님.
+    related:
+      - {type: supersedes, ref: L-vn-truck-market-tiers}
+      - {type: raises, ref: O-25t-height-assumed}
+
+  - id: O-25t-height-assumed
+    kind: open
+    t: 2026-07-17
+    by: CC
+    status: open
+    question: >-
+      L-korea-truck-cargo-reference의 25t급 적재함 높이가 원자료에 없어
+      11t와 동일(2.5m)로 가정함 — 실제 높이 확인 필요(대형 탑차는 법정
+      전고 제한상 2.4~2.6m대에서 크게 벗어나지 않을 가능성 높으나 미확인).
+    related:
+      - {type: raises, ref: L-korea-truck-cargo-reference}
+
+  - id: F-vehicle-candidate-spectrum-v2
+    kind: finding
+    t: 2026-07-17
+    by: CC
+    status: active
+    claim: >-
+      베트남 한정을 풀고 한국 화물차 업계표준 톤급 참조표로 후보 차급을
+      재구성 — 1t/1.4t/2.5t/5t/11t/25t 6개 지점이 적재중량·적재함 부피
+      모두에서 명확하게 단조증가(체급간 구분 확실, 이전 베트남 데이터셋의
+      "8t=박스형 데이터 없음·7t=원자료 표기 모호" 문제가 없음). 적재함
+      부피(㎥): 1t 7.75 / 1.4t 9.49 / 2.5t 17.03 / 5t 33.18 / 11t 53.24 /
+      25t 59.08(높이 가정치). 적재중량(kg): 1,000 / 2,000 / 3,000 / 5,000 /
+      13,000 / 25,000.
+    basis: >-
+      L-korea-truck-cargo-reference 산술 그대로.
+    related:
+      - {type: based-on, ref: L-korea-truck-cargo-reference}
+      - {type: supersedes, ref: F-vehicle-candidate-spectrum}
+
+  - id: F-dvp-capacity-per-class-v2
+    kind: finding
+    t: 2026-07-17
+    by: CC
+    status: active
+    claim: >-
+      A-part-volume-2L(부품당 2.0L) 가정으로 재계산한 DVP 부품 차급별
+      적재량 — 전부 여전히 부피 제약(중량여유 대비 부피여유가 2~7배
+      작음). 부피기준 적재개수(EA): 1t 3,876 / 1.4t 4,743 / 2.5t 8,514 /
+      5t 16,591 / 11t 26,617 / 25t 29,542. 일 물동량 1,000~1,500EA 기준
+      필요빈도: 1t 2.6~3.9일 / 1.4t 3.2~4.7일 / 2.5t 5.7~8.5일 / 5t
+      11.1~16.6일 / 11t 17.7~26.6일 / 25t 19.7~29.5일에 1회. 2L 하향
+      (5.51L→2L)으로 모든 차급의 적재개수가 약 2.8배 늘고 필요빈도는
+      그만큼 길어짐(예: 15t급 상당이던 이전 8.7일→11t 26.6일).
+    basis: >-
+      A-part-volume-2L × L-dvp-part-unit-weights(평균 0.13kg/EA, 유량가중,
+      변경 없음) × F-vehicle-candidate-spectrum-v2의 적재함 부피.
+    related:
+      - {type: based-on, ref: A-part-volume-2L}
+      - {type: based-on, ref: F-vehicle-candidate-spectrum-v2}
+      - {type: based-on, ref: L-dvp-part-unit-weights}
+      - {type: supersedes, ref: F-vehicle-count-frequency-table}
+      - {type: raises, ref: O-korea-truck-fuel-not-researched}
+
+  - id: O-korea-truck-fuel-not-researched
+    kind: open
+    t: 2026-07-17
+    by: CC
+    status: answered
+    question: >-
+      L-korea-truck-cargo-reference의 6개 차급(1t/1.4t/2.5t/5t/11t/25t)에
+      대한 연비 데이터는 이번 조사 범위 밖(사용자가 적재중량·적재함부피·
+      DVP적재량 3가지만 요청). 배출량 시나리오(F-scenario-*-v3 계열)는
+      여전히 이전 베트남/EcoTransIT 차급 세트 기준 — 새 한국 참조 차급으로
+      배출량을 다시 계산하려면 이 gap을 먼저 메워야 함.
+    related:
+      - {type: raises, ref: F-dvp-capacity-per-class-v2}
+
+  - id: L-korea-truck-fuel-benchmark
+    kind: literature
+    t: 2026-07-17
+    by: CC
+    status: relevant
+    source:
+      title: "한국 화물차 톤급별 연비 — 1t 공인연비(정부 인증) + 2.5t~25t 실운행 후기 교차"
+      authors: "modoo.macarong.net(공인연비 비교) / hi5-guide.com·cvinfo.com(톤급별 평균) / 실지입기사 후기(보배드림 등)"
+      year: 미상
+      venue: "1t: 한국에너지공단 자동차 에너지소비효율 등급표시 대상(총중량 3.5톤 미만) 공인연비. 2.5t 이상: 정부 인증 대상 아님(등급표시 규정이 3.5톤 미만만 적용) — 업계 평균·실사용자 후기."
+      url: "https://modoo.macarong.net/v4/vehicles/%EC%9E%90%EB%8F%99%EC%B0%A8?brandName=%ED%98%84%EB%8C%80&modelName=%ED%8F%AC%ED%84%B02"
+    claim: >-
+      1t(포터2/봉고3): 공인연비 6.0~9.9km/L(트림별, 산업통상자원부 고시
+      2023-157호 기준 총중량 3.5톤 미만 대상 — 이번 조사 전체에서 유일한
+      정부 공인 수치). 2.5t(마이티): 7~9km/L. 5t(메가트럭/노부스):
+      5~7km/L, 실지입기사 데이터로 좁히면 메가트럭 평균 6.2km/L·노부스
+      5.8~6.5km/L. 11t(파비스/프리마): 4~5km/L. 25t(엑시언트):
+      3~4km/L, 실운행 고속도로 3.8~4.2km/L·시내/산간 3~3.5km/L. 톤급이
+      커질수록 예외 없이 연비가 나빠지는 단조 패턴 — 이전 베트남 3자료
+      대조에서 겪은 모순(작은 차급이 오히려 큰 차급보다 낮은 연비로
+      나오는 등)이 없음.
+    relevance: >-
+      O-korea-truck-fuel-not-researched를 메움 — F-vehicle-candidate-spectrum-v2
+      의 6개 차급(1t/1.4t/2.5t/5t/11t/25t)에 대응하는 연비. 1t는 정부
+      공인수치라는 점에서 이번 전체 조사 중 신뢰도가 가장 높음.
+    caveat: >-
+      2.5t 이상은 법적 공인 대상이 아니라 "업계 평균·후기" 수준 신뢰도 —
+      단 여러 독립 출처(업계 평균 range와 실지입기사 실측)가 서로 좁은
+      범위로 수렴해 베트남 데이터보다는 훨씬 안정적. "공차/60%적재/만재"
+      같은 하중별 구분은 없음(전부 "평균 운행" 기준) — 하중별 민감도
+      분석이 필요하면 별도 가정(예: EcoTransIT형 곡선)을 얹어야 함.
+      1.4t는 대응하는 실제 모델 구분이 없어 1t 수치를 그대로 준용(약간
+      과소평가 가능성).
+    related:
+      - {type: answers, ref: O-korea-truck-fuel-not-researched}
+      - {type: raises, ref: F-korea-truck-fuel-final}
+
+  - id: F-korea-truck-fuel-final
+    kind: finding
+    t: 2026-07-17
+    by: CC
+    status: active
+    claim: >-
+      F-vehicle-candidate-spectrum-v2의 6개 차급에 연비(L/100km, 실사용
+      평균 기준) 부여 완료 — 1t 10.1~16.7 / 1.4t 10.1~16.7(1t 준용) /
+      2.5t 11.1~14.3 / 5t 15.4~17.2 / 11t 20.0~25.0 / 25t 23.8~33.3.
+      톤급 상승에 따라 단조 악화 — 체급별 확실한 차이 요건 충족.
+    basis: >-
+      L-korea-truck-fuel-benchmark의 km/L 값을 100/km·L로 환산.
+    related:
+      - {type: based-on, ref: L-korea-truck-fuel-benchmark}
+      - {type: based-on, ref: F-vehicle-candidate-spectrum-v2}
+
+  - id: L-cpro-total-production-2025
+    kind: literature
+    t: 2026-07-17
+    by: CC
+    status: relevant
+    source:
+      title: "CPRO 전체 품번(404종) 2025년 월별 생산수량 원장"
+      authors: "CPRO 사내 ERP 산출물"
+      year: 2025
+      venue: "BT5 25년 생산 수량.xlsx, 시트 '합계'"
+      url: "C:\\Users\\KangTaehui\\KG\\keti\\CPRO_조립공정\\원본자료\\CPRO제공자료\\6월 10일 MOQ,PO 등 자료\\BT5 25년 생산 수량.xlsx"
+    claim: >-
+      VD7/BT5/NVD1 3모델뿐 아니라 CPRO가 생산하는 전체 404개 품번의 2025년
+      월별 생산수량이 기재돼 있음(1월 14,334~5월 23,625, 연간 합계
+      211,288개, 월평균 17,607개). CPRO_3모델_생산데이터_정리.md가 다룬
+      3모델은 이 전체 원장의 일부 품번에 불과.
+    relevance: >-
+      기존 "필요빈도" 계산은 DVP 자체 생산량(공급측)을 물동량 기준으로
+      썼는데, 이 파일로 CPRO 쪽(수요측) 총생산량을 독립적으로 확보해
+      교차검증 가능해짐 — 사용자가 요청한 "CPRO 월생산량 기준 DVP부품
+      요구량" 산정의 분자.
+    caveat: >-
+      "2025년 생산 수량" 표기가 정확히 어느 12개월 구간인지(역년 vs 회계연도)
+      명시 안 됨 — DVP 데이터 기간(2024.07~2025.06)과 완전히 일치하지 않을
+      수 있음(부분 중첩은 확실).
+    related:
+      - {type: raises, ref: F-cpro-demand-vs-dvp-supply-gap}
+
+  - id: F-dc-parts-per-unit-avg
+    kind: finding
+    t: 2026-07-17
+    by: CC
+    status: active
+    claim: >-
+      VD7/BT5/NVD1 3모델의 작업표준서 BOM에서 다이캐스팅(DC 접두사, DVP
+      공급 추정) 부품 종류수를 전수 확인 — VD7 5종(전부 qty1), BT5 10종
+      (전부 qty1), NVD1 5종(전부 qty1). 유닛당 DC부품 소요량 단순평균
+      **6.67개**.
+    basis: >-
+      3개 작업표준서 BOM 시트 전수 스캔(품명 'DC '접두사 필터 + 수량컬럼
+      직접 대조).
+    related:
+      - {type: raises, ref: F-cpro-demand-vs-dvp-supply-gap}
+
+  - id: F-cpro-demand-vs-dvp-supply-gap
+    kind: finding
+    t: 2026-07-17
+    by: CC
+    status: active
+    claim: >-
+      CPRO 월평균 총생산(17,607유닛, L-cpro-total-production-2025) ×
+      유닛당 DC부품 평균(6.67개, F-dc-parts-per-unit-avg) = **수요측 추정
+      117,382 EA/월**. 이는 DVP 실측 공급량(29,893 EA/월, L-dvp-part-unit-weights)
+      의 **약 3.93배** — 즉 "ABC 외 다른 모델도 ABC와 크게 다르지 않다"는
+      가정(사용자 제시) 하에서는 CPRO의 이론적 DVP부품 수요가 DVP의 실제
+      생산량보다 4배 가까이 크게 나온다. 이 격차의 가능한 원인(확정 못함,
+      전부 가설) — ① CPRO의 404개 품번 중 실제로 DVP산 다이캐스팅 부품을
+      쓰는 비중이 낮을 수 있음(일부는 사출·타 공법 하우징 사용, VD7/BT5/
+      NVD1이 오히려 DC부품 비중이 높은 축에 속할 가능성). ② CPRO가 DVP
+      외 타 다이캐스팅 공급사도 병행 사용할 가능성(DVP가 CPRO의 유일한
+      다이캐스팅 공급사라는 전제 자체가 흔들림 — O-dvp-cargo-unit-spec 및
+      F-dvp-shipment-mass-modest(폐기됨)의 "DVP생산량=CPRO출하량" 전제와
+      같은 계열의 미검증). ③ 이 프로젝트 전반에서 반복 확인된 "자재(MRP)가
+      처리율 병목"이라는 패턴([[cell-rl-material-bottleneck]] 계열 발견과
+      동일 계열) — 재고 완충으로 DVP 생산 시점과 CPRO 소비 시점이 어긋나
+      단순 월별 비교가 왜곡됐을 가능성.
+    basis: >-
+      L-cpro-total-production-2025 × F-dc-parts-per-unit-avg ×
+      L-dvp-part-unit-weights(기존 확정 DVP 월평균 29,893 EA) 산술 대조.
+    related:
+      - {type: based-on, ref: L-cpro-total-production-2025}
+      - {type: based-on, ref: F-dc-parts-per-unit-avg}
+      - {type: based-on, ref: L-dvp-part-unit-weights}
+      - {type: contradicts, ref: F-dvp-capacity-per-class-v2}
+      - {type: raises, ref: O-dvp-supply-gap-explanation}
+
+  - id: O-dvp-supply-gap-explanation
+    kind: open
+    t: 2026-07-17
+    by: CC
+    status: open
+    question: >-
+      CPRO 수요측 추정(117,382 EA/월)이 DVP 실측 공급(29,893 EA/월)의
+      3.93배인 이유가 무엇인지 확정 못함(F-cpro-demand-vs-dvp-supply-gap의
+      가설 ①②③ 중 어느 것인지, 혹은 복합인지). 확인하려면: CPRO/DVP 담당자에
+      직접 "404개 품번 중 DVP산 다이캐스팅 부품을 쓰는 품번 비중"과 "DVP
+      외 타 다이캐스팅 공급사 존재 여부"를 물어야 함. 이 gap이 해소되기
+      전까지 F-dvp-capacity-per-class-v2(DVP 실측 기준 필요빈도)와 이번
+      수요측 추정 중 어느 쪽이 "몇 대·며칠 주기"의 올바른 분자인지 확정
+      불가 — 실제 필요빈도는 이 두 추정치(29,893~117,382 EA/월) 사이
+      어딘가일 가능성이 큼.
+    related:
+      - {type: raises, ref: F-cpro-demand-vs-dvp-supply-gap}
+      - {type: depends-on, ref: F-dvp-capacity-per-class-v2}
+
+  - id: F-frequency-demand-side
+    kind: finding
+    t: 2026-07-17
+    by: CC
+    status: active
+    claim: >-
+      CPRO 수요측(F-cpro-demand-vs-dvp-supply-gap) 물동량으로 필요빈도를
+      다시 계산 — CPRO 404개 품번 월별 실측 생산량(12,783~23,625유닛)×
+      DC부품 평균(6.67개/유닛) = 월 85,263~157,579 EA(22근무일 환산 일
+      3,876~7,163EA). 차급별 필요빈도(부피기준, F-vehicle-candidate-spectrum-v2
+      적재량 그대로): 1t 0.54~1.00일 / 1.4t 0.66~1.22일 / 2.5t 1.19~2.20일 /
+      5t 2.32~4.28일 / 11t 3.72~6.87일 / 25t 4.12~7.62일에 1회. DVP
+      공급측 기준(F-dvp-capacity-per-class-v2) 대비 전 차급에서 필요빈도가
+      약 3.93배 짧아짐(예: 1t 2.6~3.9일→0.54~1.00일, 25t 19.7~29.5일→
+      4.12~7.62일) — 1t·1.4t는 사실상 매일(또는 하루 2회) 운행이 필요한
+      수준으로 바뀜.
+    basis: >-
+      L-cpro-total-production-2025의 월별 실측치(12개월) × F-dc-parts-per-unit-avg
+      × F-vehicle-candidate-spectrum-v2 부피기준 적재량. F-cpro-demand-vs-dvp-supply-gap
+      과 동일한 미검증 전제(ABC외 모델도 유사, DVP=유일 다이캐스팅
+      공급사) 위에 있음 — O-dvp-supply-gap-explanation 해소 전까지 이
+      숫자와 F-dvp-capacity-per-class-v2 중 어느 쪽이 맞는지 확정 불가.
+    related:
+      - {type: based-on, ref: F-cpro-demand-vs-dvp-supply-gap}
+      - {type: based-on, ref: L-cpro-total-production-2025}
+      - {type: based-on, ref: F-vehicle-candidate-spectrum-v2}
+      - {type: contradicts, ref: F-dvp-capacity-per-class-v2}
+      - {type: depends-on, ref: O-dvp-supply-gap-explanation}
+
+  - id: F-korea-truck-loadfactor-sensitivity
+    kind: finding
+    t: 2026-07-17
+    by: CC
+    status: active
+    claim: >-
+      한국 6개 차급(1t/1.4t/2.5t/5t/11t/25t)에 대해 "만재(100%) 대비
+      적재율별 km당 연비 변화율(%)"을 산출 — 톤급이 클수록 적재율 변화에
+      훨씬 민감함. 20%적재 시 100%대비: 1t~2.5t(3.5~7.5t밴드) -11.8%,
+      5t(7.5~12t밴드) -13.6%, 11t(12~20t밴드) -21.1%, 25t(26~40t밴드)
+      -33.6%. 50%적재 시: 1t~2.5t -7.4%, 5t -8.3%, 11t -13.2%, 25t -21.4%.
+      원인: 소형트럭은 공차중량이 전체 무게의 대부분이라 적재량 변화가
+      전체 무게에 주는 영향이 작고, 대형트럭은 적재량이 전체 무게에서
+      차지하는 비중이 커서 적재율 변화의 영향이 훨씬 큼(대형차 오버사이징
+      손해가 소형차보다 크다는 F-scenario-oversizing-penalty 계열 논의와
+      같은 방향).
+    basis: >-
+      ledger_carbon_emission#L-ecotransit-fuel-defaults의 GVW밴드별 공차/
+      60%/만재 MJ/km(신규 조사 아니라 기존 확정자료 재사용) × 이번 6개
+      차급을 payload 기준으로 GVW밴드에 근사 매핑(1t/1.4t/2.5t→3.5~7.5t,
+      5t→7.5~12t, 11t→12~20t, 25t→26~40t) × 구간별 선형보간. 단, GVW밴드
+      매핑이 payload 기준 근사라 부정확 — 특히 1t~2.5t가 전부 같은 밴드로
+      묶여 이 구간 내 차급간 구분이 약하고, 25t의 26~40t밴드 배정은 GVW
+      추정치(약 41.7t, payload÷0.6)에 근거해 가장 불확실. EU 트럭의
+      하중-연비 "형태"가 한국 트럭에도 그대로 적용된다는 가정도 미검증
+      (O-korea-truck-loadshape-unverified).
+    related:
+      - {type: based-on, ref: "ledger_carbon_emission#L-ecotransit-fuel-defaults"}
+      - {type: based-on, ref: F-vehicle-candidate-spectrum-v2}
+      - {type: compares-to, ref: F-scenario-oversizing-penalty-v3}
+      - {type: raises, ref: O-korea-truck-loadshape-unverified}
+
+  - id: O-korea-truck-loadshape-unverified
+    kind: open
+    t: 2026-07-17
+    by: CC
+    status: open
+    question: >-
+      EU Euro VI 트럭(EcoTransIT 기준)의 하중-연비 "형태"(공차:60%:만재
+      비율)가 한국 화물차(포터2/마이티/메가트럭/파비스/엑시언트)에도 그대로
+      적용되는지 검증 안 됨 — 절대수준이 다르다는 건 이미 확인했지만(구
+      베트남 데이터셋에서), 형태(민감도 곡선)까지 다를 가능성은 미확인.
+    related:
+      - {type: raises, ref: F-korea-truck-loadfactor-sensitivity}

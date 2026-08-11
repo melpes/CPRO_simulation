@@ -1,0 +1,331 @@
+[
+ {
+  "policy": "q180s300-samp",
+  "end_hour": 18.0,
+  "wall_sec": 72.0,
+  "makespan_days": 3.709722222222222,
+  "work_time_h": 31.033333333333335,
+  "completion_days": {
+   "MODEL_A": 3.7096412037037036,
+   "MODEL_B": 3.603715277777778,
+   "MODEL_C": 3.689074074074074
+  },
+  "completion_work_h": {
+   "MODEL_A": 31.031388888888888,
+   "MODEL_B": 28.489166666666666,
+   "MODEL_C": 30.537777777777777
+  },
+  "target_met": true,
+  "throughput": {
+   "MODEL_A": 540,
+   "MODEL_B": 540,
+   "MODEL_C": 540
+  },
+  "total_kwh": 5079.623323157883,
+  "assembly_kwh": 1194.0231049363883,
+  "baseline_kwh": 3885.6002182214943,
+  "smt_kwh": 0.0,
+  "tou_kwh": {
+   "normal": 4320.07,
+   "peak": 178.85,
+   "night": 0.0
+  },
+  "cost_vnd": 8831223.859740868,
+  "events_file": "exp_overtime/events_samp\\events_end18.jsonl",
+  "smt_batches": [],
+  "workers": {
+   "WWM_FwInputLine": 2,
+   "WWM_LensHolderLine": 4,
+   "WWM_FocusLine": 3,
+   "WWM_SemiAssemblyLine": 11,
+   "WWM_SetAssemblyLine": 12,
+   "WWM_InspectionLine": 4,
+   "WWM_AgingLine": 6,
+   "WWM_OqcLine": 4,
+   "WWM_RMALine": 6,
+   "WWM_PackagingLine": 6
+  }
+ },
+ {
+  "policy": "q180s300-samp",
+  "end_hour": 18.5,
+  "wall_sec": 65.1,
+  "makespan_days": 3.688888888888889,
+  "work_time_h": 32.03333333333333,
+  "completion_days": {
+   "MODEL_A": 3.6887962962962964,
+   "MODEL_B": 3.5928125,
+   "MODEL_C": 3.6116550925925925
+  },
+  "completion_work_h": {
+   "MODEL_A": 32.03111111111111,
+   "MODEL_B": 29.7275,
+   "MODEL_C": 30.17972222222222
+  },
+  "target_met": true,
+  "throughput": {
+   "MODEL_A": 540,
+   "MODEL_B": 540,
+   "MODEL_C": 540
+  },
+  "total_kwh": 5338.139357679066,
+  "assembly_kwh": 1208.505587902744,
+  "baseline_kwh": 4129.633769776322,
+  "smt_kwh": 0.0,
+  "tou_kwh": {
+   "normal": 4249.61,
+   "peak": 356.31,
+   "night": 0.0
+  },
+  "cost_vnd": 9319954.103232987,
+  "events_file": "exp_overtime/events_samp\\events_end18.5.jsonl",
+  "smt_batches": [],
+  "workers": {
+   "WWM_FwInputLine": 2,
+   "WWM_LensHolderLine": 4,
+   "WWM_FocusLine": 3,
+   "WWM_SemiAssemblyLine": 11,
+   "WWM_SetAssemblyLine": 12,
+   "WWM_InspectionLine": 4,
+   "WWM_AgingLine": 6,
+   "WWM_OqcLine": 4,
+   "WWM_RMALine": 6,
+   "WWM_PackagingLine": 6
+  }
+ },
+ {
+  "policy": "q180s300-samp",
+  "end_hour": 19.0,
+  "wall_sec": 65.3,
+  "makespan_days": 3.598611111111111,
+  "work_time_h": 31.366666666666667,
+  "completion_days": {
+   "MODEL_A": 3.5985185185185187,
+   "MODEL_B": 3.388541666666667,
+   "MODEL_C": 3.3911458333333333
+  },
+  "completion_work_h": {
+   "MODEL_A": 31.364444444444445,
+   "MODEL_B": 27.325,
+   "MODEL_C": 27.3875
+  },
+  "target_met": true,
+  "throughput": {
+   "MODEL_A": 540,
+   "MODEL_B": 540,
+   "MODEL_C": 540
+  },
+  "total_kwh": 5444.484933361406,
+  "assembly_kwh": 1249.1509453635879,
+  "baseline_kwh": 4195.3339879978175,
+  "smt_kwh": 0.0,
+  "tou_kwh": {
+   "normal": 3970.17,
+   "peak": 564.42,
+   "night": 0.0
+  },
+  "cost_vnd": 9519334.194813155,
+  "events_file": "exp_overtime/events_samp\\events_end19.jsonl",
+  "smt_batches": [],
+  "workers": {
+   "WWM_FwInputLine": 2,
+   "WWM_LensHolderLine": 4,
+   "WWM_FocusLine": 3,
+   "WWM_SemiAssemblyLine": 11,
+   "WWM_SetAssemblyLine": 12,
+   "WWM_InspectionLine": 4,
+   "WWM_AgingLine": 6,
+   "WWM_OqcLine": 4,
+   "WWM_RMALine": 6,
+   "WWM_PackagingLine": 6
+  }
+ },
+ {
+  "policy": "q180s300-samp",
+  "end_hour": 19.5,
+  "wall_sec": 65.2,
+  "makespan_days": 3.5788194444444446,
+  "work_time_h": 32.391666666666666,
+  "completion_days": {
+   "MODEL_A": 3.5785532407407405,
+   "MODEL_B": 2.8077893518518517,
+   "MODEL_C": 3.3784259259259257
+  },
+  "completion_work_h": {
+   "MODEL_A": 32.38527777777778,
+   "MODEL_B": 28.386944444444445,
+   "MODEL_C": 28.58222222222222
+  },
+  "target_met": true,
+  "throughput": {
+   "MODEL_A": 540,
+   "MODEL_B": 540,
+   "MODEL_C": 540
+  },
+  "total_kwh": 5714.884935807817,
+  "assembly_kwh": 1272.8423962551713,
+  "baseline_kwh": 4442.042539552645,
+  "smt_kwh": 0.0,
+  "tou_kwh": {
+   "normal": 3891.6,
+   "peak": 752.67,
+   "night": 0.0
+  },
+  "cost_vnd": 10030498.884055927,
+  "events_file": "exp_overtime/events_samp\\events_end19.5.jsonl",
+  "smt_batches": [],
+  "workers": {
+   "WWM_FwInputLine": 2,
+   "WWM_LensHolderLine": 4,
+   "WWM_FocusLine": 3,
+   "WWM_SemiAssemblyLine": 11,
+   "WWM_SetAssemblyLine": 12,
+   "WWM_InspectionLine": 4,
+   "WWM_AgingLine": 6,
+   "WWM_OqcLine": 4,
+   "WWM_RMALine": 6,
+   "WWM_PackagingLine": 6
+  }
+ },
+ {
+  "policy": "q180s300-samp",
+  "end_hour": 20.0,
+  "wall_sec": 65.5,
+  "makespan_days": 3.381597222222222,
+  "work_time_h": 30.158333333333335,
+  "completion_days": {
+   "MODEL_A": 3.381423611111111,
+   "MODEL_B": 2.813090277777778,
+   "MODEL_C": 2.7524652777777776
+  },
+  "completion_work_h": {
+   "MODEL_A": 30.154166666666665,
+   "MODEL_B": 29.514166666666668,
+   "MODEL_C": 28.059166666666666
+  },
+  "target_met": true,
+  "throughput": {
+   "MODEL_A": 540,
+   "MODEL_B": 540,
+   "MODEL_C": 540
+  },
+  "total_kwh": 5554.866841605471,
+  "assembly_kwh": 1321.7574171646631,
+  "baseline_kwh": 4233.109424440808,
+  "smt_kwh": 0.0,
+  "tou_kwh": {
+   "normal": 3434.84,
+   "peak": 970.46,
+   "night": 0.0
+  },
+  "cost_vnd": 9927127.744390542,
+  "events_file": "exp_overtime/events_samp\\events_end20.jsonl",
+  "smt_batches": [],
+  "workers": {
+   "WWM_FwInputLine": 2,
+   "WWM_LensHolderLine": 4,
+   "WWM_FocusLine": 3,
+   "WWM_SemiAssemblyLine": 11,
+   "WWM_SetAssemblyLine": 12,
+   "WWM_InspectionLine": 4,
+   "WWM_AgingLine": 6,
+   "WWM_OqcLine": 4,
+   "WWM_RMALine": 6,
+   "WWM_PackagingLine": 6
+  }
+ },
+ {
+  "policy": "q180s300-samp",
+  "end_hour": 21.0,
+  "wall_sec": 64.4,
+  "makespan_days": 2.798611111111111,
+  "work_time_h": 31.166666666666668,
+  "completion_days": {
+   "MODEL_A": 2.798611111111111,
+   "MODEL_B": 2.710150462962963,
+   "MODEL_C": 2.724826388888889
+  },
+  "completion_work_h": {
+   "MODEL_A": 31.166666666666668,
+   "MODEL_B": 29.04361111111111,
+   "MODEL_C": 29.395833333333332
+  },
+  "target_met": true,
+  "throughput": {
+   "MODEL_A": 540,
+   "MODEL_B": 540,
+   "MODEL_C": 540
+  },
+  "total_kwh": 5798.674942545584,
+  "assembly_kwh": 1351.0922002287987,
+  "baseline_kwh": 4447.582742316785,
+  "smt_kwh": 0.0,
+  "tou_kwh": {
+   "normal": 3383.54,
+   "peak": 1129.65,
+   "night": 0.0
+  },
+  "cost_vnd": 10388153.272970945,
+  "events_file": "exp_overtime/events_samp\\events_end21.jsonl",
+  "smt_batches": [],
+  "workers": {
+   "WWM_FwInputLine": 2,
+   "WWM_LensHolderLine": 4,
+   "WWM_FocusLine": 3,
+   "WWM_SemiAssemblyLine": 11,
+   "WWM_SetAssemblyLine": 12,
+   "WWM_InspectionLine": 4,
+   "WWM_AgingLine": 6,
+   "WWM_OqcLine": 4,
+   "WWM_RMALine": 6,
+   "WWM_PackagingLine": 6
+  }
+ },
+ {
+  "policy": "q180s300-samp",
+  "end_hour": 22.5,
+  "wall_sec": 66.0,
+  "makespan_days": 2.6902777777777778,
+  "work_time_h": 31.566666666666666,
+  "completion_days": {
+   "MODEL_A": 2.6901041666666665,
+   "MODEL_B": 2.597650462962963,
+   "MODEL_C": 2.6182060185185185
+  },
+  "completion_work_h": {
+   "MODEL_A": 31.5625,
+   "MODEL_B": 29.343611111111112,
+   "MODEL_C": 29.836944444444445
+  },
+  "target_met": true,
+  "throughput": {
+   "MODEL_A": 540,
+   "MODEL_B": 540,
+   "MODEL_C": 540
+  },
+  "total_kwh": 6073.122121088132,
+  "assembly_kwh": 1460.9317773892778,
+  "baseline_kwh": 4612.190343698854,
+  "smt_kwh": 0.0,
+  "tou_kwh": {
+   "normal": 3155.03,
+   "peak": 1400.96,
+   "night": 0.0
+  },
+  "cost_vnd": 10905977.647880923,
+  "events_file": "exp_overtime/events_samp\\events_end22.5.jsonl",
+  "smt_batches": [],
+  "workers": {
+   "WWM_FwInputLine": 2,
+   "WWM_LensHolderLine": 4,
+   "WWM_FocusLine": 3,
+   "WWM_SemiAssemblyLine": 11,
+   "WWM_SetAssemblyLine": 12,
+   "WWM_InspectionLine": 4,
+   "WWM_AgingLine": 6,
+   "WWM_OqcLine": 4,
+   "WWM_RMALine": 6,
+   "WWM_PackagingLine": 6
+  }
+ }
+]

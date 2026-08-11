@@ -1,0 +1,23 @@
+{
+ "mode": "sampling",
+ "makespan_sec": 320250,
+ "workers": {
+  "WWM_FwInputLine": 2,
+  "WWM_LensHolderLine": 4,
+  "WWM_FocusLine": 3,
+  "WWM_SemiAssemblyLine": 11,
+  "WWM_SetAssemblyLine": 12,
+  "WWM_InspectionLine": 4,
+  "WWM_AgingLine": 6,
+  "WWM_OqcLine": 4,
+  "WWM_RMALine": 6,
+  "WWM_PackagingLine": 6
+ },
+ "work_start": 32400,
+ "work_end": 64800.0,
+ "break": [
+  43200,
+  46800
+ ],
+ "events": 45448
+}

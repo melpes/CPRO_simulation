@@ -1,0 +1,233 @@
+[
+ {
+  "policy": "untrained-samp",
+  "end_hour": 18.0,
+  "wall_sec": 71.5,
+  "makespan_days": 3.714583333333333,
+  "work_time_h": 31.15,
+  "completion_days": {
+   "MODEL_A": 3.7127546296296297,
+   "MODEL_B": 3.712800925925926,
+   "MODEL_C": 3.7144675925925927
+  },
+  "completion_work_h": {
+   "MODEL_A": 31.10611111111111,
+   "MODEL_B": 31.107222222222223,
+   "MODEL_C": 31.147222222222222
+  },
+  "target_met": true,
+  "throughput": {
+   "MODEL_A": 540,
+   "MODEL_B": 540,
+   "MODEL_C": 540
+  },
+  "total_kwh": 5091.15372465244,
+  "assembly_kwh": 1193.070173097613,
+  "baseline_kwh": 3898.083551554828,
+  "smt_kwh": 0.0,
+  "tou_kwh": {
+   "normal": 4333.67,
+   "peak": 177.73,
+   "night": 0.0
+  },
+  "cost_vnd": 8853133.876505433
+ },
+ {
+  "policy": "untrained-samp",
+  "end_hour": 18.5,
+  "wall_sec": 66.6,
+  "makespan_days": 3.6885416666666666,
+  "work_time_h": 32.025,
+  "completion_days": {
+   "MODEL_A": 3.68443287037037,
+   "MODEL_B": 3.6883564814814815,
+   "MODEL_C": 3.684861111111111
+  },
+  "completion_work_h": {
+   "MODEL_A": 31.926388888888887,
+   "MODEL_B": 32.02055555555555,
+   "MODEL_C": 31.936666666666667
+  },
+  "target_met": true,
+  "throughput": {
+   "MODEL_A": 540,
+   "MODEL_B": 540,
+   "MODEL_C": 540
+  },
+  "total_kwh": 5335.879755664889,
+  "assembly_kwh": 1207.137652555233,
+  "baseline_kwh": 4128.742103109656,
+  "smt_kwh": 0.0,
+  "tou_kwh": {
+   "normal": 4250.32,
+   "peak": 354.71,
+   "night": 0.0
+  },
+  "cost_vnd": 9315682.90643325
+ },
+ {
+  "policy": "untrained-samp",
+  "end_hour": 19.0,
+  "wall_sec": 66.2,
+  "makespan_days": 3.603125,
+  "work_time_h": 31.475,
+  "completion_days": {
+   "MODEL_A": 3.60287037037037,
+   "MODEL_B": 3.6016666666666666,
+   "MODEL_C": 3.60275462962963
+  },
+  "completion_work_h": {
+   "MODEL_A": 31.468888888888888,
+   "MODEL_B": 31.44,
+   "MODEL_C": 31.46611111111111
+  },
+  "target_met": true,
+  "throughput": {
+   "MODEL_A": 540,
+   "MODEL_B": 540,
+   "MODEL_C": 540
+  },
+  "total_kwh": 5448.953831185039,
+  "assembly_kwh": 1242.028176520555,
+  "baseline_kwh": 4206.925654664485,
+  "smt_kwh": 0.0,
+  "tou_kwh": {
+   "normal": 3990.11,
+   "peak": 556.07,
+   "night": 0.0
+  },
+  "cost_vnd": 9527923.663883062
+ },
+ {
+  "policy": "untrained-samp",
+  "end_hour": 19.5,
+  "wall_sec": 64.0,
+  "makespan_days": 3.56875,
+  "work_time_h": 32.15,
+  "completion_days": {
+   "MODEL_A": 3.5590972222222224,
+   "MODEL_B": 3.5672337962962963,
+   "MODEL_C": 3.56875
+  },
+  "completion_work_h": {
+   "MODEL_A": 31.918333333333333,
+   "MODEL_B": 32.11361111111111,
+   "MODEL_C": 32.15
+  },
+  "target_met": true,
+  "throughput": {
+   "MODEL_A": 540,
+   "MODEL_B": 540,
+   "MODEL_C": 540
+  },
+  "total_kwh": 5696.670448136886,
+  "assembly_kwh": 1280.4862419175736,
+  "baseline_kwh": 4416.184206219313,
+  "smt_kwh": 0.0,
+  "tou_kwh": {
+   "normal": 3856.79,
+   "peak": 761.62,
+   "night": 0.0
+  },
+  "cost_vnd": 9995799.002398167
+ },
+ {
+  "policy": "untrained-samp",
+  "end_hour": 20.0,
+  "wall_sec": 65.9,
+  "makespan_days": 2.823263888888889,
+  "work_time_h": 29.758333333333333,
+  "completion_days": {
+   "MODEL_A": 2.7611689814814815,
+   "MODEL_B": 2.8221296296296297,
+   "MODEL_C": 2.8230092592592593
+  },
+  "completion_work_h": {
+   "MODEL_A": 28.268055555555556,
+   "MODEL_B": 29.73111111111111,
+   "MODEL_C": 29.752222222222223
+  },
+  "target_met": true,
+  "throughput": {
+   "MODEL_A": 540,
+   "MODEL_B": 540,
+   "MODEL_C": 540
+  },
+  "total_kwh": 5489.982216603863,
+  "assembly_kwh": 1321.7504199135556,
+  "baseline_kwh": 4168.231796690307,
+  "smt_kwh": 0.0,
+  "tou_kwh": {
+   "normal": 3417.91,
+   "peak": 944.59,
+   "night": 0.0
+  },
+  "cost_vnd": 9804231.29949354
+ },
+ {
+  "policy": "untrained-samp",
+  "end_hour": 21.0,
+  "wall_sec": 75.7,
+  "makespan_days": 2.7444444444444445,
+  "work_time_h": 29.866666666666667,
+  "completion_days": {
+   "MODEL_A": 2.7359953703703703,
+   "MODEL_B": 2.7441666666666666,
+   "MODEL_C": 2.7441319444444443
+  },
+  "completion_work_h": {
+   "MODEL_A": 29.663888888888888,
+   "MODEL_B": 29.86,
+   "MODEL_C": 29.859166666666667
+  },
+  "target_met": true,
+  "throughput": {
+   "MODEL_A": 540,
+   "MODEL_B": 540,
+   "MODEL_C": 540
+  },
+  "total_kwh": 5541.76812351196,
+  "assembly_kwh": 1352.0477925426933,
+  "baseline_kwh": 4189.720330969267,
+  "smt_kwh": 0.0,
+  "tou_kwh": {
+   "normal": 3382.42,
+   "peak": 991.67,
+   "night": 0.0
+  },
+  "cost_vnd": 9901991.319963835
+ },
+ {
+  "policy": "untrained-samp",
+  "end_hour": 22.5,
+  "wall_sec": 81.4,
+  "makespan_days": 2.6847222222222222,
+  "work_time_h": 31.433333333333334,
+  "completion_days": {
+   "MODEL_A": 2.679641203703704,
+   "MODEL_B": 2.6845601851851852,
+   "MODEL_C": 2.6824189814814816
+  },
+  "completion_work_h": {
+   "MODEL_A": 31.31138888888889,
+   "MODEL_B": 31.429444444444446,
+   "MODEL_C": 31.378055555555555
+  },
+  "target_met": true,
+  "throughput": {
+   "MODEL_A": 540,
+   "MODEL_B": 540,
+   "MODEL_C": 540
+  },
+  "total_kwh": 6061.430812693614,
+  "assembly_kwh": 1463.5071356614267,
+  "baseline_kwh": 4597.923677032188,
+  "smt_kwh": 0.0,
+  "tou_kwh": {
+   "normal": 3137.74,
+   "peak": 1403.98,
+   "night": 0.0
+  },
+  "cost_vnd": 10883738.600229973
+ }
+]

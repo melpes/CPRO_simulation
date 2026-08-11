@@ -1,0 +1,961 @@
+mode: review
+entries:
+  # ---------------- 선행조사 (국제 표준) ----------------
+  - id: L-idef0-ump
+    kind: literature
+    t: 2026-08-10
+    by: CC
+    status: relevant
+    source:
+      title: "IDEF0 (FIPS PUB 183) + ASTM E3012 Unit Manufacturing Process 정보모델"
+      authors: "NIST / ASTM E60.13"
+      year: 2022
+      venue: "FIPS PUB 183, ASTM E3012-22, NIST UMP Builder"
+      url: "https://www.nist.gov/publications/reference-schema-unit-manufacturing-process-information-model"
+    claim: >-
+      IDEF0은 활동을 ICOM 4변(Input 변환되어 소모 / Control 규율하되 불변 /
+      Output 산출 / Mechanism 수행자원)으로 규정하는 표기법이며, 설비 자체의
+      데이터 모델은 아니다. ASTM E3012의 UMP 정보모델이 이를 제조 단위공정용
+      데이터 모델로 특화해 inputs/outputs/product information/process
+      information/manufacturing resources + transformation 으로 정의한다.
+      선행연구는 UMP의 표현 기법으로 IDEF0을 지목(IPO 다이어그램과 동형 + 계층분해).
+    relevance: >-
+      사용자가 출발점으로 지목한 IDEF0의 정확한 위상 — 설비 요소 정의표가 아니라
+      경계 판정 기준. 어떤 값이 TechnicalData(Mechanism 제원)로 가고 어떤 값이
+      OperationalData의 Control(레시피·작업지시·임계값) 또는 Input(자재·에너지)으로
+      가는지 다투지 않게 하는 데 쓸 수 있다.
+    takeaway: >-
+      우리 MCF 서브모델(Inputs: RawMaterials/Energy/Utilities/Components →
+      MCFValue → Product)이 이미 UMP 형태다. 일반화 설계 시 MCF와 중복 경계를
+      먼저 정해야 한다.
+    caveat: "IDEF0 자체는 설비를 Mechanism 화살표 하나로 취급 — 그대로는 스키마가 못 된다."
+    tags: [idef0, ump, 경계]
+
+  - id: L-idta-technicaldata
+    kind: literature
+    t: 2026-08-10
+    by: CC
+    status: relevant
+    source:
+      title: "IDTA 02003-2-0 Generic Frame for Technical Data for Industrial Equipment in Manufacturing"
+      authors: "IDTA"
+      year: 2023
+      venue: "IDTA Submodel Template"
+      url: "https://industrialdigitaltwin.io/idta-submodel-templates/Generic%20Frame%20for%20Technical%20Data%20for%20Industrial%20Equipment%20inManufacturing/v2.0/index.html"
+    claim: >-
+      최상위는 GeneralInformation(1) / ProductClassifications(0..*) /
+      TechnicalPropertyAreas(0..*) / FurtherInformation(0..1) /
+      SpecificDescriptions(0..*) 5칸. 실제 제원이 들어가는 TechnicalPropertyAreas에
+      대해 표준이 규정하는 것은 "가독성을 위해 SMC로 대·소 절 구성 가능"과
+      "속성에 ECLASS/IEC CDD semanticId 부여" 두 가지뿐 — 절 이름·깊이·필수 속성을
+      정하지 않는다.
+    relevance: >-
+      TechnicalData 일반화의 표준 답은 '구조 일반화'가 아니라 '의미(semanticId)
+      일반화'다. 모든 설비 공통 속성 목록을 만들려는 시도는 표준이 택하지 않은 방향.
+      공통으로 고정할 수 있는 건 속성이 아니라 절 구조뿐.
+    gap: >-
+      "그럼 절 구조는 어떻게 나누나"에 대해 표준이 답을 주지 않는다 — 여기가 우리가
+      정해야 하는 지점.
+    tags: [technicaldata, idta]
+
+  - id: L-opcua-machinery-bbb
+    kind: literature
+    t: 2026-08-10
+    by: CC
+    status: relevant
+    source:
+      title: "OPC UA for Machinery Part 1: Basic Building Blocks (OPC 40001-1) v1.04.1"
+      authors: "OPC Foundation / VDMA"
+      year: 2026
+      venue: "OPC UA Companion Specification"
+      url: "https://reference.opcfoundation.org/specs/OPC-40001-1/4"
+    claim: >-
+      설비 공통 기본 블록을 규정 — §8 설비 식별·명판, §9 서버 내 설비 목록,
+      §10 구성품 식별·명판, §11 구성품 목록(MachineComponentsType),
+      §12 MachineryItemState(상태기계), §13 MachineryOperationMode,
+      §14 Operation Counter(PowerOnDuration/OperationDuration/OperationCycleCounter),
+      §15 Lifetime Counter, §16 Monitoring, §17 MachineryEquipment, §18 Notifications.
+    relevance: >-
+      "대부분의 설비에 일반화되는 구조"를 정면으로 겨냥한 유일한 표준. 특히 §10·11이
+      설비 간 차이를 '구성품 목록'이라는 한 축으로 몰아넣는 해법을 제시한다 —
+      우리 OperationalData 뼈대의 1순위 참조.
+    takeaway: "최상위는 얕게 고정, 변동은 구성품(Component) 축으로 흡수."
+    tags: [operationaldata, opcua, 구성품축]
+
+  - id: L-state-models
+    kind: literature
+    t: 2026-08-10
+    by: CC
+    status: relevant
+    source:
+      title: "PackML(ANSI/ISA-88 Part 5, OMAC) 17 states + SEMI E10 6 states / E116 EPT"
+      authors: "OMAC / ISA / SEMI"
+      year: 2020
+      venue: "ISA-88 Part 5, SEMI E10, SEMI E116"
+      url: "https://www.omac.org/packml"
+    claim: >-
+      PackML은 설비 상태를 17개(Idle, Starting, Execute, Completing, Complete,
+      Resetting, Holding, Held, Unholding, Suspending, Suspended, Unsuspending,
+      Stopping, Stopped, Aborting, Aborted, Clearing)로 고정하고, 그 부분집합을
+      unit mode로 묶는다. SEMI E10은 설비의 모든 시간이 6상태(Productive, Standby,
+      Engineering, Scheduled Downtime, Unscheduled Downtime, Non-Scheduled) 중
+      하나에 속하도록 강제하고, E116(EPT)은 그 6상태를 사람 입력 없이 설비 데이터로
+      산출하는 하위 추적 규격이다.
+    relevance: >-
+      운전 모드·상태를 자유 문자열로 두면 설비마다 어휘가 갈린다. KASMO의
+      OperatingMode.PresentOperationMode 값 어휘를 열거형으로 고정할 때의 근거.
+    caveat: "PackML은 포장기계 출신, SEMI는 반도체 출신 — 우리 설비군에 그대로 이식되는지는 별도 판단 필요."
+    tags: [operationaldata, 상태기계]
+
+  - id: L-iso22400-time
+    kind: literature
+    t: 2026-08-10
+    by: CC
+    status: relevant
+    source:
+      title: "ISO 22400-2 제조운영관리 KPI 정의 (OEE 및 시간 요소)"
+      authors: "ISO/TC 184"
+      year: 2014
+      venue: "ISO 22400-2:2014"
+      url: "https://www.iso.org/standard/54497.html"
+    claim: >-
+      KPI 34종을 식과 함께 정의하고, 그 재료가 되는 시간 요소를 명명한다 —
+      Planned Busy Time, Actual Production Time, Planned Run Time per Item,
+      Produced Quantity, Good Quantity, TTF/TBF/TTR 등. KPI 요소는 IEC 62264
+      (ISA-95)의 work unit에 정렬시킨다.
+    relevance: >-
+      KASMO ProductionOperatingLog(OperationTime/DownTime/OperationPlanTime/
+      AccumulationOperationTime)가 이 자리에 해당한다. 다만 각 항목이 ISO 22400
+      어느 시간 요소인지 KASMO 산출물에 명시돼 있지 않아, 그대로 쓰면 OEE 산식이
+      달라질 수 있다.
+    gap: "KASMO 시간 항목 ↔ ISO 22400 시간 요소 매핑이 비어 있음 — 우리가 채울 자리."
+    tags: [operationaldata, 시간모델, oee]
+
+  - id: L-mtconnect-dataitems
+    kind: literature
+    t: 2026-08-10
+    by: CC
+    status: relevant
+    source:
+      title: "MTConnect Standard Part 2.0 Devices Information Model / Part 3.0 Observation Information Model"
+      authors: "MTConnect Institute"
+      year: 2024
+      venue: "MTConnect Standard"
+      url: "https://docs.mtconnect.org/MBSD_MTConnect_Part_2_2_0_0.pdf"
+    claim: >-
+      설비를 Device→Component 계층으로 분해하고 각 Component에 DataItem을 붙이되,
+      DataItem은 SAMPLE(연속 아날로그) / EVENT(이산 정보) / CONDITION(정상·경고·고장
+      판정) 세 범주뿐이다.
+    relevance: >-
+      관측값을 3범주로 나누는 규율. KASMO는 ActualDataMonitoring(연속) /
+      AlarmCode(사건) / Threshold·SensorHealth(판정)로 사실상 3범주를 쓰지만 명시
+      구분이 없다 — 우리 구조에선 범주를 드러낼지 결정해야 한다.
+    tags: [operationaldata, 관측범주]
+
+  - id: L-iso13374-osacbm
+    kind: literature
+    t: 2026-08-10
+    by: CC
+    status: relevant
+    source:
+      title: "ISO 13374 / MIMOSA OSA-CBM 상태감시 6블록"
+      authors: "ISO / MIMOSA"
+      year: 2012
+      venue: "ISO 13374 series, OSA-CBM"
+      url: "https://www.mimosa.org/mimosa-osa-cbm/"
+    claim: >-
+      상태감시 시스템을 6블록으로 규정 — Data Acquisition, Data Manipulation,
+      State Detection, Health Assessment, Prognostic Assessment,
+      Advisory Generation. OSA-CBM이 데이터 구조·스키마·인터페이스를 제공.
+    relevance: >-
+      KASMO의 SensorHealth·PredictiveMaintenance 서브모델이 이 계층. 두 칸의 경계를
+      6블록 어디서 자를지로 정할 수 있다.
+    tags: [건전성, 예지보전]
+
+  - id: L-idta-published-list
+    kind: literature
+    t: 2026-08-10
+    by: CC
+    status: relevant
+    source:
+      title: "IDTA 발행 서브모델 템플릿 25종 목록"
+      authors: "IDTA"
+      year: 2026
+      venue: "admin-shell-io/submodel-templates (published)"
+      url: "https://github.com/admin-shell-io/submodel-templates"
+    claim: >-
+      Technical Data / Digital Nameplate / Contact Information / MTP /
+      Provision of Simulation Models / Software Nameplate / DEXPI /
+      Asset Interface Description / Control Component Type·Instance /
+      Functional Safety / Handover Documentation / Hierarchical Structures
+      enabling BoM / Reliability / Sizing of Power Drive Trains /
+      Time Series Data / Service Request Notification / Carbon Footprint /
+      Wireless Communication / Capability Description / Asset Interfaces
+      Mapping Configuration / Data Retention Policies / Provision of 3D Models /
+      Workstation Worker Matching Data 등 25종이 published.
+    relevance: >-
+      OperationalData에 해당하는 IDTA 표준 템플릿이 목록에 없다. Time Series Data
+      (시계열 저장 형식)와 Asset Interface Description(통신 인터페이스)이 인접할 뿐
+      "설비가 지금 어떤 상태이고 오늘 얼마나 돌았나"를 담는 표준 칸은 없다.
+    takeaway: "일반화 설계가 실제로 필요한 곳은 OperationalData — TechnicalData는 표준 골격을 채우는 문제."
+    tags: [idta, 범위확정]
+
+  # ---------------- 실측 발견 ----------------
+  - id: F-kosmo-4-required-sm
+    kind: finding
+    t: 2026-08-10
+    by: CC
+    status: active
+    claim: >-
+      국내 사업(2025 중소벤처기업부 과제공고 기준) AAS 모델 체크리스트가 필수 서브모델
+      4종을 명시한다 — Identification, Technical Data, Operational Data,
+      Documentation. TechnicalData·OperationalData만 일반화 대상으로 삼는 것은
+      이 제도적 요구와 일치한다(나머지 둘은 IDTA 표준 템플릿이 그대로 채움).
+    basis: >-
+      kasmo_후보데이터.zip / 전해도금조_체크리스트.xlsx / 시트 'AAS Model Checklist'
+      항목 5(중요도 필수). 같은 시트가 idShort 명명규칙·IRDI 실재성·ConceptDescription
+      매핑도 필수로 강제.
+    related: [{type: supports, ref: L-idta-technicaldata}]
+    tags: [범위확정, kasmo]
+
+  - id: F-kasmo-operational-skeleton
+    kind: finding
+    t: 2026-08-10
+    by: CC
+    status: active
+    claim: >-
+      KASMO 후보데이터 설비 3종(도금두께측정기·전해도금조·에칭장비)의 OperationalData가
+      동일한 6~7블록을 공유한다 — PresentTime/Timestamp, BatchData(Setting·WorkOrder·
+      ProductionPlan·ProductProductionLog·EnergyData 포함), Threshold, OperatingMode
+      (ControlType·PresentOperationMode·AlarmCode·AlarmCodeDescription 4항목이 3종
+      동일), ProductionOperatingLog, ActualDataMonitoring(EquipmentState + 모듈별),
+      SensorHealth. 설비 특화는 전부 모듈(구성품) 이름으로만 들어가고 블록 자체는
+      바뀌지 않는다. 서브모델 목록 자체도 4종이 거의 동일.
+    basis: >-
+      .aasx 4종 직접 파싱(aas.xml 트리 덤프, 2026-08-10). 예외는 표면처리기 — 서브모델
+      이름이 OperationData(단수)이고 내부가 블록 없이 Property 30개 평면 나열이라
+      이전 세대로 판단, 뼈대 참조 시 제외 대상.
+    related: [{type: supports, ref: L-opcua-machinery-bbb}]
+    tags: [kasmo, operationaldata, 뼈대]
+
+  - id: F-kasmo-technical-pattern
+    kind: finding
+    t: 2026-08-10
+    by: CC
+    status: active
+    claim: >-
+      KASMO TechnicalData는 IDTA 5칸 중 GeneralInformation·ProductClassifications·
+      FurtherInformation을 손대지 않고 그대로 쓰고, TechnicalPropertyAreas 자리만
+      자체 이름(EquipmentSpecification)으로 대체해 '설비 전체 정격 + 모듈별 제원'
+      두 층으로 쪼갠다. 단위 정의 컬렉션이 별도로 존재.
+    basis: ".aasx 파싱 — 도금두께측정기·에칭장비 TechnicalData/2/0 트리 비교"
+    related: [{type: based-on, ref: L-idta-technicaldata}]
+    tags: [kasmo, technicaldata]
+
+  - id: F-kasmo-naming-drift
+    kind: finding
+    t: 2026-08-10
+    by: CC
+    status: active
+    claim: >-
+      같은 사업 산출물 안에서도 뼈대를 문서로 못박지 않으면 이름이 갈린다 —
+      단위 정의 컬렉션이 도금두께측정기는 ModelInternalApplicationUnit,
+      에칭장비는 BaseUnitSetting인데 담는 내용(Time/Temperature/Humidity/Current/
+      Voltage/Pressure/Flowrate Unit)은 사실상 같다.
+    basis: ".aasx 파싱 2종 비교 — 동일 사업·동일 TechnicalData/2/0 버전"
+    related: [{type: supports, ref: F-kasmo-technical-pattern}]
+    tags: [kasmo, 실패사례, 용어]
+
+  - id: F-smt-operational-divergence
+    kind: finding
+    t: 2026-08-10
+    by: CC
+    status: active
+    claim: >-
+      우리 SMT 8종(Loader/SPI/ScreenPrinter/Mounter/AOI/Reflow/Unloader/AgingTest)의
+      OperationalData는 공통 블록이 하나도 없다 — 8종 8색(Feeds·Heads·LogLots·PcbLogs /
+      BarCode·LotTracking·PCBInfo·InspectionData / PCBBarcodes / ArrayData / DataID /
+      DeviceStatus·PortStatus·PoEPower … ). 벤더 로그 형식을 그대로 서브모델로 옮긴
+      상태여서 설비가 늘 때마다 구조가 하나씩 는다. 한편 TechnicalData는 8종 전부
+      IDTA 골격 그대로이고 TechnicalPropertyAreas 하위가 비어 있어 설비 제원이 실제로는
+      들어가 있지 않다. 반면 자체 서브모델 MCF는 8종 공통으로 잘 일반화돼 있다.
+    basis: "aas_data/SMT/SMT_AAS.zip 8종 .aasx 직접 파싱(2026-08-10)"
+    related: [{type: compares-to, ref: F-kasmo-operational-skeleton}]
+    tags: [smt, 현황진단]
+
+  - id: F-generalization-principles
+    kind: finding
+    t: 2026-08-10
+    by: CC
+    status: active
+    claim: >-
+      둘 이상의 표준이 독립적으로 같은 답을 낸 일반화 원리 5가지 —
+      (1) 최상위 블록은 얕게 고정하고 설비 차이는 구성품 축으로 흡수
+      (OPC UA §10·11, MTConnect Device→Component, KASMO 모듈별 SMC),
+      (2) 정적 제원은 구조가 아니라 semanticId로 일반화(IDTA 02003, KASMO 체크리스트),
+      (3) 상태·모드는 자유 문자열이 아닌 상태기계(PackML, OPC UA §12·13, SEMI E10),
+      (4) 시간·실적은 정의된 시간 모델 위에(ISO 22400-2, SEMI E10, OPC UA §14),
+      (5) 관측값은 3범주로 — 연속 측정/이산 사건/상태 판정(MTConnect, ISO 13374).
+    basis: >-
+      본 조사 표준 7종 교차 대조 + KASMO 실측 3종 일치 확인.
+      정리 문서: docs/설비AAS_일반화구조_레퍼런스조사.md
+    related:
+      - {type: based-on, ref: L-opcua-machinery-bbb}
+      - {type: based-on, ref: L-state-models}
+      - {type: based-on, ref: L-iso22400-time}
+      - {type: based-on, ref: L-mtconnect-dataitems}
+      - {type: based-on, ref: L-idta-technicaldata}
+    tags: [설계원리]
+
+  # ---------------- 제안 (사람 확인 대기) ----------------
+  - id: D-adopt-kasmo-skeleton
+    kind: decision
+    t: 2026-08-10
+    by: user
+    status: reversed
+    decision: >-
+      OperationalData 일반화 뼈대로 KASMO 3종 공통 블록을 채택하되, 각 블록을 국제
+      표준에 정렬시킨다(OperatingMode→PackML/OPC UA 상태기계, ProductionOperatingLog→
+      ISO 22400-2 시간 요소, ActualDataMonitoring/Threshold→구성품 축 + MTConnect
+      3범주, SensorHealth→ISO 13374). TechnicalData는 IDTA 5칸을 유지하고
+      TechnicalPropertyAreas 안쪽만 '설비 전체 정격 / 모듈별 제원 / 단위 정의' 3절로
+      고정한다.
+    reason: >-
+      국내 심사 체크리스트(F-kosmo-4-required-sm)와 국제 표준(F-generalization-
+      principles)이 요구하는 바가 이 조합에서 동시에 만족된다. KASMO 뼈대는 국내
+      사업 산출물 3종에서 실증된 형태이고, 표준 정렬은 대외 연동 시 의미 보증을 준다.
+    scope: "TechnicalData·OperationalData 두 서브모델에 한함. Identification·Documentation은 IDTA 템플릿 그대로."
+    related:
+      - {type: based-on, ref: F-kasmo-operational-skeleton}
+      - {type: based-on, ref: F-generalization-principles}
+      - {type: depends-on, ref: O-kasmo-vs-standard-naming}
+    tags: [제안, 확인대기]
+
+  # ---------------- 열린 질문 ----------------
+  - id: O-kasmo-vs-standard-naming
+    kind: open
+    t: 2026-08-10
+    by: CC
+    status: open
+    question: >-
+      블록 이름을 KASMO 실물(EquipmentSpecification, ProductionOperatingLog,
+      ActualDataMonitoring …) 그대로 쓸 것인가, 국제 표준 이름으로 재정렬할 것인가.
+      전자는 국내 심사·체크리스트와 맞고 후자는 대외 연동과 맞다. 둘 다 만족시키려면
+      매핑표가 필요하다. 단위 정의 컬렉션은 KASMO 내부에서도 이름이 갈렸으므로
+      (ModelInternalApplicationUnit vs BaseUnitSetting) 어느 쪽이든 우리가 하나 골라야 한다.
+    blocks: "D-adopt-kasmo-skeleton"
+    related: [{type: raises, ref: F-kasmo-naming-drift}]
+    tags: [용어, 확인필요]
+
+  - id: O-iso22400-mapping
+    kind: open
+    t: 2026-08-10
+    by: CC
+    status: open
+    question: >-
+      ProductionOperatingLog의 시간 항목(OperationTime, DownTime, OperationPlanTime,
+      AccumulationOperationTime)을 ISO 22400-2 시간 요소에 매핑할 수 있는가.
+      OperationTime이 Actual Production Time인지 Planned Busy Time인지에 따라 OEE
+      산식이 달라진다.
+    related: [{type: based-on, ref: L-iso22400-time}]
+    tags: [시간모델, oee]
+
+  - id: O-mcf-operational-overlap
+    kind: open
+    t: 2026-08-10
+    by: CC
+    status: open
+    question: >-
+      우리 MCF 서브모델(Inputs: RawMaterials/Energy/Utilities/Components)과
+      OperationalData의 BatchData/EnergyData가 둘 다 에너지·투입을 담는다.
+      어느 쪽이 원본이고 어느 쪽이 파생인가. IDEF0 ICOM 기준으로 보면 Setting·
+      WorkOrder는 Control, EnergyData는 Input이라 같은 BatchData 안에 있는 것 자체가
+      경계 혼선일 수 있다.
+    related: [{type: based-on, ref: L-idef0-ump}]
+    tags: [경계, mcf]
+
+  # ---------------- 2차 조사 (구조 규율) ----------------
+  - id: L-idta-v2-layering
+    kind: literature
+    t: 2026-08-10
+    by: CC
+    status: relevant
+    source:
+      title: "IDTA 02003-2-0 v2.0 §2.1 구조 규정 및 §3.5 TechnicalPropertyAreas/Section 표"
+      authors: "IDTA"
+      year: 2025
+      venue: "IDTA Submodel Template v2.0 (2025-03 발행) 원문 PDF"
+      url: "https://raw.githubusercontent.com/admin-shell-io/submodel-templates/main/published/Technical_Data/2/0/IDTA%2002003_Template_TechnicalData.pdf"
+    claim: >-
+      TechnicalPropertyAreas는 SML(0173-1#02-ABK163#002)이고 원소 SMC의 semanticId
+      설명이 "Specific property area referenced by a product classification" —
+      area의 분할 축은 제품 분류이며 ProductClassifications의
+      ReferenceToTechnicalPropertyArea가 연결한다. area 안의 Section은 SMC이며
+      semanticId가 https://admin-shell.io/SMT/General/Arbitrary 하나로 통일, idShort는
+      임의, Section 안에 Section 재귀 허용(깊이 제한 없음). v1.2의 MainSection/SubSection
+      이원 구분은 v2.0에서 단일 Section으로 통합돼 사라졌다. 본문은 "This structure is
+      therefore domain specific and shall be defined by domain specific specifications"라
+      명시한다.
+    relevance: >-
+      "설비마다 어떤 건 수평으로 늘어놓고 어떤 건 깊게 판다"는 문제에 대한 표준의 답 —
+      표준은 깊이·이름을 정하지 않고 도메인 명세에 위임한다. 즉 우리가 만들 배치 규율이
+      표준이 요구하는 산출물 그 자체다. 표준이 주는 유일한 구조적 구속은 area 축(제품 분류)뿐.
+    takeaway: "area=제품분류 축(표준), Section=주제 축(우리가 정함), 깊이 상한도 우리가 정함."
+    tags: [technicaldata, 계층규율]
+
+  - id: L-idta-agv-sections
+    kind: literature
+    t: 2026-08-10
+    by: CC
+    status: relevant
+    source:
+      title: "IDTA 02047-1-0 Technical Data for AGV in Intralogistics"
+      authors: "IDTA"
+      year: 2025
+      venue: "IDTA Submodel Template (2025-03)"
+      url: "https://industrialdigitaltwin.org/wp-content/uploads/2025/03/IDTA-02047-1-0-Submodel_Technical-Data-for-AGV.pdf"
+    claim: >-
+      IDTA가 발행한 설비 도메인 TechnicalData 정본 예시. GeneralInformation은
+      02003-2-0을 그대로 재사용하고, 설비 특화 데이터는 전부 SML SpecificDescriptions의
+      SMC #00 아래에 둔다. 그 아래 절: DataSheet(File), TypeAndApplicationInformation,
+      TechnicalParameters, VDA5050Factsheet, Energy(하위 Battery),
+      CommunicationAndControl, Safety, TemporaryTechnicalData, CurrentAttachments,
+      ProprietaryConfigurationOptions. 각 절은 자체 IRI semanticId를 가진다.
+    relevance: >-
+      설비별 확장의 표준 경로는 최상위 칸 신설이 아니라 SpecificDescriptions/Section이라는
+      실증. 또한 출처 있는 절 이름 공급원 — Energy, CommunicationAndControl, Safety,
+      TypeAndApplicationInformation, TemporaryTechnicalData를 우리 절 이름 후보로 쓸 수 있다.
+    takeaway: >-
+      TemporaryTechnicalData의 존재가 중요 — 설비 고유 불변 사양과 설치 현장에 따라
+      달라지는 값을 같은 절에 섞지 않는 IDTA식 해법.
+    gap: "유지보수 절과 설치 환경조건 절은 AGV에 없어 이름 출처가 없다."
+    tags: [technicaldata, 절이름, 사례]
+
+  - id: L-idta-pvm-02066
+    kind: literature
+    t: 2026-08-10
+    by: CC
+    status: relevant
+    source:
+      title: "IDTA 02066 Process Variables for Manufacturing Key Performance Indicators v1.0"
+      authors: "IDTA"
+      year: 2026
+      venue: "IDTA Submodel Template (2026-04 발행)"
+      url: "https://raw.githubusercontent.com/admin-shell-io/submodel-templates/main/published/Process%20Variables%20for%20Manufacturing%20Key%20Performance%20Indicators/1/0/IDTA%2002066_Submodel_PVM.pdf"
+    claim: >-
+      ISO 22400-2가 정의한 공정변수를 그대로 SMC로 표준화 — ActualPersonnelWorkTime,
+      ActualUnitProcessingTime, ActualUnitBusyTime, ActualOrderExecutionTime,
+      ActualProductionTime, ActualQueuingTime, ActualUnitDownTime, ActualUnitDelayTime,
+      ActualUnitSetupTime, ActualTransportTime, GoodPart, InspectedPart, ScrapQuantity,
+      GoodQuantity, ReworkQuantity, ProducedQuantity, PlannedBusyTime,
+      PlannedRuntimePerItem. semanticId는 w3id.org/hsu-aut/ISO22400-2# 네임스페이스.
+      AID(신호 접속) + AIMC(변환 규칙) + PVM(표준 변수) 파이프라인으로 설계돼 있다.
+    relevance: >-
+      OperationalData에 자체 정의하려던 가동시간·수량 집계 자리를 표준이 이미 덮는다.
+      L-idta-published-list의 "OperationalData 표준 템플릿 없음" 서술을 정정한다.
+      O-iso22400-mapping(시간요소 매핑 질문)도 이 템플릿을 채택하면 자동 해소된다.
+    related: [{type: supersedes, ref: L-idta-published-list}, {type: answers, ref: O-iso22400-mapping}]
+    tags: [operationaldata, iso22400, 정정]
+
+  - id: F-smt-section-drift
+    kind: finding
+    t: 2026-08-10
+    by: CC
+    status: active
+    claim: >-
+      우리 SMT 7종은 이미 area 1개 + Section 수평 나열 구조를 쓰고 있으나 절 이름과 배치가
+      설비마다 다르다. 2개 이상 설비에 공통 등장하는 property 26개 중 13개가 서로 다른 절에
+      배치돼 있다 — PowerConsumption(5종 EnvironmentalSpecifications vs Mounter·Reflow
+      EnergyEfficiency), MeanTimeToRepair(3절로 분산), MESIntegration(SystemIntegration vs
+      ConnectivityAndIntegration), PCBThicknessRange(3절), CycleTimeSec(7종 모두 성능 절이나
+      절 이름이 7종 7색). 원인 넷: (가) 절 이름이 설비 종속, (나) 한 절에 축이 둘 섞임
+      (EnvironmentalSpecifications가 '소비하는 것'과 '요구하는 조건'을 함께 담음),
+      (다) 기준 없는 잡동사니 절 AdvancedFeatures, (라) 결합 절 SafetyAndReliability.
+    basis: >-
+      aas_data/*.json 7종 TechnicalPropertyAreas 파싱 후 property→절 역매핑
+      (2026-08-10). SMT_AAS.zip보다 aas_data/*.json이 최신이며 zip 쪽은 areas가 비어 있음.
+    related: [{type: supersedes, ref: F-smt-operational-divergence}]
+    tags: [smt, 현황진단, 절불일치]
+
+  - id: F-kasmo-template-violations
+    kind: finding
+    t: 2026-08-10
+    by: CC
+    status: active
+    claim: >-
+      KASMO 산출물의 구조 결함 7건 실측 — (1) 4종 중 3종이 TechnicalPropertyAreas
+      (0173-1#02-ABK163#002)와 SpecificDescriptions(0173-1#02-ABM221#001)를 삭제하고
+      자체 SMC EquipmentSpecification·단위 컬렉션을 최상위에 신설(표면처리기만 템플릿 준수),
+      (2) 단위 컬렉션 이름이 설비 간 불일치, (3) 자체 IRI semanticId가 'Https://'(대문자 H)로
+      3종 공통 오타 — 자기네 체크리스트의 IRI 양식 항목 위반, (4) Identification(HSU 구식
+      스키마)과 Nameplate(IDTA v3) 정보 중복, (5) DataSource와 AssetInterfacesDescription
+      역할 중복, (6) Threshold·Setting이 성격상 TechnicalData/ProcessParameters인데
+      OperationalData에 있음, (7) EquipmentSpecification 아래 낱개 속성·주제 절·구성품 절이
+      같은 계층에 혼재. property 어휘(ElectricitySpecification, EquipmentSize 등)는 재활용
+      가능하나 구조는 채택 대상이 아니다.
+    basis: ".aasx 4종 semanticId 포함 파싱 + IDTA 02003-2-0 원문 대조 (2026-08-10)"
+    related: [{type: supersedes, ref: F-kasmo-technical-pattern}]
+    tags: [kasmo, 구조결함, 실측]
+
+  - id: F-layering-rules
+    kind: finding
+    t: 2026-08-10
+    by: CC
+    status: active
+    claim: >-
+      배치 규율 7조로 정리 — R1 한 계층에는 분할 축 하나, R2 Level1(area)=제품 분류 단위,
+      R3 Level2(Section)=주제 축 공통 목록에서만 선택(설비명 금지), R4 Level3=구성품/세부 축,
+      R5 깊이 상한 3, R6 값의 방향으로 절을 가름(설비가 수행하는 것/받아들이는 것/소비하는 것/
+      요구하는 것), R7 '기타' 절 금지(고유 항목은 SpecificDescriptions로).
+    basis: >-
+      L-idta-v2-layering(표준이 정한 area 축) + L-idta-agv-sections(정본 절 구성) +
+      F-smt-section-drift 원인 4종 + F-kasmo-template-violations 7번 축 혼재.
+      정리 문서: docs/설비AAS_구조규율_설계안.md
+    related:
+      - {type: based-on, ref: L-idta-v2-layering}
+      - {type: based-on, ref: L-idta-agv-sections}
+      - {type: based-on, ref: F-smt-section-drift}
+    tags: [설계원리, 배치규율]
+
+  - id: F-8box-fails-process-equipment
+    kind: finding
+    t: 2026-08-10
+    by: CC
+    status: active
+    claim: >-
+      설계안 8칸(성능·대상물·에너지·환경·통신제어·안전·보전·유형)을 성격이 다른 설비군에
+      적용하면 공정장비에서 무너진다. FAB 44종 252 파라미터 중 93건(37%)이 8칸에 자리가
+      없고, SMT 7종 188건에서는 39건(21%)이 없다. 자리 없는 것의 최대 항목은 구성품/유닛별
+      사양(FAB 66, SMT 10) — KASMO도 같다(전해도금조 사양 11개 중 6개, 에칭장비 6개 중 5개가
+      구성품 단위). 그 밖에 공정용 전기·광 파라미터(FAB 23), 소모품·물질(15), 소프트웨어(4),
+      능력 목록(SMT 6, AOI 검출 결함 유형), 유틸리티(진공·N2·순수·배기)가 담기지 않는다.
+      Energy 칸은 '설비 소비전력'과 '공정 구동·측정 신호'를 구분하지 못한다.
+      결론: 8칸은 설비를 블랙박스로 보고 벤더 카탈로그 스펙을 적는 구조이며, 구성품 축이
+      1급 자리로 빠져 있다. OPC UA 40001-1 §10·11(구성품 식별·목록)과 §17(부착 장비),
+      IDEF0 ICOM의 유틸리티·배출 축도 대응 자리가 없다.
+    basis: >-
+      docs/원본자료/keti-fab/포털수집/_파라미터_통합.json(FAB 44종 252건) +
+      aas_data/*.json(SMT 7종 188건) 키워드 규칙 분류 + 미분류 손 보정
+      (스크립트 $CLAUDE_JOB_DIR/tmp/fit2.py, 경계 사례로 ±5% 오차).
+      KASMO 4종 .aasx TechnicalData 리프 경로 파싱.
+    related:
+      - {type: contradicts, ref: F-layering-rules}
+      - {type: based-on, ref: L-opcua-machinery-bbb}
+      - {type: based-on, ref: L-idef0-ump}
+    tags: [검증, 구조결함, 구성품축]
+
+  - id: A-fab-source-depth
+    kind: assumption
+    t: 2026-08-10
+    by: CC
+    status: holding
+    assumption: >-
+      FAB 44종 자료에서 통신제어(0건)·안전(0건)·보전(2건) 칸이 비는 것은 설비에 그 특성이
+      없어서가 아니라 자료원(ZEUS 장비 예약 포털) 수집분의 카탈로그 깊이가 얕기 때문이다.
+    rationale: >-
+      같은 칸이 SMT 벤더 카탈로그 기반 AAS에서는 55건으로 채워진다. 자료원 성격 차이가
+      설비 특성 차이보다 개연성이 높다.
+    breaks_if: >-
+      FAB 현장 방문에서 해당 설비들의 매뉴얼·사양서를 확인했는데도 통신·안전·보전 항목이
+      실제로 없는 것으로 확인되면 이 전제는 깨지고, 칸 구성을 설비군별로 나눠야 한다.
+    related: [{type: depends-on, ref: F-8box-fails-process-equipment}]
+    tags: [검증한계, 현장확인필요]
+
+  - id: F-mcf-boundary-and-name-clash
+    kind: finding
+    t: 2026-08-10
+    by: CC
+    status: active
+    claim: >-
+      TechnicalData에 에너지·유틸리티 절을 두면 기존 MCF 서브모델과 겹친다. 실측 결과 MCF
+      Inputs 안에 정격(RatedPower=7.82, EnergyType, PowerFactor, Utilities의 UtilityType·
+      FlowRate·Pressure)과 실적(ConsumptionRate, AllocatedConsumption)이 함께 들어 있다.
+      경계 기준은 '생산량·기간에 따라 변하는가' — 변하면 MCF/OperationalData, 안 변하면
+      TechnicalData. 표현하면 TechnicalData는 '무엇을 어떤 방식으로 쓰는가',
+      MCF는 '얼마나 썼는가'. 또 MCF > Inputs > Components 와 Recipes > MountedComponents가
+      '투입 부품' 뜻으로 Components를 이미 점유하고 있어, 설비 하위 장치 절에 같은 이름을
+      쓸 수 없다. OperatingHours도 MCF·OperationalData·IDTA 02066(PVM) 세 곳과 겹친다.
+    basis: "aas_data/Mounter.json MCF 서브모델 전체 트리·값 파싱 (2026-08-10)"
+    related:
+      - {type: raises, ref: O-mcf-operational-overlap}
+      - {type: depends-on, ref: F-8box-fails-process-equipment}
+    tags: [mcf, 경계, 용어충돌]
+
+  - id: L-aas-entity-bom
+    kind: literature
+    t: 2026-08-10
+    by: CC
+    status: relevant
+    source:
+      title: "AAS 메타모델 Entity/EntityType + IDTA 02011-1-1 Hierarchical Structures enabling BoM"
+      authors: "IDTA"
+      year: 2023
+      venue: "IDTA-01001 Part 1 Metamodel v3.0.1 / IDTA 02011-1-1 템플릿 json"
+      url: "https://industrialdigitaltwin.org/wp-content/uploads/2024/06/IDTA-01001-3-0-1_SpecificationAssetAdministrationShell_Part1_Metamodel.pdf"
+    claim: >-
+      AAS 메타모델은 구성품을 Entity 하나로 표현하고 entityType으로 두 형태를 가른다 —
+      SelfManagedEntity는 자체 AAS를 가지며 globalAssetId 또는 specificAssetIds가 필수,
+      CoManagedEntity는 자체 AAS 없이 상위 AAS가 관리하며 식별자를 갖지 않는다.
+      IDTA 02011-1-1은 이 Entity 트리를 별도 서브모델로 표준화 —
+      EntryNode(Entity) > Node(Entity, 재귀) + RelationshipElement SameAs/IsPartOf/HasPart
+      + Property BulkCount, 최상위에 ArcheType(Full/OneDown/OneUp).
+    relevance: >-
+      "박막증착장비의 챔버는 각각 AAS인데 간단한 모듈은 SMC/SML로 표현된다"는 문제를 표준이
+      이미 하나로 통합해 둔 것 — 구조를 두 벌 만들 필요 없이 같은 자리에 Entity를 놓고
+      entityType으로 분기한다. 구성 트리 자체는 HierarchicalStructures 서브모델로 분리.
+    takeaway: >-
+      우리 MCF의 IsPartOf_Ref/HasPart_* 는 제품(PCB) 구성이므로, 설비 구성 트리는
+      별도 HierarchicalStructures 서브모델로 둔다.
+    related: [{type: answers, ref: O-component-axis-treatment}]
+    tags: [구성품축, entity, bom]
+
+  - id: D-rated-power-to-technicaldata
+    kind: decision
+    t: 2026-08-10
+    by: user
+    status: active
+    decision: >-
+      정격 항목(RatedPower, EnergyType, PowerFactor, 유틸리티 요구 사양 UtilityType·
+      FlowRate·Pressure)의 원본 위치는 TechnicalData로 한다. MCF는 참조하거나 산정 시
+      TechnicalData를 읽는다. 기저부하 분리 요건은 산정 단계에서 처리하고 값의 소재와 분리한다.
+    reason: "정격은 생산량·기간에 따라 변하지 않는 고정 사양이므로 성격상 TechnicalData에 속한다 (사용자 지시)"
+    scope: "MCF > Inputs > Energy / Utilities 의 정격·사양 항목"
+    related: [{type: based-on, ref: F-mcf-boundary-and-name-clash}]
+    tags: [mcf, 경계, 확정]
+
+  - id: L-iec81346-aspects
+    kind: literature
+    t: 2026-08-10
+    by: CC
+    status: relevant
+    source:
+      title: "IEC 81346-1:2022 산업 시스템 구조화 원칙 및 참조지정"
+      authors: "IEC"
+      year: 2022
+      venue: "IEC 81346-1:2022"
+      url: "https://standards.iteh.ai/catalog/standards/iso/a791f443-0be9-45e9-a209-9253c9259789/iec-81346-1-2022"
+    claim: >-
+      시스템 구조를 관점(aspect)별로 나눈다 — 기능(무엇을 하는가), 제품(무엇인가),
+      위치(어디 있는가), 유형. 같은 대상이 관점에 따라 다르게 분해되며, 하나의 기능이
+      여러 위치에 걸치거나 여러 기능이 같은 위치를 참조할 수 있다. 원칙은 '관점 하나를
+      고르라'가 아니라 '어느 관점의 구조인지 밝히라'이다. IDTA 02011에도 IEC 81346 기반
+      확장이 있다.
+    relevance: >-
+      "제습기 물통은 구성품인가 설비인가"가 애매한 이유의 표준적 설명 — 모델링 실수가 아니라
+      관점 미지정 상태. AAS는 자산의 디지털 표현이므로 제품 관점을 기본으로 잡으면,
+      판정 기준이 '이 물건이 무엇인가'에서 '이 값을 어떻게 쓸 것인가'로 옮겨간다.
+    takeaway: >-
+      3단 판정으로 실무화 — 값이 하나·추적 불필요면 설비 property, 여러 벌이거나 유닛 단위
+      추적이면 CoManagedEntity, 독립 자산이면 SelfManagedEntity. 애매하면 낮은 쪽에서
+      시작하고, 한 프로젝트 안에서는 같은 종류를 같은 단으로 다룬다.
+    related: [{type: supports, ref: L-aas-entity-bom}]
+    tags: [구성품축, 경계판정, iec81346]
+
+  - id: D-toplevel-subject-axis
+    kind: decision
+    t: 2026-08-10
+    by: CC
+    status: provisional
+    decision: >-
+      TechnicalData·OperationalData의 최상위 분할 축을 '누구의 값인가'(설비 전체 / 구성품)로
+      잡고, 그 아래에서 '무엇에 관한 값인가'(주제 절)로 가른다. 구성품 절의 각 유닛 SMC는
+      AssetRef(ReferenceElement, 0..1)를 두어 SelfManagedEntity면 그 AAS를 가리키고
+      CoManagedEntity면 값을 직접 담는다. 두 서브모델이 같은 유닛 키를 공유해
+      '유닛 A의 정격'과 '유닛 A의 관측값'이 한 경로로 이어지게 한다.
+      깊이 상한은 설비 레벨 4단, 구성품 레벨 +1단(총 5)으로 R5를 대체한다.
+    reason: >-
+      주제 축을 최상위에 두면(안 2) 유닛 하나의 정보가 7~8개 절에 흩어져 교체·보전 추적이
+      불가능하다(F-8box-fails-process-equipment의 (다) 문제). 구성품 사양이 과반인
+      공정장비에서는 주체 축 우선이 맞다.
+    scope: "TechnicalPropertyAreas 하위 및 OperationalData 최상위"
+    related:
+      - {type: based-on, ref: L-aas-entity-bom}
+      - {type: based-on, ref: F-8box-fails-process-equipment}
+    tags: [최상위구조, 확인대기]
+
+  - id: D-smt-baseline-absorb-kosmo
+    kind: decision
+    t: 2026-08-10
+    by: user
+    status: active
+    decision: >-
+      설비 AAS의 서브모델 구성은 SMT 설비 현행 구성(TechnicalData·OperationalData·
+      Identification·DigitalNameplate·Documentation·CAD·MCF)을 기본으로 하고, KOSMO 자료에
+      있고 우리에게 없는 서브모델은 그 내용을 TechnicalData·OperationalData 안에 넣을 수
+      있으면 넣는다. 서브모델을 새로 늘리지 않는다. 표준 정합성은 흡수한 property에 원
+      템플릿의 semanticId를 붙여 유지한다(IDTA 02066의 ISO22400-2 네임스페이스,
+      IDTA PredictiveMaintenance, IDTA 02031, ECLASS/IEC CDD).
+    reason: >-
+      SMT 설비 SM 구성을 기준으로 삼기로 했고, SM 수를 늘리면 관리·조회가 복잡해진다.
+      IDTA 02003-2-0이 '구조는 도메인이 정하고 의미는 외부 사전을 참조하라'는 원칙이므로
+      구조를 자체로 두고 semanticId만 표준에서 가져오는 것은 표준 위반이 아니다.
+      KOSMO도 PredictiveMaintenance의 RemainingUsefulLifePrediction에 IDTA semanticId를
+      그대로 달아 같은 방식을 쓰고 있다(실측 확인).
+    scope: "설비 AAS 서브모델 구성 전반. §6·§8.3·§10.5의 '별도 SM으로 뺀다' 서술을 대체."
+    related:
+      - {type: supersedes, ref: L-idta-pvm-02066}
+      - {type: based-on, ref: L-idta-technicaldata}
+    tags: [서브모델구성, 확정, 방침]
+
+  - id: F-kosmo-sm-absorbable
+    kind: finding
+    t: 2026-08-10
+    by: CC
+    status: active
+    claim: >-
+      KOSMO 서브모델 흡수 판정 실측 — DataSource(Controlbox: FactoryID·LineID·OPCUA/MQTT/
+      Modbus, ICTOTDataInterface: ERP·MES)는 프로토콜 지원 여부가 tech 통신·제어 절로,
+      FactoryID·LineID는 Nameplate/oper 컨텍스트로 흡수 가능. PredictiveMaintenance는 두
+      부분으로 나뉘는데 RemainingUsefulLifePrediction은 IDTA semanticId를 그대로 쓰고 있고,
+      Content는 유닛별(Temperaturecontroller·Powersupply·EtchingChamber·GateValveMotor)
+      관측 + 각 유닛마다 Prediction SMC를 반복하는 재귀 구조 + Alarm·EmergencyStopHistory·
+      MaintenanceHistory 이력 3종으로, 우리 oper 구성품 관측 절에 그대로 대응된다.
+      AssetInterfacesDescription은 지원 사양만 부분 흡수, AIMC·CarbonFootprint(MCF가 담당)·
+      AIModelNameplate(psm이 담당)는 미채택.
+    basis: "kasmo 4종 .aasx의 PredictiveMaintenance·DataSource 서브모델 semanticId 포함 트리 파싱 (2026-08-10)"
+    related: [{type: supports, ref: D-smt-baseline-absorb-kosmo}]
+    tags: [kosmo, 흡수, 실측]
+
+  - id: O-component-axis-treatment
+    kind: open
+    t: 2026-08-10
+    by: CC
+    status: open
+    question: >-
+      구성품 축을 어떻게 다룰 것인가 — (a) TechnicalPropertyAreas 안에 구성품 절을 1급으로
+      신설하고 유닛별 SubSection에 같은 축(성능·에너지·물질·보전)을 재귀 적용, (b) 유닛마다
+      별도 AAS를 만들고 Hierarchical Structures(BoM) 서브모델로 연결, (c) 혼합(독립 자산인
+      유닛만 별도 AAS). (b)는 설비당 AAS 개수가 3~8배로 는다. FAB 자료에는 이미 유닛 필드가
+      있다(Align/Vision, UV/Exposure, Bath/Rinse, Spin Motor/Chuck, Robot/Transfer 등).
+    blocks: "O-smt-retrofit-scope"
+    related: [{type: raises, ref: F-8box-fails-process-equipment}]
+    tags: [구조, 확인필요]
+
+  - id: D-material-utility-energy-split
+    kind: decision
+    t: 2026-08-10
+    by: user
+    status: active
+    decision: >-
+      투입을 세 축으로 나누고 각각 다른 절에 둔다 — 재료(제품에 물리적으로 편입: 도금액·PR·
+      잉크·솔더페이스트·증착 전구체) → 대상물·재료 절, 유틸리티(소모되나 제품에 안 남음:
+      N2 분위기·압축공기·냉각수·순수·진공·배기·에칭가스) → 유틸리티 절,
+      에너지(구동 동력: 전력·LNG·스팀) → 에너지 절. 판정 질문은 '제품에 남는가'.
+      따라서 유틸리티는 에너지 절에 넣지 않고 별도 절로 분리한다.
+    reason: >-
+      "설비를 사용해서 연료로 소모되는 것과 설비에서 아예 재료로 쓰는 것은 다르다"(사용자).
+      이 3분류는 우리 MCF가 이미 쓰는 축(RawMaterials/Utilities/Energy)이고 LCA 표준의
+      raw material / ancillary material / energy carrier 구분과도 일치하므로, TechnicalData가
+      다르게 나누면 두 서브모델이 어긋난다. 평면 분리하면 깊이 3을 유지한다.
+    scope: "TechnicalData 주제 절 구성 및 MCF Inputs 축 정합"
+    related: [{type: answers, ref: O-utility-axis}, {type: based-on, ref: L-idef0-ump}]
+    tags: [주제절, 에너지, mcf, 확정]
+
+  - id: F-common-vs-variable-sections
+    kind: finding
+    t: 2026-08-10
+    by: CC
+    status: active
+    claim: >-
+      주제 절은 두 부류로 갈린다 — 공통 절(설비가 무슨 일을 하든 같은 질문이 성립하고 담기는
+      property도 대체로 같음: 에너지·유틸리티·설치환경조건·안전·보전신뢰성·통신제어)과
+      가변 절(질문은 공통이나 property가 설비 기능마다 완전히 다름: 성능·대상물재료·유형용도).
+      공통 절은 이름과 property 목록까지 고정 가능, 가변 절은 이름만 고정. SMT 7종 실측
+      공통 property: OperatingTemperature 7/7, HumidityRange 7/7, MESIntegration 7/7,
+      PowerConsumption 7/7(단 5종은 환경 절, 2종은 EnergyEfficiency 절에 흩어짐),
+      SupportedProtocols 6/7, EmergencyStop 5/7, PreventiveMaintenanceAlerts 5/7,
+      MeanTimeToRepair 5/7, NoiseLevel 5/7, IoTConnectivity 5/7, MTBF 4/7, InterlockSystem 4/7.
+    basis: >-
+      aas_data/*.json 7종의 환경·에너지·안전·보전·통신 절 property 합집합 집계
+      (이름 변형 합산, 2026-08-10). 추가 발견된 이름 변형 2건:
+      EmergencyStopFunction vs EmergencyStop, SupportedProtocols vs SupportedCommunicationProtocols.
+    related: [{type: based-on, ref: F-smt-section-drift}]
+    tags: [주제절, 실측, 공통절]
+
+  - id: O-utility-axis
+    kind: open
+    t: 2026-08-10
+    by: CC
+    status: answered
+    question: >-
+      유틸리티(진공·N2·CDA·순수·배기)를 Energy 절 안에 담을 것인가 별도 절로 뺄 것인가.
+      또 공정용 전기·광 파라미터(Drive Voltage, Pulse Frequency, Wavelength, Beam Current)를
+      TechnicalData에 둘 것인가 IDTA 02031 Process Parameters 서브모델로 뺄 것인가.
+      전자는 설비 운영비·탄소 계산의 입력이고 후자는 공정 조건이라 성격이 다르다.
+    related: [{type: raises, ref: F-8box-fails-process-equipment}, {type: based-on, ref: L-idef0-ump}]
+    tags: [구조, 확인필요, 에너지]
+
+  - id: F-structure-applied-two-equipment
+    kind: finding
+    t: 2026-08-10
+    by: CC
+    status: active
+    claim: >-
+      설계 구조로 Mounter(SMT 표면실장기)와 DryEtcher(반도체 건식식각 챔버)의 TechnicalData·
+      OperationalData를 실제로 작성한 결과 두 설비의 최상위 절이 동일해졌다(tech 10절,
+      oper 8절). 빈 칸은 구조 불일치가 아니라 원본 자료에 값이 없어서다.
+      작성 과정에서 설계 수정 3건이 나왔다 — (1) Units·Utilities·History는 SML로 두면
+      basyx가 AASd-120으로 거부한다(SML 자식은 idShort 금지). 유닛을 이름으로 찾아야
+      tech·oper 키 연결이 성립하므로 이름 있는 집합은 SMC여야 한다. (2) 유닛 안에 유닛을
+      중첩하면(EtchingChamber>ESC) 깊이 5를 넘으므로 평탄 나열 + IsPartOf로 계층을 표현한다.
+      (3) 단위 정의 칸(KOSMO BaseUnitSetting)은 불필요 — 단위는 property의 semanticId·
+      valueType이 지정한다. 또 KOSMO 파일 안에서 tech의 Rectifier·VacuumPump가 oper에서는
+      Powersupply·VacuumPumpMotor로 되어 있어 정격과 관측을 이을 수 없었다(유닛 키 공유가
+      필요한 이유의 실물 증거). KOSMO Threshold는 제조사 고정 운전 한계이므로 tech의
+      Units>OperatingLimits로 옮겼다.
+    basis: >-
+      docs/설비AAS_구조안_예시/{Mounter_new.json(127 property), DryEtcher_new.json(332 property)}
+      생성 + basyx read_aas_json_file 검증 통과(각 3 objects). 매핑 근거는 같은 폴더 README.md.
+    related:
+      - {type: supports, ref: D-toplevel-subject-axis}
+      - {type: supports, ref: F-layering-rules}
+    tags: [적용예시, 검증, basyx]
+
+  - id: F-entity-range-and-subsections
+    kind: finding
+    t: 2026-08-10
+    by: CC
+    status: active
+    claim: >-
+      2차 작성에서 구조 오류 4건을 고쳤다 — (1) 구성품을 SMC + Property("EntityType")로 만든 것은
+      틀렸다. AAS 메타모델에 Entity SubmodelElement가 있고 entityType은 그 요소의 속성이며,
+      AASd-014에 따라 SelfManagedEntity는 globalAssetId(또는 specificAssetIds) 필수·
+      CoManagedEntity는 금지다. (2) SelfManagedEntity의 globalAssetId가 곧 그 구성품 자산에
+      대한 참조이므로 별도 ReferenceElement(AssetRef)는 중복이다. (3) 구성품 계층은 평탄
+      나열 + IsPartOf 대신 Entity 중첩으로 표현하고(IDTA 02011 EntryNode>Node 방식),
+      깊이 증가는 운전 한계를 Range SME(min/max)로 바꿔 상쇄한다 — 별도 OperatingLimits 절이
+      사라지고 관측값(Property)과 한계값(Range)이 요소 타입으로 구분된다.
+      (4) 한 절에 성격이 다른 것이 섞이면 하위 절로 가른다 — EnvironmentalSpecifications를
+      PhysicalCharacteristics(설비 자체 제원) / AmbientRequirements(설치 장소 요구) /
+      Emissions(주변 방출)로, Energy를 ElectricalSupply(공급 조건) / PowerRating(소비 정격)으로.
+      절 이름 3건 변경 — Units→MachineComponents(kW 등 측정 단위와 혼동, OPC UA 40001-1 §11
+      용어), Energy→EnergySupply, EnvironmentalSpecifications→InstallationAndEnvironment.
+    basis: >-
+      사용자 지적(2026-08-10) + AAS 메타모델 v3 Entity 스펙(aas-core-meta) + basyx Entity 시그니처
+      확인. 재생성 후 basyx 검증 통과(Mounter 121 property, DryEtcher 218 property).
+    related: [{type: supersedes, ref: F-structure-applied-two-equipment}]
+    tags: [적용예시, entity, 구조수정]
+
+  - id: D-classification-not-property-template
+    kind: decision
+    t: 2026-08-10
+    by: user
+    status: active
+    decision: >-
+      이 작업의 산출물은 property 목록을 미리 채운 템플릿이 아니라 '분류 골격'이다.
+      property 목록은 기존 설비 AAS의 것을 그대로 쓰고, 정하는 것은 그것들을 위에서부터
+      어느 축으로 나눠 어느 절에 넣을지의 기준이다. 골격 파일에는 절만 두고 property 는
+      0개로 한다.
+    reason: >-
+      "prop는 미리 만들어두지 말고, 지금하는작업은 prop들 리스트는 기존과 동일한데
+      그걸 어떤 관점에서 위에서부터 분류할지를 좀 정하는거임"(사용자). property 를 골격에
+      박아두면 설비마다 안 쓰는 칸이 남고, 정작 필요한 판정 기준은 드러나지 않는다.
+    scope: "docs/설비AAS_구조안_예시/EquipmentTemplate.json 및 설계안 §11"
+    related: [{type: supersedes, ref: F-common-vs-variable-sections}]
+    tags: [방침, 골격, 확정]
+
+  - id: F-classification-axes-defined
+    kind: finding
+    t: 2026-08-10
+    by: CC
+    status: active
+    claim: >-
+      계층별 분할 축을 확정했다 — 서브모델은 '변하는가'(생산량·기간에 따라 변하면 oper/MCF,
+      안 변하면 tech), area(1단)는 '제품 분류'(표준이 정한 축), 절(2단)은 '무엇에 관한
+      값인가'(주제) + '누구의 값인가'(설비 전체/구성품), 하위 절(3단)은 절마다 다르며 섞이는
+      성격이 있을 때만 만든다, 구성품 안은 '값의 종류'(사양·관측=Property, 상하한=Range,
+      하위 구성품=Entity). 그 위에서 tech 10절·oper 8절 각각에 '들어옴 / 안 들어옴'을
+      명시했다 — 예: CommunicationAndControl 은 '무엇을 지원하는가'만, 실제 엔드포인트는
+      AID 소관. MaintenanceAndReliability 는 보전 사양만, 실제 이력은 oper History.
+      Utilities 와 HandledObjects 의 경계는 '제품에 남는가'.
+    basis: >-
+      골격 파일 docs/설비AAS_구조안_예시/EquipmentTemplate.json (SMC 35, SML 4, Entity 4,
+      Property 0, basyx 검증 통과, kind=Template/assetKind=Type) 각 절 description 에 판정 기준
+      기재. 설계안 §11.4~11.5.
+    related: [{type: based-on, ref: D-classification-not-property-template}]
+    tags: [분류축, 골격, 판정기준]
+
+  - id: F-slot-coverage-check
+    kind: finding
+    t: 2026-08-10
+    by: CC
+    status: active
+    claim: >-
+      AAS자료모음의 property 후보 168건(11개 AAS 후보)을 분류 골격에 배치한 결과 167건(99%)이
+      자리를 찾았고 미분류는 1건('테이블(척) 냉각유체 분사' — 값이 아니라 동작 서술).
+      그러나 150건(89%)이 '공정 조건' 한 성격에 몰려 ProcessPerformance/ProcessSetting 절이
+      비대해진다. 하위 축 후보를 재보니 물리량 축은 146/150(97%) 분류되나 나누면 '온도 44개'가
+      한 칸에 모여 무의미하고, 공정 단계 축은 75/150(50%)만 작동한다(공정 압력·기판 온도처럼
+      단계가 이름에 없는 것이 절반). 본질은 대상 축('무엇의 온도인가')이지만 슬롯 이름 절반이
+      대상을 밝히지 않아 지금 자료로는 끝까지 갈 수 없다 — 자료 보완이 선행 항목.
+      구성품 귀속은 47건(27%), 16종 등장(ProcessChamber 8·Nozzle 8·SourceTank 4·
+      PrintingPlate 4 등)으로 구성품 축은 유효. tech 공통 절 6개(EnergySupply·Utilities·
+      InstallationAndEnvironment·Safety·MaintenanceAndReliability·CommunicationAndControl)는
+      0건 — 특허·논문 자료원이 설비 사양을 주지 않기 때문이며 절 설계 문제가 아니다.
+      ZEUS 포털 자료 252건(설비 사양 위주, 공정 조건 거의 없음)과 정반대이므로,
+      설비 AAS 하나를 채우려면 두 자료원이 모두 필요하다.
+    basis: >-
+      _슬롯_목록.xlsx 시트 'AAS별 슬롯' 168행 전량 분류(스크립트 coverage2.py, 원문 컬럼으로
+      성격 확인). 1판에서 RF 파워·DC 전압을 EnergySupply로 보낸 것은 오분류였고
+      (설비 전원 사양이 아니라 공정 구동 신호 — F-8box-fails-process-equipment의 (2)와 같은 건)
+      2판에서 공정 조건으로 정정. 정리: docs/설비AAS_구조안_예시/커버리지_AAS자료모음.md
+    related:
+      - {type: supports, ref: F-classification-axes-defined}
+      - {type: supports, ref: A-fab-source-depth}
+    tags: [커버리지, 검증, 자료원]
+
+  - id: O-processcondition-subaxis
+    kind: open
+    t: 2026-08-10
+    by: CC
+    status: open
+    question: >-
+      ProcessPerformance(tech) / ProcessSetting(oper) 의 하위 축을 무엇으로 할 것인가 —
+      대상 축(무엇의 값인가; 구조적으로는 맞지만 슬롯 이름 75건이 대상을 안 밝힘) /
+      물리량 축(97% 분류되나 '온도 44개'가 한 칸) / 공정 단계 축(50%만 작동).
+      대상 축으로 가려면 슬롯 이름에 대상을 밝히는 자료 보완이 선행된다.
+    blocks: "O-smt-retrofit-scope"
+    related: [{type: raises, ref: F-slot-coverage-check}]
+    tags: [하위축, 확인필요]
+
+  - id: O-selfmanaged-ref-placement
+    kind: open
+    t: 2026-08-10
+    by: CC
+    status: open
+    question: >-
+      구성품이 독립 AAS(SelfManagedEntity)일 때 그 선언을 어디에 둘 것인가 —
+      (A) tech에만 Entity+globalAssetId, oper는 같은 idShort의 SMC만,
+      (B) tech·oper 양쪽에 Entity+globalAssetId (서브모델 단위 조회로 자족, 현재 예시가 이것),
+      (C) HierarchicalStructures(IDTA 02011) 서브모델을 예외로 추가하고 트리는 거기 한 곳.
+      또 하위 방향 표시(DryEtcher AAS 의 specificAssetIds>IsPartOfEquipment)를 양방향으로 둘지
+      상위→하위 한 방향만 둘지도 함께 정해야 한다.
+    blocks: "O-smt-retrofit-scope"
+    related: [{type: raises, ref: F-entity-range-and-subsections}, {type: based-on, ref: L-aas-entity-bom}]
+    tags: [구성품축, 확인필요]
+
+  - id: O-section-name-axis
+    kind: open
+    t: 2026-08-10
+    by: CC
+    status: open
+    question: >-
+      Section 공통 이름을 A안(IDTA 02047 AGV 절 이름 채택) / B안(현행 다수결 이름으로 통일) /
+      C안(자리마다 출처 있는 쪽 선택) 중 무엇으로 갈 것인가. 그리고 대상물 절
+      (현행 SupportedPCBs / SupportedComponents / SupportedComponentsAndPCBs / PCBHandling)은
+      출처 있는 이름이 없고 현행 이름이 전부 PCB에 묶여 FAB 설비(유리·PI)에 못 쓴다 —
+      새 이름 확정 필요.
+    blocks: "O-smt-retrofit-scope"
+    related: [{type: raises, ref: F-smt-section-drift}, {type: based-on, ref: L-idta-agv-sections}]
+    tags: [용어, 확인필요]
+
+  - id: O-smt-retrofit-scope
+    kind: open
+    t: 2026-08-10
+    by: CC
+    status: open
+    question: >-
+      확정된 일반화 구조를 우리 SMT 8종에 소급 적용할 것인가, 신규 설비(FAB)부터만
+      적용할 것인가. 소급 시 벤더 로그 기반 기존 필드의 이전 경로가 필요하다.
+    related: [{type: based-on, ref: F-smt-operational-divergence}]
+    tags: [적용범위]

@@ -1,0 +1,42 @@
+[
+ {
+  "label": "FIFO",
+  "seed": 1,
+  "wall": 2.1,
+  "makespan_days": 1.7493055555555554,
+  "work_time_h": 17.983333333333334,
+  "weighted_kwh": 2610.590084540843,
+  "total_kwh": 2824.5900845407728,
+  "met": true
+ },
+ {
+  "label": "RANDOM_INIT",
+  "seed": 11,
+  "wall": 20.6,
+  "makespan_days": 1.6697916666666666,
+  "work_time_h": 16.075,
+  "weighted_kwh": 2371.4501144598216,
+  "total_kwh": 2585.4501144597443,
+  "met": true
+ },
+ {
+  "label": "RANDOM_INIT",
+  "seed": 22,
+  "wall": 17.5,
+  "makespan_days": 1.6697916666666666,
+  "work_time_h": 16.075,
+  "weighted_kwh": 2371.587129338245,
+  "total_kwh": 2585.5871293381656,
+  "met": true
+ },
+ {
+  "label": "RANDOM_INIT",
+  "seed": 33,
+  "wall": 16.8,
+  "makespan_days": 1.63125,
+  "work_time_h": 15.15,
+  "weighted_kwh": 2273.487929293501,
+  "total_kwh": 2487.4879292934297,
+  "met": true
+ }
+]

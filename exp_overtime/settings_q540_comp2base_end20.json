@@ -1,0 +1,20 @@
+{
+ "_doc": "컴프레서 기저이관 AAS(2026-07-28) 첫 학습 — q540(모델당 540) · 퇴근 20:00 고정 · 요금관측 ON",
+ "run_name": "q540__comp2base__end20",
+ "mode": "train",
+ "fileset": "default",
+ "seed": 1,
+ "target_qty": {
+  "MODEL_A": 540,
+  "MODEL_B": 540,
+  "MODEL_C": 540
+ },
+ "due_day": 5,
+ "max_sec": 2592000,
+ "episodes": 30,
+ "record_events": true,
+ "env_overrides": {
+  "_doc": "WorkEndTime 은 초 단위. 20:00 = 72000",
+  "WorkEndTime": 72000
+ }
+}

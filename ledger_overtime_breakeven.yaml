@@ -1,0 +1,408 @@
+mode: review
+entries:
+  - id: F-shift-end-meets-peak
+    kind: finding
+    t: 2026-07-17
+    by: CC
+    status: active
+    claim: >-
+      CPRO 시뮬레이션 기준 근무시간(aas_data/AssemblyByWorker.json DefaultParameters)은
+      WorkStartTime 09:00 / WorkEndTime 18:00 / 점심(BreakDurationMin) 12:00~13:00로
+      고정돼 있다. 베트남 전기 피크 시간대(결정 963/QĐ-BCT, 월~토 17:30~22:30, 일요일 없음)와
+      겹쳐 보면 정규 근무 마지막 30분(17:30~18:00)이 이미 피크 요금대에 걸리고, 18:00 이후
+      모든 추가근무 시간은 전량 피크 요금(보통 대비 전압등급별 약 1.80~1.87배, 결정
+      1279/QĐ-BCT)으로 청구된다.
+    basis: >-
+      DVP-납품-부품-및-해당-부품-사용하는-모델-파악/aas_data/AssemblyByWorker.json
+      (WorkStartTime/WorkEndTime/BreakDurationMin 값, 2026-07-17 확인) ×
+      ledger_vietnam_electricity.yaml#L-tou-963-timebands, #L-tariff-1279-current.
+    related:
+      - {type: based-on, ref: "ledger_vietnam_electricity#L-tou-963-timebands"}
+      - {type: based-on, ref: "ledger_vietnam_electricity#L-tariff-1279-current"}
+      - {type: raises, ref: O-factory-kv-tier}
+      - {type: raises, ref: O-marginal-output-per-ot-hour}
+
+  - id: O-factory-kv-tier
+    kind: open
+    t: 2026-07-17
+    by: CC
+    status: open
+    question: >-
+      공장이 4개 전압등급(110kV 이상 / 22~110kV / 6~22kV / 6kV 미만) 중 어디에 해당하는지
+      확정 필요 — 등급에 따라 피크 단가가 3,266~3,640 VND/kWh로 갈린다(약 11%p 차이).
+      KETI-81(CPRO 월 전기 사용량 데이터 기반 공장 kV 추정하기) 쪽에서 실측 월별 kWh와
+      설비 정격용량은 확보됐으나(ledger_vietnam_electricity#F-cpro-monthly-kwh-2024),
+      계약전압 자체는 원본자료 어디에도 기재가 없다. 설비 정격용량(약 268kW, EVNNPC
+      저압망 재평가 문턱값 40kW의 6배 이상)과 CPRO 전용건물 확인(세입자-저압분전
+      시나리오 배제)이 결합하면서 "6kV~22kV 미만"(계량점이 자체 변압기 1차측이면
+      "22kV~110kV 미만") 쪽으로 추정이 강화됨
+      (ledger_vietnam_electricity#F-cpro-voltage-tier-estimate-v2). 다만 "6kV 미만"
+      가능성도 완전히 배제되지 않아 여전히 정황 추론 — 전기 고지서·전력공급계약서의
+      "Cấp điện áp" 항목 원문 확인 전까지 미확정. 이 값 없이는 요율표의 어느 행을 쓸지
+      못 정해 전기비용 실수치 산정 전체가 막힌다.
+    related:
+      - {type: depends-on, ref: "ledger_vietnam_electricity#F-cpro-voltage-tier-estimate-v2"}
+      - {type: depends-on, ref: "ledger_vietnam_electricity#F-cpro-monthly-kwh-2024"}
+
+  - id: O-marginal-output-per-ot-hour
+    kind: open
+    t: 2026-07-17
+    by: CC
+    status: answered
+    question: >-
+      18:00 이후 1시간 추가근무가 실제로 생산량을 얼마나 늘리는지(시간당 한계생산량) 아직
+      없음. 지금까지의 실행 기록은 전부 WorkEndTime=18:00 고정판이고, 연장 시나리오(예:
+      WorkEndTime→22:30)로 돌린 기록은 없음 — run_trained.py가 WorkStartTime/WorkEndTime
+      오버라이드를 지원하므로 실행 자체는 가능하다. 단, 다른 트랙의 선행 발견(셀-RL PoC:
+      처리율 병목은 노동이 아니라 자재)이 이번 시나리오 조건에도 유효하다면, 근무시간을
+      늘려도 자재 공급이 그대로면 생산량이 비례해서 늘지 않을 수 있음 — 이 전제부터
+      재확인 필요. 이 값 없이는 생산성 증가분 산정 전체가 막힌다.
+      → 2026-07-19 실험(OT-TRADEOFF-earliness-vs-toucost)으로 q180 시나리오에 한해
+      답 확보: 한계생산량 0 (F-overtime-zero-benefit-q180). 다른 PO 규모·자재제약
+      조건은 미답.
+    related:
+      - {type: answers, ref: F-overtime-zero-benefit-q180}
+
+  - id: F-overtime-zero-benefit-q180
+    kind: finding
+    t: 2026-07-19
+    by: CC
+    status: active
+    claim: >-
+      사전등록 실험 OT-TRADEOFF-earliness-vs-toucost(15 runs: 종업시각 5레벨 ×
+      seed 3) 결과, q180(A60/B60/C60)·고정정책 조건에서 초과근무 연장(18:00→22:30)의
+      완료 앞당김은 정확히 0이다 — 15회 전 run의 makespan이 1.562847일로 소수점
+      6자리까지 동일. 원인 두 가지: ① MODEL_A(day0 16:26)·MODEL_C(day0 14:00)는
+      정규시간 내 완료라 저녁에 남는 일감 자체가 없고, ② 전체 makespan은 MODEL_B의
+      본드 경화 24h(벽시계 대기)가 임계경로라 노동시간 연장으로 단축 불가.
+      반면 전기비용은 연장 1시간당 +35,080 VND(공장 기저전력 10kW × 피크요율
+      3,508 VND/kWh)로 단조 증가, 전 레벨 CI가 0 배제(separated). 즉 이 시나리오의
+      구조는 "트레이드오프(무릎)"가 아니라 "이득 0·비용만 증가"의 퇴화형 —
+      계약 verdict=fails(C2 이득 체감 위배: 체감할 이득 자체가 없음).
+      함의: 초과근무가 이득이 되려면 (a) 저녁까지 일감이 남는 주문 규모이거나
+      (b) 임계경로가 노동시간인 조건이어야 하며, q180은 둘 다 아니다. 이는
+      F-breakeven-productivity-ratio의 1.8배 문턱 논의보다 앞선 0차 조건이다.
+    basis: >-
+      contract_overtime_tradeoff.yaml(OT-TRADEOFF-earliness-vs-toucost, completed,
+      2026-07-19 잠금·실행) — raw: exp_overtime/overtime_sweep.json, 그래프:
+      exp_overtime/overtime_tradeoff.png. 에너지 적분은 시뮬 자체 3계정 집계와
+      15/15 일치 검증. 통계: boot_diff_ci 비용 증가 전 레벨 separated,
+      makespan은 분산 0의 exact.
+    related:
+      - {type: based-on, ref: F-shift-end-meets-peak}
+      - {type: answers, ref: O-marginal-output-per-ot-hour}
+      - {type: contradicts, ref: F-breakeven-productivity-ratio}
+      - {type: supports, ref: F-due-compliance-as-benefit-proxy}
+
+  - id: F-overtime-q540-permodel-earliness
+    kind: finding
+    t: 2026-07-19
+    by: CC
+    status: active
+    claim: >-
+      사전등록 실험 OT-TRADEOFF-q540-earliness-vs-toucost(q540=A180/B180/C180,
+      15 runs) 결과 — q180과 달리 저녁 백로그가 실재해 초과근무 시간에 조립이 실제로
+      돌았고(피크대 소비 120→447 kWh), 모델별 완료는 크게 앞당겨졌다:
+      MODEL_C −15.4h(19시 연장만으로 day1 오전→day0 저녁 완료, 이후 추가 연장은
+      효과 0으로 포화), MODEL_A −1.6~−6.1h(연장할수록 점증), MODEL_B 불변.
+      그러나 PO 전체 완료(makespan)는 −0.8분~+5.0분으로 실질 0 — MODEL_B의 본드
+      경화 24h가 임계경로여서 B가 믹스에 있는 한 전체 기준 이득은 규모를 키워도
+      생기지 않는다. 비용은 +219,247(19시)~+609,606(22:30) VND로 q180의 4배 —
+      기저전력만이 아니라 "내일 아침 보통요율에 했을 조립"이 오늘 저녁 피크요율로
+      옮겨진 대체효과가 지배. 계약 verdict=fails(C2: 전체 makespan 기준 체감할
+      이득 없음). 종합 함의: "이득"의 정의가 결론을 가른다 — ① PO 전체 완료 기준
+      이득 0·비용만 증가(손해), ② 모델별 출하 시점 기준 실질 이득 존재(특히 C의
+      19시 1시간 연장이 15.4h를 사는 최고 효율 지점, 그 이상 연장은 C엔 무효).
+      또한 무릎 구조: C 기준으로는 19시가 명확한 무릎(1시간에 15.4h, 이후 0).
+    basis: >-
+      contract_overtime_tradeoff_q540.yaml(completed, 2026-07-19) — raw:
+      exp_overtime/overtime_sweep_q540.json, 그래프:
+      exp_overtime/overtime_tradeoff_q540.png. 에너지 3계정 적분-집계 일치 15/15,
+      비용 증가 전 레벨 boot_diff_ci separated, 모델별 완료는 seed 분산 거의 0.
+    related:
+      - {type: based-on, ref: F-overtime-zero-benefit-q180}
+      - {type: supports, ref: F-due-compliance-as-benefit-proxy}
+      - {type: raises, ref: O-benefit-definition-scope}
+
+  - id: O-benefit-definition-scope
+    kind: open
+    t: 2026-07-19
+    by: CC
+    status: open
+    question: >-
+      KETI-82 손익분기 판단에서 "생산성 증가 이득"을 무엇으로 정의할지 결정 필요 —
+      (a) PO 전체 완료(makespan) 기준: B 경화가 임계경로라 초과근무 이득 0, 결론은
+      "초과근무 손해". (b) 모델별 출하 가능 시점 기준: C −15.4h·A −6.1h의 실질
+      이득 존재, 19시(1시간 연장)가 효율 무릎. (c) 납기 임박 모델만 선별 연장 등
+      운영 정책 차원. 두 실험(q180·q540)이 공통으로 보여준 것: 이 정의 선택이
+      손익분기 결론 자체를 뒤집는다. 사람 결정 필요.
+    related:
+      - {type: depends-on, ref: F-overtime-q540-permodel-earliness}
+
+  - id: O-value-per-unit
+    kind: open
+    t: 2026-07-17
+    by: CC
+    status: open
+    question: >-
+      생산량 증가분을 전기비용(VND)과 같은 화폐 단위로 비교하려면 완성품 단위당 판매가·
+      이익 데이터가 필요하다. 현재까지 확보된 생산 자료(3모델 생산성·납기 조사)는 생산성·
+      납기 실측치뿐이고 단가·이익 데이터는 확인된 바 없음. 손익을 금액(원화/VND) 기준으로
+      비교하는 경우 전체가 이 값에 막힌다 — 물량 대 kWh(에너지효율) 기준으로만 비교한다면
+      불필요.
+
+  - id: F-peak-premium-ratio-stable
+    kind: finding
+    t: 2026-07-17
+    by: CC
+    status: active
+    claim: >-
+      4개 전압등급(110kV 이상/22~110kV 미만/6~22kV 미만/6kV 미만) 전부에서 피크/보통
+      요율비를 직접 나누면 1.80~1.85로 거의 동일하다(110kV 이상 3266/1811=1.80,
+      22~110kV 3398/1833=1.85, 6~22kV 3508/1899=1.85, 6kV 미만 3640/1987=1.83).
+      즉 공장 전압등급이 아직 미확정(O-factory-kv-tier)이어도 "18:00 이후 시간당
+      전기비용이 정규시간 대비 몇 배인지"는 등급과 무관하게 약 1.8배로 사실상 고정된다.
+    basis: >-
+      ledger_vietnam_electricity#L-tariff-1279-current의 4개 전압등급별 보통/피크
+      단가를 직접 나눈 산술(외부 검증 불필요 — 이미 3-0 검증된 요율표의 단순 사칙연산).
+    related:
+      - {type: based-on, ref: "ledger_vietnam_electricity#L-tariff-1279-current"}
+      - {type: raises, ref: F-breakeven-productivity-ratio}
+
+  - id: F-breakeven-productivity-ratio
+    kind: finding
+    t: 2026-07-17
+    by: CC
+    status: active
+    claim: >-
+      이익·단가 데이터 없이도 "단위 생산량당 전기비용"으로 정규화하면 비교가 성립한다.
+      시간당 전력사용량이 정규시간·초과근무 동일하다고 가정하면, 초과근무 단위당
+      전기비용 ÷ 정규시간 단위당 전기비용 = (피크요율/보통요율) × (정규시간
+      시간당생산량/초과근무 시간당생산량) ≈ 1.8 × (정규시간 시간당생산량/초과근무
+      시간당생산량). 이 비율이 1이 되는 손익분기 조건은 "초과근무 시간당 생산량 ≥
+      정규시간 시간당 생산량 × 약 1.8"(80% 이상 더 생산해야 순수 전기비용 관점에서
+      손해를 안 봄). 22:30 이후로 초과근무가 이어지면 그 구간은 보통요율로 복귀해
+      평균 프리미엄이 1.8배보다 낮아진다. 이 결론은 시간당 전력사용량이 정규/초과
+      동일하다는 가정 위에 있으며(O-marginal-output-per-ot-hour 미해결로 실측 검증
+      전), 다른 트랙 선행발견(셀-RL PoC: 처리율 병목=노동 아닌 자재)이 유효하다면
+      초과근무 시간당 생산량이 정규시간과 같거나 낮을 가능성이 있어 1.8배 문턱
+      충족이 낙관적이지 않을 수 있다.
+    basis: >-
+      F-peak-premium-ratio-stable(요율비 산술) × 단위경제 정규화(단가 데이터 불필요한
+      비율 전개) — 시간당 전력사용량 동일 가정은 명시적 전제이며 미검증.
+    related:
+      - {type: based-on, ref: F-peak-premium-ratio-stable}
+      - {type: depends-on, ref: O-marginal-output-per-ot-hour}
+      - {type: answers, ref: O-comparison-frame-status}
+
+  - id: F-no-price-margin-data-found
+    kind: finding
+    t: 2026-07-17
+    by: CC
+    status: active
+    claim: >-
+      CPRO 생산 데이터 코퍼스(CPRO_3모델_생산데이터_정리.md 전문 + CPRO제공자료/CPRO_QA.md
+      전문)를 직접 열람한 결과 완성품 판매단가·이익률·지체상금(지연배상금) 데이터는
+      어디에도 없다. 이 코퍼스는 MRP·작업표준서·주문잔량·공정 QA 중심이고 재무·계약
+      조건은 범위 밖 — 정리 문서 §9의 "생산성 실데이터 0건"과 같은 패턴이 재무 데이터
+      쪽에도 반복됨.
+    basis: >-
+      C:\Users\KangTaehui\KG\keti\CPRO_조립공정\시뮬레이션\Package\docs\CPRO_3모델_생산데이터_정리.md
+      전문 및 C:\Users\KangTaehui\KG\keti\CPRO_조립공정\원본자료\CPRO제공자료\CPRO_QA.md
+      전문 직접 열람(2026-07-17).
+    related:
+      - {type: supports, ref: O-value-per-unit}
+      - {type: raises, ref: F-due-compliance-as-benefit-proxy}
+
+  - id: F-due-compliance-as-benefit-proxy
+    kind: finding
+    t: 2026-07-17
+    by: CC
+    status: active
+    claim: >-
+      화폐화된 이익 데이터가 없는 상황에서, 데이터로 뒷받침되는 유일한 정량 "생산량
+      증가의 이득" 대리지표는 납기 준수율이다 — CPRO_3모델_생산데이터_정리.md §7:
+      완료일정 있는 70건 중 납기 준수 35건(50%). 초과근무로 그날 정규시간 내 못
+      채운 물량을 소진하면 이 준수율이 올라갈 여지가 있다. 단, 이 효과는 "그날 자재가
+      실제로 남아있었는가"에 전적으로 좌우된다 — 같은 문서 §9의 자재병목 실측(VD7
+      200대 PO "생산가능 0", NVD1 42대 자재상한)에서 보듯 자재가 없는 날엔 초과근무를
+      해도 완성 물량이 늘지 않는다. 즉 "생산량 증가=이득"은 무조건 성립하는 게 아니라
+      "그날 자재가 남는 조건"에서만 성립하는 조건부 이득이다.
+    basis: >-
+      CPRO_3모델_생산데이터_정리.md §7(납기 준수 통계) × §9(자재병목 실측) 직접 대조.
+    related:
+      - {type: based-on, ref: F-no-price-margin-data-found}
+      - {type: supports, ref: O-comparison-frame}
+      - {type: supports, ref: O-marginal-output-per-ot-hour}
+      - {type: raises, ref: O-delay-penalty-value}
+
+  - id: O-delay-penalty-value
+    kind: open
+    t: 2026-07-17
+    by: CC
+    status: open
+    question: >-
+      납기 미준수(현재 준수율 50%) 1건당 CPRO가 실제로 부담하는 손실(지체상금 조항,
+      재발주 취소, 거래관계 훼손 등)이 얼마인지 확인 안 됨. 이 값이 있어야 납기준수율
+      개선을 화폐 단위의 이득으로 환산해 전기비용 증가분(F-breakeven-productivity-ratio)과
+      직접 비교할 수 있다. 지금까지 확인한 BG/견적서 계열 문서에도 지체상금 조항은
+      발견되지 않았다(원문 재확인 필요) — 다만 이건 생산 데이터가 아니라 계약 조건
+      성격이라 CPRO 측에 직접 문의하면 확보 가능성이 있다.
+
+  - id: F-revenue-weighted-breakeven-formula
+    kind: finding
+    t: 2026-07-17
+    by: CC
+    status: active
+    claim: >-
+      개별 기업의 이익률·단가·지체상금 데이터를 요구하지 않고도 "생산성 증가율 vs
+      전기비용 증가율"을 정규화해 비교할 수 있다 — 단가 불변을 가정하면 생산성
+      증가율≈매출 증가율이므로, 손익분기 조건 "매출증가분 ≥ 전기비용증가분"을
+      전개하면 매출×생산성증가율 ≥ 전기비용×전기비용증가율, 즉
+      "생산성증가율 ≥ (전력비/매출 비중) × 전기비용증가율"이 된다. 유일하게 필요한
+      추가 정보는 "전력비가 매출에서 차지하는 비중"이며, 이는 재무제표에서 바로
+      나오는 값(또는 업종 평균치 대체 가능)이라 개별 계약 조건보다 훨씬 일반화하기
+      쉽다. 예: 전력비 비중 1%·전기비용증가율 80%(F-breakeven-productivity-ratio의
+      피크요율 프리미엄)면 필요 최소 생산성증가율은 0.8%로 매우 낮은 문턱 — 조립형
+      제조업처럼 전력비 비중이 낮은 업종일수록 초과근무가 기업 손익 관점에서
+      이득 쪽으로 기울 가능성이 크다.
+    basis: >-
+      매출=단가×수량 항등식 전개(단가 불변 가정) × 손익분기 조건(매출증가분≥비용증가분)
+      — 순수 대수적 도출, 회귀·통계 검증 대상 아님. 전제: 생산량 증가분이 실제
+      매출로 실현됨(수요 미포화, 즉 수주 대비 공급부족 상태) — CPRO는
+      F-due-compliance-as-benefit-proxy(수주잔량·납기지연 50%)로 이 전제가 뒷받침됨.
+    related:
+      - {type: compares-to, ref: F-breakeven-productivity-ratio}
+      - {type: based-on, ref: F-due-compliance-as-benefit-proxy}
+      - {type: raises, ref: O-electricity-revenue-share}
+
+  - id: L-cpro-korea-parent-revenue
+    kind: literature
+    t: 2026-07-17
+    by: CC
+    status: relevant
+    source:
+      title: >-
+        ㈜씨프로(CPRO Electronics Co., Ltd, 한국 모기업, 사업자등록 131111-0025980)
+        연결 재무정보 — 웹 집계 사이트 스크레이핑(원문 DART 미대조)
+      authors: "사람인·원티드·IRGO 등 DART 공시 재스크레이핑 집계 사이트"
+      year: 2026
+      venue: "saramin.co.kr, wanted.co.kr(insight), irgo.co.kr (2026-07-17 조회)"
+      url: "https://www.saramin.co.kr/zf_user/company-info/view-inner-finance/csn/dU1HNWxWNC9temRnbVV4RjhrQmwrUT09/company_nm/(%EC%A3%BC)%EC%94%A8%ED%94%84%EB%A1%9C"
+    claim: >-
+      ㈜씨프로 연결 매출액(KRW): 2022년 441억원, 2023년 340억원, 2024년 370억원,
+      2025년 334억원(사람인·원티드 두 독립 스크레이핑 사이트가 2024년 370억원으로
+      수렴). 단 원티드의 다른 페이지 하나는 2024년 522억원을 제시해 불일치 —
+      이상치로 판단, 370억원 쪽을 채택. IRGO 페이지는 개별(별도)·연결(consolidated)
+      감사보고서가 모두 존재함을 확인시켜줌(베트남 자회사가 연결 대상임을 시사).
+    relevance: >-
+      CPRO 베트남 현지법인 자체는 재무제표를 공개하지 않으나, 베트남 공장이 그룹의
+      주요 생산기지이므로 이 연결매출을 "베트남 공장이 만들어내는 가치"의 근사치로
+      써서 F-revenue-weighted-breakeven-formula의 유일한 미지수(전력비/매출 비중)를
+      추산할 수 있다.
+    caveat: >-
+      ① 연결매출은 그룹 전체(한국 판교 생산시설 포함) 실적이라 베트남 공장 단독
+      기여분과 정확히 같지 않음. ② DART 원문 재무제표를 직접 열람·대조한 것이
+      아니라 3자 집계 사이트 스크레이핑 기반(2024년 수치 하나는 사이트 간 불일치
+      확인됨). ③ deep-research 3표 검증 절차를 거치지 않은 일반 WebSearch 결과.
+    related:
+      - {type: raises, ref: F-cpro-electricity-revenue-share-estimate}
+
+  - id: F-cpro-electricity-revenue-share-estimate
+    kind: finding
+    t: 2026-07-17
+    by: CC
+    status: active
+    claim: >-
+      CPRO 베트남 2024년 연간 전력사용량 793,013 kWh(F-cpro-monthly-kwh-2024)에
+      개략 블렌디드 요율(전압등급·시간대 세부 구분 없이 약 1,800 VND/kWh로 근사,
+      L-tariff-1279-current·L-tariff-2699-prev 범위 내)을 곱하면 연간 전기비용
+      약 14억 VND. 2026-07 환율(L-fx-vnd-2026-07, 1,000VND≈57.3원)로 환산하면
+      약 8,000만원(시점 불일치 — 2026년 환율을 2024년 금액에 적용). ㈜씨프로 2024년
+      연결매출 370억원(L-cpro-korea-parent-revenue) 대비 전력비 비중은 **약 0.2%**.
+      F-revenue-weighted-breakeven-formula에 대입하면 필요 최소 생산성증가율
+      ≈ 0.2% × 80%(F-peak-premium-ratio-stable의 피크요율 프리미엄) ≈ **0.16%** —
+      거의 0에 가까운 문턱. 이 추산이 자릿수 하나 정도 틀리더라도(비중이 실제
+      1~2%라 해도) 필요 문턱은 여전히 1% 안팎에 불과해, "전기비용이 매출 대비
+      워낙 작아 기업 손익 관점에서는 초과근무 생산량 증가가 거의 항상 전기비용
+      증가를 압도한다"는 자릿수 수준의 결론은 비교적 견고함.
+    basis: >-
+      F-cpro-monthly-kwh-2024(실측 kWh) × 개략 블렌디드 요율 가정 ×
+      L-fx-vnd-2026-07(환율, 시점 불일치 주의) × L-cpro-korea-parent-revenue
+      (그룹 연결매출, 베트남 단독 기여분 아님) × F-revenue-weighted-breakeven-formula.
+      네 겹의 근사·불확실성이 누적돼 있어 자릿수(order of magnitude) 수준으로만
+      신뢰할 것 — 정밀치 아님.
+    related:
+      - {type: based-on, ref: F-cpro-monthly-kwh-2024}
+      - {type: based-on, ref: L-cpro-korea-parent-revenue}
+      - {type: based-on, ref: F-revenue-weighted-breakeven-formula}
+      - {type: based-on, ref: F-peak-premium-ratio-stable}
+      - {type: answers, ref: O-electricity-revenue-share}
+
+  - id: O-electricity-revenue-share
+    kind: open
+    t: 2026-07-17
+    by: CC
+    status: answered
+    question: >-
+      전력비가 매출에서 차지하는 비중(F-revenue-weighted-breakeven-formula의 유일한
+      미지수)이 CPRO 또는 일반 조립형 전자제조업 기준으로 얼마인지 확인 안 됨.
+      CPRO 재무제표(비공개 가능성 높음) 또는 업종 평균 통계(예: 산업통상자원부·
+      에너지경제연구원 에너지진단 자료의 업종별 매출 대비 전력비 비중)로 확보
+      가능할 것으로 보이나 아직 조사 안 됨. → F-cpro-electricity-revenue-share-estimate
+      로 잠정 답 확보(한국 모기업 연결매출 우회 경로, 신뢰도는 낮게 잡을 것 —
+      DART 원문 미대조·자릿수 수준 근사).
+
+  - id: O-comparison-frame
+    kind: open
+    t: 2026-07-17
+    by: CC
+    status: open
+    question: >-
+      손익분기점을 어떤 단위로 비교할지 확정 필요 — (a) 금액 대 금액(생산 증가분의 화폐
+      가치 vs 전기비용 증가분), (b) 물량 대 kWh(단위생산당 에너지효율 변화), (c) 그 외.
+      단가 데이터 유무(O-value-per-unit)에 따라 (a)가 불가능할 수 있어 이 판단이 선행돼야
+      한다. 이 값 없이는 비교 산식 자체가 안 선다.
+
+  - id: A-labor-cost-excluded
+    kind: assumption
+    t: 2026-07-17
+    by: CC
+    status: holding
+    assumption: >-
+      이번 손익분기점 계산은 초과근무수당(인건비)을 제외하고 "생산성 증가분 대 전기비용
+      증가분"만 비교한다 — KETI-82 제목이 "생산성 증가-전기 비용"만 명시.
+    rationale: >-
+      이슈 본문·댓글이 비어 있어 사용자 의도를 직접 확인하지 못함 — 제목 문구만 근거로 한
+      잠정 해석. 2026-07-17 대화에서 사용자가 "제외(전기비용만 비교)"로 확정 —
+      D-scope-electricity-only 참조.
+    breaks_if: "사용자가 인건비(초과근무수당)도 비교에 포함하라고 다시 확인하는 경우"
+    related:
+      - {type: supports, ref: D-scope-electricity-only}
+
+  - id: D-scope-electricity-only
+    kind: decision
+    t: 2026-07-17
+    by: user
+    status: active
+    decision: >-
+      KETI-82 손익분기점 계산에서 인건비(초과근무수당)는 제외하고, 생산성 증가분과
+      전기비용 증가분만 비교한다.
+    reason: >-
+      대화 중 직접 확인 — "인건비 제외(전기비용만 비교)".
+    scope: "KETI-82: 18:00 이후 추가 근무 생산성-전기비용 손익분기점 판단"
+    related:
+      - {type: based-on, ref: A-labor-cost-excluded}
+
+  - id: O-comparison-frame-status
+    kind: open
+    t: 2026-07-17
+    by: CC
+    status: open
+    question: >-
+      손익분기점 비교 단위(O-comparison-frame: 금액 대 금액 / 물량 대 kWh / 그 외)는
+      2026-07-17 대화에서 사용자가 "아직 모름 — 자료부터 더 보고 결정"으로 보류. 단가·
+      이익 데이터(O-value-per-unit) 확보 여부를 먼저 확인한 뒤 다시 논의.
+    related:
+      - {type: depends-on, ref: O-value-per-unit}
+      - {type: raises, ref: O-comparison-frame}

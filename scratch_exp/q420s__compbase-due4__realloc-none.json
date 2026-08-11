@@ -1,0 +1,28 @@
+{
+ "fileset": "default",
+ "seed": 1,
+ "due_day": 4,
+ "max_sec": 2592000,
+ "episodes": 1,
+ "mode": "trained",
+ "checkpoint": "result/runs/q180s__compbase-300ep/agent_last.pt",
+ "record_events": true,
+ "env_overrides": {
+  "DefaultProcessConsumedPowerKw": 107.0
+ },
+ "target_qty": {
+  "MODEL_A": 420,
+  "MODEL_B": 420,
+  "MODEL_C": 420
+ },
+ "rl_realloc": {
+  "enabled": false
+ },
+ "reward_override": {
+  "enabled": false
+ },
+ "run_name": "q420s__compbase-due4__realloc-none",
+ "sw_realloc": {
+  "enabled": false
+ }
+}

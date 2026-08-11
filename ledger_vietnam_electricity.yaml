@@ -1,0 +1,601 @@
+mode: review
+entries:
+  - id: L-tariff-1279-current
+    kind: literature
+    t: 2026-07-15
+    by: CC
+    status: relevant
+    source:
+      title: "Quyết định 1279/QĐ-BCT — 전기판매가격 결정 (2025-05-09 발령, 2025-05-10 시행)"
+      authors: "베트남 산업통상부(MOIT)"
+      year: 2025
+      venue: "MOIT 결정문 (EVN 공식 요금표 게시 + 법령 DB thuvienphapluat)"
+      url: "https://thuvienphapluat.vn/van-ban/Thuong-mai/Quyet-dinh-1279-QD-BCT-2025-gia-ban-dien-656047.aspx"
+    claim: >-
+      현행 제조업(산업용) 시간대별 소매전기요금(VAT 제외, VND/kWh) —
+      110kV 이상: 보통 1,811 / 심야 1,146 / 피크 3,266.
+      22kV~110kV 미만: 보통 1,833 / 심야 1,190 / 피크 3,398.
+      6kV~22kV 미만: 보통 1,899 / 심야 1,234 / 피크 3,508.
+      6kV 미만: 보통 1,987 / 심야 1,300 / 피크 3,640.
+      평균 소매요금 2,204.0655 VND/kWh (직전 대비 +4.8%, EVN 결정 599/QĐ-EVN 병행).
+      2026-07-15 현재 최신 요금 결정 — 이후 요율 인상 없음.
+    relevance: >-
+      베트남 현지 공장 전기비 산정의 현행 단가표. 시뮬레이션 에너지 비용(kWh당)을
+      현지 통화로 환산할 때 이 표를 기준으로 쓴다. 전압이 낮을수록 단가가 높음에 유의.
+    takeaway: >-
+      deep-research 3표 검증에서 관련 클레임 8건 전부 3-0 만장일치. EVN 베트남어/영어
+      공식 페이지·EVN Hanoi PDF·법령 DB 2곳 등 4개 독립 계열 출처에서 12개 수치 전부 일치,
+      직전 요금표 ×1.048 산술 교차검증 통과.
+      [2026-07-17 재확인] 구간 경계(22kV·6kV가 어느 쪽에 포함되는지)를 Bộ Công Thương
+      (MOIT) 공식 원본 스캔본으로 직접 육안 확인함(moit.gov.vn/upload/2005517/fck/
+      files/QD1279-QD-BCT_7917a.pdf, 부록 "GIÁ BÁN ĐIỆN" p.3). 원문 표기 그대로:
+      "1.2 Cấp điện áp từ 22 kV đến dưới 110 kV"(22kV **포함**~110kV 미만),
+      "1.3 Cấp điện áp từ 6 kV đến dưới 22 kV"(6kV 포함~22kV **미포함**). 즉 정확히
+      22kV는 1.2 구간(22kV~110kV 미만)에 해당하고 1.3에는 해당하지 않음 — 경계
+      포함/제외 방향을 원본 문구로 확정.
+    caveat: >-
+      모든 요율은 VAT 제외 — 실효 부담액은 VAT 가산 필요(적용 VAT율은 미검증, O-vat-rate).
+      월 20만 kWh 이상 대용량 수용가는 이부요금제 시범 대상일 수 있음(O-two-part-pilot).
+    related:
+      - {type: supersedes, ref: L-tariff-2699-prev}
+      - {type: raises, ref: O-vat-rate}
+      - {type: raises, ref: O-two-part-pilot}
+
+  - id: L-tou-963-timebands
+    kind: literature
+    t: 2026-07-15
+    by: CC
+    status: relevant
+    source:
+      title: "Quyết định 963/QĐ-BCT — 국가전력계통 피크/보통/심야 시간대 규정 (2026-04-22 발령=시행)"
+      authors: "베트남 산업통상부(MOIT)"
+      year: 2026
+      venue: "정부 정책포털 xaydungchinhsach.chinhphu.vn 및 EVN 공식 보도"
+      url: "https://xaydungchinhsach.chinhphu.vn/quy-dinh-moi-ve-gio-cao-diem-thap-diem-cua-he-thong-dien-quoc-gia-119260428170109578.htm"
+    claim: >-
+      현행 시간대 정의(2026-04-22부터) — 피크: 월~토 17:30~22:30(일 5시간), 일요일 피크 없음.
+      보통: 월~토 06:00~17:30 및 22:30~24:00(일 13시간), 일요일 06:00~24:00(18시간).
+      심야: 요일 무관 매일 00:00~06:00(6시간). 종전 Thông tư 16/2014/TT-BCT 체계
+      (오전 피크 09:30~11:30, 심야 22:00~04:00)는 폐지·대체.
+    relevance: >-
+      시간대별 전기비 계산의 시간축. 현행 계산은 반드시 "1279/QĐ-BCT 요율 × 963/QĐ-BCT
+      시간대" 조합으로 해야 한다. 2026-04-22 이전 자료의 시간대를 현행으로 인용하면 오류.
+    takeaway: >-
+      3-0 만장일치 검증. EVN 공식 사이트가 원문 그대로 확인("일요일: 피크 없음" 포함),
+      정부 정책포털·법령 DB 2곳·전력청 교차 확인. 오전 피크가 사라져 주간 근무 위주
+      공장의 피크 노출이 저녁 시프트에 집중됨.
+    related:
+      - {type: supersedes, ref: DE-old-tou-16-2014}
+
+  - id: L-tariff-2699-prev
+    kind: literature
+    t: 2026-07-15
+    by: CC
+    status: superseded-by-newer
+    source:
+      title: "Quyết định 2699/QĐ-BCT — 전기판매가격 결정 (2024-10-11 시행, 과거 요율)"
+      authors: "베트남 산업통상부(MOIT)"
+      year: 2024
+      venue: "MOIT 결정문 (법령 DB thuvienphapluat + EVN 영문 보도)"
+      url: "https://thuvienphapluat.vn/van-ban/Thuong-mai/Quyet-dinh-2699-QD-BCT-2024-gia-ban-dien-627181.aspx"
+    claim: >-
+      2024-10-11~2025-05-09 적용 제조업 요금(보통/심야/피크, VND/kWh) —
+      110kV 이상 1,728/1,094/3,116. 22~110kV 1,749/1,136/3,242.
+      6~22kV 1,812/1,178/3,348. 6kV 미만 1,896/1,241/3,474.
+      평균 2,103.1159 VND/kWh(+4.8%, EVN 결정 1046/QĐ-EVN 병행).
+    relevance: >-
+      개정 이력 파악용 과거 요율. 2024~2026 사이 +4.8% 두 차례(2024-10, 2025-05) 인상
+      패턴의 앞 단계. 과거 기간 소급 계산이나 인상 추세 추정에 사용.
+    takeaway: >-
+      관련 클레임 6건 전부 3-0 검증. 2026년에는 요율 인상 없이 제도 변경만
+      (시간대 재정의 963/QĐ-BCT, 요금조정 메커니즘 시행령 278/2026/NĐ-CP) — 이 부분은
+      medium 신뢰(독립 3표 검증 미통과, 검증자 부수 증거 기반).
+    related:
+      - {type: raises, ref: O-next-revision}
+
+  - id: L-fx-vnd-2026-07
+    kind: literature
+    t: 2026-07-15
+    by: CC
+    status: tangential
+    source:
+      title: "USD/VND·VND/KRW 시장환율 조회 (2026-07 시점)"
+      authors: "?"
+      year: 2026
+      venue: "tradingeconomics.com / valutafx.com / investing.com"
+      url: "https://tradingeconomics.com/vietnam/currency"
+    claim: >-
+      2026-07-15 기준 USD/VND 약 26,260 (tradingeconomics), 2026-07-08 기준
+      1,000 VND ≈ 57.3 KRW (valutafx). 환산 예: 6kV 미만 피크 3,640 VND/kWh ≈
+      0.14 USD ≈ 190 KRW, 110kV 이상 심야 1,146 VND/kWh ≈ 0.044 USD ≈ 60 KRW.
+    relevance: >-
+      요금표를 원화/달러로 병기할 때의 참고 계수. 보고서에는 "조회 시점 환율" 명시 필수.
+    caveat: >-
+      환율 수치는 deep-research 검증 파이프라인의 3표 검증을 거치지 않은 참고치.
+      VND는 2024~2026 대미 약세 진행(약 24,500→26,000+)으로 시점 민감도 큼 —
+      실사용 시 조회 시점 환율로 재계산.
+    related:
+      - {type: depends-on, ref: L-tariff-1279-current}
+
+  - id: DE-old-tou-16-2014
+    kind: dead-end
+    t: 2026-07-15
+    by: CC
+    status: closed
+    what: >-
+      구 Thông tư 16/2014/TT-BCT 시간대(피크 = 월~토 09:30~11:30 + 17:00~20:00,
+      심야 = 22:00~04:00)를 현행 시간대로 사용하는 경로.
+    reason: >-
+      2026-04-22 결정 963/QĐ-BCT로 전면 대체됨. deep-research 검증에서 구 시간대를
+      현행으로 서술한 클레임 2건이 1-2로 기각 — 웹에 구 시간대 자료가 여전히 많아
+      혼입 위험이 크다.
+    revive_if: >-
+      2026-04-22 이전 기간의 전기비를 소급 계산·비교할 때만 (그 기간엔 구 시간대가 유효).
+    related:
+      - {type: contradicts, ref: L-tou-963-timebands}
+
+  - id: O-vat-rate
+    kind: open
+    t: 2026-07-15
+    by: CC
+    status: answered
+    question: >-
+      전기요금에 실제 적용되는 VAT율은? (표준 10%인지, 한시 8% 인하 대상인지)
+      — 실효 kWh당 부담액 산정에 필요.
+    related:
+      - {type: answers, ref: D-scope-tou-diff-only}
+
+  - id: O-two-part-pilot
+    kind: open
+    t: 2026-07-15
+    by: CC
+    status: answered
+    question: >-
+      대용량 수용가(월 200,000 kWh 이상) 이부요금제(기본요금+전력량요금) 시범의
+      실과금 전환 일정·대상 범위는? 대상 공장이라면 단일 TOU 요율 대비 부담이
+      어떻게 달라지나?
+    related:
+      - {type: answers, ref: D-scope-tou-diff-only}
+
+  - id: O-next-revision
+    kind: open
+    t: 2026-07-15
+    by: CC
+    status: answered
+    question: >-
+      다음 요금 개정의 시점·폭·구조는? — 시행령 278/2026/NĐ-CP(2026-07-09 시행)가
+      조정 메커니즘을 바꿨고, 결정 14/2025/QĐ-TTg의 새 요금구조(전압등급 구분·TOU 배율
+      개편 가능)가 다음 평균요금 조정 시점부터 적용 예정. 2024·2025 모두 +4.8%였던
+      패턴이 유지되는지.
+    related:
+      - {type: answers, ref: D-scope-tou-diff-only}
+
+  - id: D-scope-tou-diff-only
+    kind: decision
+    t: 2026-07-15
+    by: user
+    status: active
+    decision: >-
+      전기비 분석은 시간대별 차등 요율만 반영한다. 시간대 무관 항목 —
+      균일 비율 가산 세금(VAT), 이부요금제 기본요금 — 은 범위 제외.
+      요율은 2026-07-15 현행(결정 1279/QĐ-BCT 요율 × 결정 963/QĐ-BCT 시간대)으로
+      고정해 사용하고, 향후 개정 추정은 지금은 무시한다.
+    reason: >-
+      시간대 선택·생산성 분석에는 시간대 간 상대 차이만 유효 — 모든 시간대에
+      동일하게 부과되는 항목은 결론을 바꾸지 않는다. 개정 시점·폭은 근거 있는
+      추정만 가능하므로 특정 시점 고정이 실용적 (docx 댓글 #0~#2, 2026-07-15).
+    scope: "베트남 현지 전기비 조사 및 후속 시뮬레이션 비용 산정"
+    related:
+      - {type: answers, ref: O-vat-rate}
+      - {type: answers, ref: O-two-part-pilot}
+      - {type: answers, ref: O-next-revision}
+      - {type: based-on, ref: L-tariff-1279-current}
+      - {type: based-on, ref: L-tou-963-timebands}
+
+  - id: F-cpro-monthly-kwh-2024
+    kind: finding
+    t: 2026-07-17
+    by: CC
+    status: active
+    claim: >-
+      CPRO 조립공정(SMT) 본공장의 2024년 월별 전력 사용량 실측치를 원본자료에서 확인함
+      (출처: (CPRO) MCF 데이터 검토_SMT 통합본_260401_송부용.xlsx, 시트 Rawdata_INPUT
+      R11행, 데이터출처='고지서(폐수처리장포함)' — 실제 전기 고지서 기반, 폐수처리장
+      포함 전체 생산공정 집계). 2024.01~12월 kWh: 1월 70,802 / 2월 71,680 / 3월 80,240 /
+      4월 49,463 / 5월 60,495 / 6월 69,668 / 7월 73,159 / 8월 79,048 / 9월 67,093 /
+      10월 66,888 / 11월 57,480 / 12월 46,997. 연간 합계 793,013 kWh(월평균 약 66,084 kWh,
+      최대 3월 80,240 / 최소 12월 46,997). 같은 파일 '생산설비목록' 시트의 설비별
+      정격용량(kW)×개수 합산치는 약 268.0kW(역률 0.98 적용 기준, 비가동 유휴설비 1대
+      제외)이고, 시트 하단 합계행(spec 기준 O52=889,970.88 kWh, 할당 Q52=793,013 kWh)이
+      Rawdata_INPUT 연간 합계와 정합됨(자료 내부 교차검증, 외부 3표 검증 아님).
+    basis: >-
+      C:\Users\KangTaehui\KG\keti\CPRO_조립공정\원본자료\에코앤파트너스\(CPRO) MCF
+      데이터 검토_SMT 통합본_260401_송부용.xlsx — 시트 'Rawdata_INPUT'(R11) 및
+      '생산설비목록'(전체 행, M열 정격kW×H열 개수 합산, O52/Q52 합계행).
+    related:
+      - {type: raises, ref: O-cpro-voltage-tier-unconfirmed}
+
+  - id: F-dvp-monthly-kwh-2024-reference
+    kind: finding
+    t: 2026-07-17
+    by: CC
+    status: active
+    claim: >-
+      DVP(CPRO에 다이캐스팅 부품을 납품하는 별도 협력사·별도 사업장, Thôn Tử Dương,
+      Xã Lý Thường Kiệt, Yên Mỹ, Hưng Yên 소재 — CPRO 본공장 소재지인 Yên Phong,
+      Bắc Ninh과 다른 위치, ledger_dvp_cpro_route.yaml 참고)의 2024.07~2025.06 월별
+      전력 사용량도 같은 자료군에서 발견됨(출처: DVP 20250819.xlsx, 시트 Rawdata_INPUT
+      R12행, 데이터출처='고지서'). 7월 88,101 / 8월 93,781 / 9월 86,639 / 10월 101,526 /
+      11월 95,144 / 12월 93,737 / 1월 103,691 / 2월 95,702 / 3월 120,636 / 4월 101,467 /
+      5월 100,829 / 6월 115,268 kWh, 연간 합계 1,196,521 kWh. 같은 시트에 개별 설비
+      kVA 명판값(19/24/30/20×3/9×3/5.8 kVA)도 있으나 이는 개별 설비 스펙이며 사업장
+      전체 계약전력이 아님.
+    basis: >-
+      C:\Users\KangTaehui\KG\keti\CPRO_조립공정\원본자료\에코앤파트너스\DVP
+      20250819.xlsx — 시트 'Rawdata_INPUT'(R12) 및 '2. 공정별 생산설비목록'
+      (J열 kVA 명판값).
+    related:
+      - {type: compares-to, ref: F-cpro-monthly-kwh-2024}
+
+  - id: O-cpro-voltage-tier-unconfirmed
+    kind: open
+    t: 2026-07-17
+    by: CC
+    status: answered
+    question: >-
+      CPRO 조립공정(SMT) 본공장이 실제로 몇 kV 등급(EVN 요금표 L-tariff-1279-current
+      기준 110kV 이상/22~110kV 미만/6~22kV 미만/6kV 미만)으로 전기요금을 부과받는지는
+      원본자료 어디에도 명시돼 있지 않음. 확인한 범위: 베트남 출장 전사 3건
+      (clean_100836_v2.md, clean_133033.md, clean_150825.md), CPRO_QA.md, MCF/PCF
+      관련 xlsx 전체(CPRO·DVP 양쪽), 공정 레이아웃 PDF 2건(텍스트 레이어 없음, 이미지
+      추정), BG 견적서 PDF — 계약전압(kV)·계약전력(kVA)·VND 청구금액을 담은 문서는
+      전무. 실측 kWh(전기 고지서 기반)만 확보됨(F-cpro-monthly-kwh-2024).
+    related:
+      - {type: depends-on, ref: L-tariff-1279-current}
+      - {type: answers, ref: F-cpro-voltage-tier-estimate}
+      - {type: answers, ref: F-cpro-voltage-tier-estimate-v2}
+      - {type: answers, ref: F-cpro-voltage-tier-estimate-v3}
+      - {type: answers, ref: F-cpro-voltage-tier-estimate-v4}
+
+  - id: F-cpro-voltage-tier-estimate
+    kind: finding
+    t: 2026-07-17
+    by: CC
+    status: superseded
+    claim: >-
+      CPRO 본공장 kV 요금세에 대한 간접 추론(확정 아님, 사람 확인 전 잠정치) — 연간
+      793,013 kWh(월평균 66,084 kWh), 설비 정격용량 합계 약 268kW 규모
+      (F-cpro-monthly-kwh-2024)는 베트남 산업단지 입주 공장 중 자체 변압기(고객
+      소유 TBA)를 두고 22kV 중압 계통에서 수전하는 것이 흔한 규모대(통상 수십~수백
+      kVA 이상이면 자체 변압기 신청이 일반적)이므로, EVN 요금표(L-tariff-1279-current)
+      기준 "6kV~22kV 미만" 구간, 계량점이 22kV 자체라면 "22kV~110kV 미만" 구간에
+      해당할 가능성이 상대적으로 높음. 다만 CPRO가 별도 건물의 세입자로서 건물주의
+      저압(LV) 분전을 통해 수전할 경우 "6kV 미만" 구간(최고 단가 구간)에 해당할
+      수도 있어 두 시나리오 모두 배제되지 않음 — 원본자료만으로는 확정 불가.
+      확정하려면 실제 전기요금 고지서(hóa đơn tiền điện) 또는 전력공급계약서
+      (hợp đồng mua bán điện)의 "Cấp điện áp" 항목 원문 확인이 필요.
+    basis: >-
+      F-cpro-monthly-kwh-2024(실측 kWh·설치용량) × L-tariff-1279-current(전압등급별
+      요금 구간표) — 원본자료에 계약전압 직접 기재가 없어 규모 기반 정황 추론에 그침.
+    related:
+      - {type: based-on, ref: F-cpro-monthly-kwh-2024}
+      - {type: based-on, ref: L-tariff-1279-current}
+      - {type: answers, ref: O-cpro-voltage-tier-unconfirmed}
+      - {type: supersedes, ref: F-cpro-voltage-tier-estimate}
+
+  - id: F-cpro-building-not-shared-tenant
+    kind: finding
+    t: 2026-07-17
+    by: user
+    status: active
+    claim: >-
+      CPRO 조립공정(SMT) 본공장 건물은 CPRO가 전용으로 사용하는 자사 건물이며,
+      타사와 공유하는 임대 건물(세입자 입주)이 아님. 즉 F-cpro-voltage-tier-estimate가
+      배제 못 했던 "건물주의 저압(LV) 공동분전을 통해 수전하는 세입자" 반대
+      시나리오가 제거됨.
+    basis: >-
+      사용자 직접 확인(2026-07-17 대화). 원본자료 문서 자체에는 건물 소유/임대
+      관계가 별도로 명시돼 있지 않음 — 레이아웃 도면(카메라 생산 라인 LAYOUT.pdf)·
+      창고/에이징 현장사진 9장(자재 창고 및 AGING TEST 라인.pdf)도 확인했으나
+      전기실·변압기 등 수전설비가 찍힌 페이지는 없었음.
+    related:
+      - {type: contradicts, ref: F-cpro-voltage-tier-estimate}
+      - {type: supports, ref: F-cpro-voltage-tier-estimate-v2}
+
+  - id: L-evnnpc-40kw-threshold
+    kind: literature
+    t: 2026-07-17
+    by: CC
+    status: refuted
+    source:
+      title: >-
+        전력공급 영업규정 제19조 — 등록용량 40kW 이상 신청 고객의 저압망 부하
+        재평가 (Tổng Công ty Điện lực Miền Bắc/EVNNPC 영업규정 인용)
+      authors: "Tổng Công ty Điện lực Miền Bắc(EVNNPC) 전력사업 영업규정 제19조 (2차 인용)"
+      year: 2026
+      venue: "vietmysteel.com 트램비엔압(변압기) 설치 견적 안내 페이지"
+      url: "https://vietmysteel.com/bao-gia-lap-dat-tram-bien-ap/"
+    claim: >-
+      "Khách hàng đề nghị mua điện với công suất đăng ký từ 40kW trở lên, tùy
+      theo khả năng cung cấp của lưới điện hạ áp hiện hữu" — 고객이 등록용량
+      40kW 이상을 신청하면 기존 저압망 공급 여력에 따라 전력회사가 재평가하며,
+      저압망에 부담이 되면 고객이 자비로 자체 변압기를 지어 중압(통상 22kV)으로
+      승압 접속하는 절차를 밟게 됨. Tổng Công ty Điện lực Miền Bắc(EVNNPC, 박닌성
+      포함 북부 전역 관할)의 전력사업 영업규정 제19조를 인용해 서술.
+    relevance: >-
+      Bắc Ninh(옌퐁)은 EVNNPC 관할 지역이라 이 규정이 CPRO 본공장에도 원칙적으로
+      적용됨. CPRO 설비 정격용량 합계(약 268kW, F-cpro-monthly-kwh-2024)는 이
+      40kW 문턱값의 6배 이상 — 저압망만으로 공급하기엔 규정상 재평가·자체 변압기
+      전환 검토 대상 규모.
+    caveat: >-
+      1차 출처(EVNNPC 원문 규정집)를 직접 확인한 게 아니라 설치업체 블로그의 인용
+      — 단일 소스, 3표 교차검증 미실시. 문구가 EVNNPC 원문과 정확히 일치하는지는
+      미확인. "40kW 초과 = 반드시 자체 변압기 강제"가 아니라 "재평가 대상"이라는
+      점에 유의(저압망 여력이 충분하면 저압 유지도 이론상 가능).
+      [2026-07-17 정정] EVN그룹 공식 영업규정 1차 원문(EVNSPC 적용본 PDF) 직접
+      대조 결과 이 claim은 근거 부족으로 판정됨 — 상세는 DE-evnnpc-dieu19-claim-
+      unsubstantiated·L-evn-group-qtkddn-primary 참고. "제19조"라는 조항 번호부터
+      원문과 불일치(원문 제19조=계약해지, 40kW·변압기와 무관).
+    related:
+      - {type: supports, ref: F-cpro-voltage-tier-estimate-v2}
+
+  - id: F-cpro-voltage-tier-estimate-v2
+    kind: finding
+    t: 2026-07-17
+    by: CC
+    status: superseded
+    claim: >-
+      CPRO 본공장 kV 요금세 추정(강화된 간접 추론, 여전히 확정 아님) — ① 설비
+      정격용량 합계 약 268kW(F-cpro-monthly-kwh-2024)는 EVNNPC 영업규정 제19조가
+      정하는 저압망 재평가 문턱값 40kW의 6배 이상(L-evnnpc-40kw-threshold), ②
+      건물이 CPRO 전용 건물로 확인되어 "임대 세입자로서 건물주의 저압 공동분전을
+      쓴다"는 반대 시나리오가 배제됨(F-cpro-building-not-shared-tenant). 두 근거가
+      결합하면서 CPRO가 자체 변압기를 두고 22kV 중압 계통에서 직접 수전하고 있을
+      가능성이 이전 추정(F-cpro-voltage-tier-estimate, superseded)보다 높아짐.
+      해당 시나리오라면 EVN 요금표(L-tariff-1279-current) 기준 "6kV~22kV 미만"
+      구간(계량점이 자체 변압기 1차측=22kV이면 "22kV~110kV 미만" 구간)에 해당.
+      다만 이는 여전히 정황 추론이며 실제 계약전압을 원문으로 확인한 것은 아님 —
+      "6kV 미만" 저압 유지 가능성이 완전히 배제되는 것은 아니고(저압망 재평가
+      결과 저압 유지로 결론났을 가능성 등), 100% 확정은 불가.
+    basis: >-
+      F-cpro-monthly-kwh-2024(설치용량 268kW) × L-evnnpc-40kw-threshold(40kW
+      재평가 문턱값 규정) × F-cpro-building-not-shared-tenant(전용건물 확인,
+      세입자-LV 시나리오 배제) × L-tariff-1279-current(전압등급별 요금 구간표).
+    related:
+      - {type: supersedes, ref: F-cpro-voltage-tier-estimate}
+      - {type: based-on, ref: F-cpro-monthly-kwh-2024}
+      - {type: based-on, ref: L-evnnpc-40kw-threshold}
+      - {type: based-on, ref: F-cpro-building-not-shared-tenant}
+      - {type: based-on, ref: L-tariff-1279-current}
+      - {type: answers, ref: O-cpro-voltage-tier-unconfirmed}
+
+  - id: L-cpro-company-registration
+    kind: literature
+    t: 2026-07-17
+    by: CC
+    status: relevant
+    source:
+      title: "Công ty TNHH CPRO Việt Nam — 사업자등록 정보 (사업자번호 2300668063)"
+      authors: "베트남 국세청 사업자등록 DB (masothue.com 조회)"
+      year: 2026
+      venue: "masothue.com"
+      url: "https://masothue.com/2300668063-cong-ty-tnhh-cpro-viet-nam"
+    claim: >-
+      CPRO 본공장의 공식 등록 주소는 "Cụm công nghiệp đa nghề Đông Thọ, Xã Văn Môn,
+      huyện Yên Phong, tỉnh Bắc Ninh"(동토 다업종 산업클러스터, 반몬사, 옌퐁현,
+      박닌성) — 즉 지자체 행정구역상 Xã Văn Môn(사)에 속하지만 실제 입지는
+      "Cụm công nghiệp đa nghề Đông Thọ"(동토 다업종 산업클러스터) 산업단지 내부.
+      대표자 NAM KWANG HEE, 설립일 2011-08-25, 주업종 2630(통신장비 제조),
+      사업내용 "CCTV camera 및 부속품 제조·가공". 정상 운영 중.
+    relevance: >-
+      기존 ledger_dvp_cpro_route.yaml의 Google Maps 지오코딩 주소("Paperlab Việt
+      Nam, Văn Môn, Yên Phong, Bắc Ninh")를 공식 사업자등록 주소로 교차확인·구체화함
+      — CPRO는 "Paperlab"이라는 임대 건물주 소속이 아니라 "Cụm công nghiệp đa nghề
+      Đông Thọ" 산업클러스터 내 입주기업. 이 산업클러스터 자체의 전력 인프라 규격이
+      확인되면(L-dongtho-cluster-22kv-infra) CPRO의 수전 전압 추정에 직접 쓸 수 있음.
+    caveat: >-
+      민간 세무정보 조회 사이트(2차 취합 DB) — 원본 사업자등록증을 직접 본 것은
+      아님. 단일 출처.
+    related:
+      - {type: supports, ref: F-cpro-voltage-tier-estimate-v3}
+
+  - id: L-dongtho-cluster-22kv-infra
+    kind: literature
+    t: 2026-07-17
+    by: CC
+    status: relevant
+    source:
+      title: "Cụm công nghiệp đa nghề Đông Thọ(동토 다업종 산업클러스터) 개요 — 전력 인프라"
+      authors: "?（부동산 중개·산업단지 정보 취합 사이트, 원출처 불명 — 클러스터 투자사
+        홍보자료 재게재로 추정)"
+      year: 2026
+      venue: "redsunland.vn (직접 원문 인용 확인), 동일 문구가 vietnamiz.com·
+        odinland.com·summerland.com.vn 등 복수 부동산 정보 사이트에도 게재"
+      url: "https://www.redsunland.vn/bds-cong-nghiep/cum-cong-nghiep-dong-tho-tinh-bac-ninh/"
+    claim: >-
+      "Hệ thống điện đạt tiêu chuẩn nhà nước là từ điện lưới trung áp 22 kV được
+      cấp từ trạm 110 kV được cung cấp bởi Tập đoàn Điện Lực quốc gia Việt Nam
+      quản lý và vận hành với công suất lớn" — 클러스터 표준 전력 인프라는 110kV
+      변전소에서 공급받는 22kV 중압 배전망(EVN 국영전력공사 관리·운영), 대용량.
+      클러스터 규모: 총 160ha(1단계 50ha+2단계 110ha), 43개 기업 입주·37개 기업
+      가동 중, 입주기업 총 투자액 2,600억+동 (xã Đông Thọ/Văn Môn, huyện Yên Phong,
+      tỉnh Bắc Ninh).
+    relevance: >-
+      CPRO 본공장이 등록된 산업클러스터(L-cpro-company-registration)의 표준
+      전력공급 규격이 22kV 중압이라는 정황 근거. 클러스터 차원에서 22kV 배전망이
+      깔려 있다면, 그 안의 개별 입주기업은 통상 자기 부지 내 자체 변압기(22kV→저압)
+      로 접속하는 것이 일반적 방식 — CPRO도 이 구조를 따를 가능성이 높음.
+    caveat: >-
+      부동산 중개·산업단지 홍보 사이트發 서술(원출처 미상, 사실상 동일 문구가
+      여러 사이트에 그대로 복제돼 있어 "독립 출처 다수"가 아니라 "동일 출처 재게재"
+      로 봐야 함 — 3표 교차검증 아님). 공식 정부·EVN·클러스터 투자사 1차 문서는
+      직접 확인하지 못함. "공급 가능한 표준 인프라"를 서술한 것이지, CPRO 개별
+      부지의 실제 계량점 전압을 확정하는 문서는 아님(클러스터 내에서도 소규모
+      입주사는 여전히 저압으로 계량될 수 있음).
+    related:
+      - {type: supports, ref: F-cpro-voltage-tier-estimate-v3}
+
+  - id: F-cpro-voltage-tier-estimate-v3
+    kind: finding
+    t: 2026-07-17
+    by: CC
+    status: superseded
+    claim: >-
+      CPRO 본공장 kV 요금세 추정(3차 강화, 여전히 확정 아님) — 공식 사업자등록
+      주소(L-cpro-company-registration)로 CPRO가 "Cụm công nghiệp đa nghề Đông
+      Thọ" 산업클러스터 내부에 있음이 확인됐고, 이 클러스터의 표준 전력 인프라가
+      110kV 변전소발 22kV 중압 배전망으로 서술됨(L-dongtho-cluster-22kv-infra).
+      여기에 기존 근거 — 설비 정격용량 268kW가 EVNNPC 저압망 재평가 문턱값
+      40kW의 6배 이상(L-evnnpc-40kw-threshold)이라는 점, 건물이 CPRO 전용이라
+      "임대 세입자 LV 공동분전" 시나리오가 배제된다는 점(F-cpro-building-not-
+      shared-tenant) — 을 모두 합치면, CPRO가 산업클러스터의 22kV 배전망에서
+      직접 자체 변압기로 수전하고 있을 가능성이 3개의 독립적 근거 축(클러스터
+      인프라 규격 / 규제 문턱값 / 설비 규모)에서 수렴적으로 뒷받침됨. 이 경우
+      EVN 요금표(L-tariff-1279-current) 기준 "22kV~110kV 미만" 구간(계량점이
+      클러스터 배전망 22kV 지점이라면) 또는 "6kV~22kV 미만" 구간(중간 강압
+      단계가 있다면)에 해당할 가능성이 높음. 다만 여전히 CPRO 개별 계약서·
+      고지서 원문을 확인한 것은 아니며, 클러스터 내 소규모 입주사가 저압으로
+      계량되는 경우도 배제 못 해 "6kV 미만" 가능성이 0은 아님 — 최종 확정은
+      실제 hóa đơn tiền điện/hợp đồng mua bán điện의 "Cấp điện áp" 확인만 가능.
+    basis: >-
+      L-cpro-company-registration(등록 주소=Cụm công nghiệp đa nghề Đông Thọ) ×
+      L-dongtho-cluster-22kv-infra(클러스터 표준 인프라=22kV) ×
+      L-evnnpc-40kw-threshold(40kW 재평가 문턱값) ×
+      F-cpro-building-not-shared-tenant(전용건물 확인) ×
+      F-cpro-monthly-kwh-2024(설비 268kW) × L-tariff-1279-current(요금 구간표).
+    related:
+      - {type: supersedes, ref: F-cpro-voltage-tier-estimate-v2}
+      - {type: based-on, ref: L-cpro-company-registration}
+      - {type: based-on, ref: L-dongtho-cluster-22kv-infra}
+      - {type: based-on, ref: L-evnnpc-40kw-threshold}
+      - {type: based-on, ref: F-cpro-building-not-shared-tenant}
+      - {type: based-on, ref: F-cpro-monthly-kwh-2024}
+      - {type: based-on, ref: L-tariff-1279-current}
+      - {type: answers, ref: O-cpro-voltage-tier-unconfirmed}
+
+  - id: DE-evnnpc-dieu19-claim-unsubstantiated
+    kind: dead-end
+    t: 2026-07-17
+    by: CC
+    status: closed
+    what: >-
+      L-evnnpc-40kw-threshold(vietmysteel.com 인용)가 주장한 경로 — "EVNNPC
+      전력사업 영업규정 제19조가 등록용량 40kW 이상 고객의 저압망 재평가·자체
+      변압기(22kV) 전환을 규정한다"는 claim을 그대로 근거 축으로 채택해
+      F-cpro-voltage-tier-estimate-v2/v3에 사용한 것.
+    reason: >-
+      EVN그룹 공식 "전력사업 영업규정"(Quy trình Kinh doanh Điện năng) 1차 원문
+      PDF(EVNSPC 적용본, pcangiang.evnspc.vn 공식 게재, 444페이지 — 직접 다운로드
+      후 전문 검색)를 대조한 결과 불일치가 드러남: ① 원문의 제19조(Điều 19,
+      Phần III)는 "Chấm dứt HĐMBĐ"(전력매매계약 해지)로, 40kW·변압기와 무관.
+      ② 40kW는 실제로 제9조(하압 신규공급)·제10조(중압 신규공급)·제12조
+      (용량변경)에 공통으로 등장하지만, 전부 "생산·서비스업 고객, 등록용량
+      40kW 이상이면 부하곡선(biểu đồ phụ tải) 등록 서류 필요"라는 서류요건일
+      뿐이었음. ③ 결정적으로 제9조(하압 신규공급) 자체의 신청서류 목록에
+      "공급용량 40kW 이상 고객의 부하곡선 등록"이 포함돼 있음 — 즉 40kW를
+      넘어도 하압(LV) 신규공급 신청 자체가 막히지 않음. "저압망 재평가·자체
+      변압기 강제 전환"을 명시한 조항은 문서 전체에서 발견되지 않음(4개
+      페이지에서 "40kW" 검색 매치 전수 확인).
+    revive_if: >-
+      EVNNPC(북부전력공사) 자체의 최신 버전 원문(EVNSPC가 아닌 관할청 원문)을
+      직접 확인해 다른 조항 번호·다른 문구로 동일 취지 규정이 실재함이
+      확인될 경우. 또는 CPRO가 실제로 제10조(중압 신규공급) 경로로 접속했다는
+      직접 증거(계약서·고지서)가 나올 경우.
+    related:
+      - {type: contradicts, ref: L-evnnpc-40kw-threshold}
+
+  - id: L-evn-group-qtkddn-primary
+    kind: literature
+    t: 2026-07-17
+    by: CC
+    status: relevant
+    source:
+      title: "전력사업 영업규정(Quy trình Kinh doanh Điện năng) — EVN그룹 공통틀,
+        EVNSPC(남부전력공사) 적용본 원문 (Quyết định 1050/QĐ-EVN 계열)"
+      authors: "Tập đoàn Điện lực Việt Nam(EVN)/Tổng Công ty Điện lực Miền Nam(EVNSPC)"
+      year: 2026
+      venue: "pcangiang.evnspc.vn (EVNSPC An Giang 지사 공식 게재 PDF, 444페이지)"
+      url: "https://pcangiang.evnspc.vn/Areas/EC_Website/Attachments/Article/files/Quy%20trinh%20Kinh%20doanh%20dien%20nang%20ap%20dung%20trong%20EVNSPC.pdf"
+    claim: >-
+      40kW는 제9조(Cấp điện mới hạ áp, 하압 신규공급)·제10조(Cấp điện mới trung
+      áp, 중압 신규공급)·제12조(Thay đổi công suất sử dụng điện, 용량변경) 세
+      절차 모두에서 공통 서류요건으로 등장 — "생산·서비스업 고객으로서 등록
+      용량 40kW 이상이면 부하곡선(biểu đồ phụ tải) 등록 필요". 제9조(하압 신규
+      공급) 자체가 40kW 이상 고객에게도 명시적으로 적용 가능하도록 서술돼
+      있어, 40kW 초과가 하압 공급을 자동으로 막거나 중압 전환을 강제하지
+      않음. 별도로 고객 의무 섹션(p.37)에는 "등록용량은 40kW 미만이나 실사용
+      최대전력이 3회 연속 검침에서 40kW 이상이면 무효전력(công suất phản
+      kháng) 구매 의무" 조항도 존재 — 역률관리 의무의 문턱으로도 40kW가 별도로
+      쓰임(저압망 재평가와는 무관한 별개 조항).
+    relevance: >-
+      L-evnnpc-40kw-threshold(vietmysteel.com 2차 인용)의 핵심 주장을 1차 원문
+      대조로 반박(DE-evnnpc-dieu19-claim-unsubstantiated). 40kW라는 숫자 자체는
+      EVN 공식 문서에 실재하지만 의미가 다름 — "저압 공급이 막히는 문턱"이
+      아니라 "부하곡선 등록·역률관리 의무가 생기는 행정 문턱"임. CPRO가 22kV로
+      수전하는지는 이제 "고객이 경제성 판단에 따라 제10조(중압 신규공급)를
+      자발적으로 신청했는지" 여부에 달린 문제로 재정의됨 — 규제가 강제하는
+      게 아님.
+    caveat: >-
+      확인한 문서는 EVNSPC(남부전력공사) 적용본이며 Bắc Ninh 관할 EVNNPC(북부
+      전력공사) 버전 원문은 아직 직접 확인 못함. 다만 두 문서 모두 EVN그룹
+      공통틀(Quyết định 1050/QĐ-EVN 계열)을 따르므로 조 구조·문구가 유사할
+      가능성이 높음(제목 차례 확인 결과 챕터·조 번호 체계가 일반적인 EVN
+      템플릿과 일치). EVNNPC 고유본과 100% 동일하다고 단정할 수는 없음.
+    related:
+      - {type: contradicts, ref: L-evnnpc-40kw-threshold}
+      - {type: based-on, ref: DE-evnnpc-dieu19-claim-unsubstantiated}
+
+  - id: F-cpro-voltage-tier-estimate-v4
+    kind: finding
+    t: 2026-07-17
+    by: CC
+    status: active
+    claim: >-
+      CPRO 본공장 kV 요금세 추정(4차 정정, 신뢰도 v3보다 하향). 이전 추정(v3)의
+      3개 근거 축 중 "규제 문턱값"(EVNNPC 40kW 초과 시 저압망 재평가·자체
+      변압기 강제 전환) 축이 1차 원문 대조 결과 근거 부족으로 무효화됨
+      (DE-evnnpc-dieu19-claim-unsubstantiated, L-evn-group-qtkddn-primary) —
+      실제로는 40kW가 "부하곡선 등록 의무" 행정 문턱일 뿐, 하압 공급 자체를
+      막거나 중압 전환을 강제하지 않음. 남은 두 근거 축은 유효: ① CPRO의
+      공식 등록 주소(L-cpro-company-registration)가 "Cụm công nghiệp đa nghề
+      Đông Thọ" 산업클러스터이고 이 클러스터의 표준 전력 인프라가 22kV 중압
+      배전망으로 서술됨(L-dongtho-cluster-22kv-infra), ② 건물이 CPRO 전용이라
+      "임대 세입자 LV 공동분전" 반대 시나리오가 배제됨(F-cpro-building-not-
+      shared-tenant). 다만 규제적 강제 근거가 빠지면서, 22kV 수전 여부는 이제
+      "CPRO가 경제성 판단에 따라 제10조(중압 신규공급)를 자발적으로 신청했는가"
+      라는, 검증 안 된 고객 선택의 문제로 재정의됨 — 대형 제조 공장이 산업
+      클러스터 내에서 자체 변압기를 자발적으로 신청하는 사례가 흔하다는 것은
+      정성적 정황(kth-electric.com: "22kV 중압 구매 시 저압 대비 요금 저렴")
+      일 뿐, CPRO가 실제로 그렇게 했다는 직접 증거는 아님. 종합 신뢰도: 2개
+      정황 축 수렴(산업단지 인프라 규격 + 건물 전용) — "가능성 있음" 수준이며
+      v3의 "가능성 높음"보다 한 단계 낮춤.
+      [구간 매핑 정정] L-tariff-1279-current의 구간 경계는 "22kV~110kV 미만"
+      =22kV 이상~110kV 미만(22kV 포함), "6kV~22kV 미만"=6kV 이상~22kV 미만
+      (22kV 미포함)으로 이미 검증돼 있음. 즉 CPRO가 실제로 클러스터 22kV
+      배전망에서 자체 변압기로 직접 구매("mua điện ở cấp trung thế 22kV qua
+      trạm biến áp riêng")한다면 그 자체로 "22kV~110kV 미만" 구간에 해당 —
+      "6kV~22kV 미만" 구간은 여기 해당하지 않음(그 구간은 6~21kV대 중간전압
+      수전에 해당하는데, 클러스터 표준 인프라가 명시적으로 22kV이므로 이
+      시나리오와는 안 맞음). 따라서 실질적으로 남는 것은 이분법 — ① CPRO가
+      자체 변압기로 22kV 지점에서 직접 계약·계량한다면 "22kV~110kV 미만"
+      구간(요금표 전체 4구간 중 두 번째로 저렴), ② 반대로 산업클러스터나
+      건물 측이 소유한 변압기의 2차측(저압)에서 CPRO가 계량된다면 "6kV 미만"
+      구간(가장 비쌈) — 둘 중 어느 쪽인지는 CPRO의 실제 전력공급계약서 없이는
+      확정 불가. 두 시나리오 중 어느 쪽이 더 개연성 있는지는 이 ledger의
+      다른 근거(산업클러스터 인프라·건물 전용)로도 가리지 못함 — 계약 주체
+      (CPRO 자신이 변압기를 발주했는지, 클러스터 투자사가 공용 변압기를
+      깔아준 것인지)를 알아야 함.
+    basis: >-
+      L-cpro-company-registration × L-dongtho-cluster-22kv-infra ×
+      F-cpro-building-not-shared-tenant × F-cpro-monthly-kwh-2024 ×
+      L-tariff-1279-current, 단 규제문턱값 축(L-evnnpc-40kw-threshold)은
+      DE-evnnpc-dieu19-claim-unsubstantiated로 제외.
+    related:
+      - {type: supersedes, ref: F-cpro-voltage-tier-estimate-v3}
+      - {type: based-on, ref: L-cpro-company-registration}
+      - {type: based-on, ref: L-dongtho-cluster-22kv-infra}
+      - {type: based-on, ref: F-cpro-building-not-shared-tenant}
+      - {type: based-on, ref: F-cpro-monthly-kwh-2024}
+      - {type: based-on, ref: L-tariff-1279-current}
+      - {type: based-on, ref: L-evn-group-qtkddn-primary}
+      - {type: answers, ref: O-cpro-voltage-tier-unconfirmed}

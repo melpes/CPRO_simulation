@@ -1,0 +1,20 @@
+{
+  "scenario": "schedule",
+  "po": {
+    "MODEL_A": {
+      "qty": 100,
+      "due_day": 22
+    },
+    "MODEL_B": {
+      "qty": 100,
+      "due_day": 22
+    },
+    "MODEL_C": {
+      "qty": 100,
+      "due_day": 22
+    }
+  },
+  "overrides": {
+    "seed": 42
+  }
+}

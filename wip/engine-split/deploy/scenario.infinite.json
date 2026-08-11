@@ -1,0 +1,17 @@
+{
+  "scenario": "infinite",
+  "po": {
+    "MODEL_A": {
+      "qty": 100
+    },
+    "MODEL_B": {
+      "qty": 100
+    },
+    "MODEL_C": {
+      "qty": 100
+    }
+  },
+  "overrides": {
+    "seed": 42
+  }
+}
