@@ -277,16 +277,14 @@ class SimulationModel:
     def schedule_of(self, WorkScheduleCode):
         return self.instance['WorkSchedules'].get(WorkScheduleCode) if WorkScheduleCode else None
 
-    # ---------------------------------------------------------------- 리소스 ② 설비 고르기: 레시피 설비 단위, 설비 그룹이면 대기가 가장 적은 설비
+    # ---------------------------------------------------------------- 리소스 ② 설비 고르기: 레시피 설비(KG Process —Require→ Machine) 가운데 대기가 가장 적은 설비
     def machine_for_recipe(self, ProcessCode, recipe):
         if not self.instance['Processes'][ProcessCode]['RequiresMachine']:
             return None
-        if recipe['ResourceUnitType'] == 'Machine':
-            return self.machines[recipe['ResourceUnitCode']]
-        if recipe['ResourceGroupType'] == 'Machine':
-            machines = [self.machines[code] for code in self.instance['MachineGroups'][recipe['ResourceGroupCode']]['MachineUnitCodes']]
-            return min(machines, key=lambda machine: len(machine.resource.queue) + machine.resource.count)
-        return None
+        machines = [self.machines[code] for code in recipe['MachineUnitCodes']]
+        if not machines:
+            return None
+        return min(machines, key=lambda machine: len(machine.resource.queue) + machine.resource.count)
 
     # ---------------------------------------------------------------- 리소스 ③ 작업자 그룹 작업 배정(진입 조건 ResourceAvailable·ItemAvailable)
     def wake_worker_group(self, group):
@@ -396,9 +394,9 @@ class SimulationModel:
 
     # ---------------------------------------------------------------- 시뮬레이션 ② 레시피 실행: 작업자 공정은 작업자 그룹 대기열로, 그 밖은 설비 확보(없으면 시간만)
     def execute_recipe(self, ProcessCode, recipe):
-        if self.instance['Processes'][ProcessCode]['RequiresWorker'] and recipe['ResourceGroupType'] == 'Worker':
+        if self.instance['Processes'][ProcessCode]['RequiresWorker'] and recipe['WorkerGroupCode']:
             finished = self.environment.event()
-            group = self.worker_groups[recipe['ResourceGroupCode']]
+            group = self.worker_groups[recipe['WorkerGroupCode']]
             group.waiting_jobs_by_process[ProcessCode].append(
                 {'ProcessCode': ProcessCode, 'recipe': recipe, 'finished': finished, 'ready_time': self.environment.now,
                  'ready_order': next(self.ready_order_counter)})

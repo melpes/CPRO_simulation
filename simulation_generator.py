@@ -11,6 +11,7 @@ from dataclasses import dataclass
 
 import simpy
 
+import knowledge_graph
 import path_extractor
 
 
@@ -83,11 +84,13 @@ class SimulationGenerator:
         self.simulation = extracted.submodels_with_role('Simulation')[0]
         self.resource = extracted.submodels_with_role('Resource')[0]
         self.process = extracted.submodels_with_role('Process')[0]
+        self.kg = knowledge_graph.KnowledgeGraph(extracted)
 
     def generate(self):
         instance = {'InstanceInfo': {'aas_path': self.aas_path, 'generated_by': 'simulation_generator.py',
                                      'base_units': self.extracted.base_units}}
         instance['SimulationConfiguration'] = self.extract_SimulationConfiguration()
+        instance['KnowledgeGraph'] = self.kg.to_dict()
 
         instance['Products'] = self.extract_Products()
 
@@ -110,7 +113,7 @@ class SimulationGenerator:
         
         instance['CarbonBoundaries'] = self.extract_CarbonBoundaries(instance)
         self.extract_module_values(instance)
-        instance['issues'] = self.issues + [vars(issue) for issue in self.extracted.issues]
+        instance['issues'] = self.issues + self.kg.issues + [vars(issue) for issue in self.extracted.issues]
         return instance
 
     def extract_module_values(self, instance):
@@ -208,11 +211,12 @@ class SimulationGenerator:
         for ProductCode, product in instance['Products'].items():
             item_codes |= {ProductCode} | bom_item_codes(product['EntryNode'])
         Processes = {}
-        for category in self.process.ProcessCategories:
+        for process_node in self.kg.nodes_of_class(knowledge_graph.Process):
+            category = process_node.element
             Processes[category.ProcessCode.value] = {
                 'ProcessCode': category.ProcessCode.value,
-                'RequiresMachine': bool(category.RequiresMachine.value),
-                'RequiresWorker': bool(category.RequiresWorker.value),
+                'RequiresMachine': process_node.RequiresMachine,
+                'RequiresWorker': process_node.RequiresWorker,
                 'RequiresTransport': bool(category.RequiresTransport.value),
                 'UnitsPerWorker': None,
                 'Recipes': [],
@@ -221,13 +225,12 @@ class SimulationGenerator:
         recipe_by_key = {}
         for recipe in self.simulation.SimConnector.Relations.Recipes:
             ProcessCode = recipe.ProcessCode.jump.value
-            recipe_values = self.recipe_values(recipe)
+            recipe_values = self.recipe_values(recipe, self.kg.nodes_by_path[knowledge_graph.kg_node_path(recipe.ProcessCode.jump)])
             key = json.dumps([ProcessCode, recipe_values], sort_keys=True)
             if key not in recipe_by_key:
-                recipe_by_key[key] = {**recipe_values, 'recipe_indexes': [], 'OutputItemCodes': []}
+                recipe_by_key[key] = {**recipe_values, 'OutputItemCodes': []}
                 Processes[ProcessCode]['Recipes'].append(recipe_by_key[key])
             instance_recipe = recipe_by_key[key]
-            instance_recipe['recipe_indexes'].append(recipe.index_in_parent)
             if recipe.OutputItemCode.value in item_codes:
                 instance_recipe['OutputItemCodes'].append(recipe.OutputItemCode.value)
         for ProcessCode, process in Processes.items():
@@ -235,47 +238,43 @@ class SimulationGenerator:
             process['UnitsPerWorker'] = self.units_per_worker_of_process(process)
         return Processes
 
-    # 투입 품목: InputItemCodeRef → Warehouse ItemCodeRef → 품목 CD(idShort가 품목 코드)
-    # 자원: ResourceGroupRef·ResourceUnitRef → Resource 코드 요소(WorkerGroupCode 등). 종류는 코드 요소 → 항목 → 목록 → Machine·Worker
-    def recipe_values(self, recipe):
-        InputItems = []
-        for input_item in recipe.InputItemCodeList:
-            InputItems.append({'ItemCode': input_item.InputItemCodeRef.jump.jump.idShort,
-                               'InputItemQuantity': input_item.InputItemQuantity.value})
-        group_code = recipe.ResourceGroupRef.jump
-        unit_code = recipe.ResourceUnitRef.jump
+    # 투입 품목: KG Process —Require→ Warehouse(투입량 InputItemQuantity)
+    # 설비: KG Process —Require→ Machine, 작업자 그룹: KG Process —Require→ Worker의 WorkerGroupCode
+    # CycleTime은 KG 관계가 아니라 레시피 값
+    def recipe_values(self, recipe, process_node):
+        InputItems = [{'ItemCode': knowledge_graph.code_from_kg_node_path(edge.target.kg_node_path), 'InputItemQuantity': edge.InputItemQuantity}
+                      for edge in self.kg.edges_from(process_node, knowledge_graph.Require, knowledge_graph.Warehouse)]
+        MachineUnitCodes = [knowledge_graph.code_from_kg_node_path(edge.target.kg_node_path)
+                            for edge in self.kg.edges_from(process_node, knowledge_graph.Require, knowledge_graph.Machine)]
+        WorkerGroupCodes = sorted({edge.target.WorkerGroupCode
+                                   for edge in self.kg.edges_from(process_node, knowledge_graph.Require, knowledge_graph.Worker)})
+        if len(WorkerGroupCodes) > 1:
+            self.issues.append({'kind': '공정 자원', 'message': f'{knowledge_graph.code_from_kg_node_path(process_node.kg_node_path)}: '
+                                                            f'작업자 그룹 여럿 {WorkerGroupCodes}, 첫 그룹을 씀'})
         return {
             'InputItems': InputItems,
-            'ResourceGroupType': group_code.parent.parent.parent.idShort,
-            'ResourceGroupCode': group_code.value,
-            'ResourceUnitType': unit_code.parent.parent.parent.idShort,
-            'ResourceUnitCode': unit_code.value,
+            'MachineUnitCodes': MachineUnitCodes,
+            'WorkerGroupCode': WorkerGroupCodes[0] if WorkerGroupCodes else None,
             'CycleTime': recipe.CycleTime.value,
         }
 
     def check_process_resources(self, process, MachineGroups):
         for recipe in process['Recipes']:
-            uses_worker = recipe['ResourceGroupType'] == 'Worker'
-            if uses_worker != process['RequiresWorker']:
+            if bool(recipe['WorkerGroupCode']) != process['RequiresWorker']:
                 self.issues.append({'kind': '공정 자원', 'message': f"{process['ProcessCode']}: RequiresWorker {process['RequiresWorker']}, "
-                                                                 f"레시피 자원 그룹 {recipe['ResourceGroupType']} {recipe['ResourceGroupCode']}"})
-            uses_machine = recipe['ResourceGroupType'] == 'Machine' or recipe['ResourceUnitType'] == 'Machine'
-            if uses_machine != process['RequiresMachine']:
+                                                                 f"작업자 그룹 {recipe['WorkerGroupCode']}"})
+            if bool(recipe['MachineUnitCodes']) != process['RequiresMachine']:
                 self.issues.append({'kind': '공정 자원', 'message': f"{process['ProcessCode']}: RequiresMachine {process['RequiresMachine']}, "
-                                                                 f"레시피 설비 {recipe['ResourceGroupCode']} {recipe['ResourceUnitCode']}"})
+                                                                 f"설비 {recipe['MachineUnitCodes']}"})
             for MachineGroupCode in self.machine_group_codes_of_recipe(recipe, MachineGroups):
                 RequiresOperator = MachineGroups[MachineGroupCode]['RequiresOperator']
                 if RequiresOperator is not None and bool(RequiresOperator) != process['RequiresWorker']:
                     self.issues.append({'kind': '작업자 필요 여부', 'message': f"{process['ProcessCode']}: Process RequiresWorker {process['RequiresWorker']}, "
                                                                          f"MachineGroup {MachineGroupCode} RequiresOperator {RequiresOperator}"})
 
-    # 레시피가 쓰는 설비 그룹: ResourceGroupRef가 설비 그룹이면 그 그룹, ResourceUnitRef가 설비면 그 설비가 속한 그룹
+    # 레시피 설비가 속한 설비 그룹
     def machine_group_codes_of_recipe(self, recipe, MachineGroups):
-        if recipe['ResourceGroupType'] == 'Machine':
-            return [recipe['ResourceGroupCode']]
-        if recipe['ResourceUnitType'] == 'Machine':
-            return [code for code, group in MachineGroups.items() if recipe['ResourceUnitCode'] in group['MachineUnitCodes']]
-        return []
+        return [code for code, group in MachineGroups.items() if set(recipe['MachineUnitCodes']) & set(group['MachineUnitCodes'])]
 
     # 작업자 1인이 이 공정에서 동시에 맡는 수량: 코드 사전 → 기본값
     def units_per_worker_of_process(self, process):
@@ -362,10 +361,10 @@ class SimulationGenerator:
         conditions = [{'ConditionType': 'ItemAvailable', 'ItemCode': input_item['ItemCode'],
                        'Quantity': input_item['InputItemQuantity']}
                       for input_item in recipe['InputItems']]
-        for type_key, code_key in (('ResourceGroupType', 'ResourceGroupCode'), ('ResourceUnitType', 'ResourceUnitCode')):
-            if recipe[code_key] is not None:
-                conditions.append({'ConditionType': 'ResourceAvailable', 'ResourceType': recipe[type_key],
-                                   'ResourceCode': recipe[code_key]})
+        if recipe['WorkerGroupCode']:
+            conditions.append({'ConditionType': 'ResourceAvailable', 'ResourceType': 'Worker', 'ResourceCode': recipe['WorkerGroupCode']})
+        conditions += [{'ConditionType': 'ResourceAvailable', 'ResourceType': 'Machine', 'ResourceCode': MachineUnitCode}
+                       for MachineUnitCode in recipe['MachineUnitCodes']]
         return conditions
 
     # ---------------------------------------------------------------- 제품의 공정
@@ -383,9 +382,12 @@ class SimulationGenerator:
 
         next_process_codes = collections.defaultdict(list)
         previous_process_codes = collections.defaultdict(list)
-        for flow in instance['ProcessFlows']:
-            next_process_codes[flow['FromProcessCode']].append(flow['ToProcessCode'])
-            previous_process_codes[flow['ToProcessCode']].append(flow['FromProcessCode'])
+        for edge in self.kg.edges:
+            if isinstance(edge, (knowledge_graph.Sequence, knowledge_graph.Join)):
+                previous_code = knowledge_graph.code_from_kg_node_path(edge.source.kg_node_path)
+                code = knowledge_graph.code_from_kg_node_path(edge.target.kg_node_path)
+                next_process_codes[previous_code].append(code)
+                previous_process_codes[code].append(previous_code)
         final_process_codes_by_product, core_process_codes_by_product = {}, {}
         for ProductCode, product in instance['Products'].items():
             bom_item_codes_of_product = bom_item_codes(product['EntryNode'])
@@ -454,28 +456,18 @@ class SimulationGenerator:
 
     # ---------------------------------------------------------------- 탄소 경계(MCF 폴더의 MCF Submodel마다): 묶인 공정, 활동량을 쌓는 시간, 탄소 구성요소 줄
     def extract_CarbonBoundaries(self, instance):
-        process_code_by_recipe_index = {index: code for code, process in instance['Processes'].items()
-                                        for recipe in process['Recipes'] for index in recipe['recipe_indexes']}
         CarbonBoundaries = {}
         for mcf in self.extracted.submodels_with_role('MCF'):
             process_resource = mcf.ManufacturingProcess.ProcessResource
             resource_aas = process_resource.ResourceRef.jump
-            recipe_indexes = []
-            for mcf_recipe in mcf.ManufacturingProcess.Recipes:
-                for output in mcf_recipe.Output:
-                    simulation_output_code = output.OutputItemCode.jump
-                    if not simulation_output_code:
-                        self.issues.append({'kind': 'MCF 레시피', 'message': f'{mcf.id} Output 참조를 따라갈 수 없음'})
-                        continue
-                    recipe_indexes.append(simulation_output_code.parent.index_in_parent)
-            ProcessCodes = sorted({process_code_by_recipe_index[index] for index in recipe_indexes})
+            ProcessCodes = sorted({knowledge_graph.code_from_kg_node_path(edge.source.kg_node_path) for edge in self.kg.edges
+                                   if isinstance(edge, knowledge_graph.ContributeTo) and edge.target.kg_node_path.startswith(f'{mcf.id}/')})
             MachineUnitCode = self.machine_unit_code_of_aas(instance, resource_aas)
             CarbonBoundaries[mcf.id] = {
                 'mcf_submodel_id': mcf.id,
                 'ResourceType': process_resource.ResourceType.value,
                 'resource_aas_id': resource_aas.id,
                 'MachineUnitCode': MachineUnitCode,
-                'recipe_indexes': recipe_indexes,
                 'ProcessCodes': ProcessCodes,
                 'activity_basis': 'machine_on_time' if MachineUnitCode else 'process_time',
                 'carbon_elements': self.carbon_elements(mcf, resource_aas, ProcessCodes),
@@ -793,16 +785,14 @@ class SimulationModel:
     def schedule_of(self, WorkScheduleCode):
         return self.instance['WorkSchedules'].get(WorkScheduleCode) if WorkScheduleCode else None
 
-    # ---------------------------------------------------------------- 리소스 ② 설비 고르기: 레시피 설비 단위, 설비 그룹이면 대기가 가장 적은 설비
+    # ---------------------------------------------------------------- 리소스 ② 설비 고르기: 레시피 설비(KG Process —Require→ Machine) 가운데 대기가 가장 적은 설비
     def machine_for_recipe(self, ProcessCode, recipe):
         if not self.instance['Processes'][ProcessCode]['RequiresMachine']:
             return None
-        if recipe['ResourceUnitType'] == 'Machine':
-            return self.machines[recipe['ResourceUnitCode']]
-        if recipe['ResourceGroupType'] == 'Machine':
-            machines = [self.machines[code] for code in self.instance['MachineGroups'][recipe['ResourceGroupCode']]['MachineUnitCodes']]
-            return min(machines, key=lambda machine: len(machine.resource.queue) + machine.resource.count)
-        return None
+        machines = [self.machines[code] for code in recipe['MachineUnitCodes']]
+        if not machines:
+            return None
+        return min(machines, key=lambda machine: len(machine.resource.queue) + machine.resource.count)
 
     # ---------------------------------------------------------------- 리소스 ③ 작업자 그룹 작업 배정(진입 조건 ResourceAvailable·ItemAvailable)
     def wake_worker_group(self, group):
@@ -912,9 +902,9 @@ class SimulationModel:
 
     # ---------------------------------------------------------------- 시뮬레이션 ② 레시피 실행: 작업자 공정은 작업자 그룹 대기열로, 그 밖은 설비 확보(없으면 시간만)
     def execute_recipe(self, ProcessCode, recipe):
-        if self.instance['Processes'][ProcessCode]['RequiresWorker'] and recipe['ResourceGroupType'] == 'Worker':
+        if self.instance['Processes'][ProcessCode]['RequiresWorker'] and recipe['WorkerGroupCode']:
             finished = self.environment.event()
-            group = self.worker_groups[recipe['ResourceGroupCode']]
+            group = self.worker_groups[recipe['WorkerGroupCode']]
             group.waiting_jobs_by_process[ProcessCode].append(
                 {'ProcessCode': ProcessCode, 'recipe': recipe, 'finished': finished, 'ready_time': self.environment.now,
                  'ready_order': next(self.ready_order_counter)})
@@ -1183,7 +1173,7 @@ class SmtLineGenerator(SimulationGenerator):
             return False
         flows = {(flow['FromProcessCode'], flow['ToProcessCode']) for flow in instance['ProcessFlows']}
         for step_index, (ProcessCode, MachineUnitCode) in enumerate(zip(target['ProcessCodes'], target['MachineUnitCodes'])):
-            recipe_machine_codes = {recipe['ResourceUnitCode'] for recipe in instance['Processes'][ProcessCode]['Recipes']}
+            recipe_machine_codes = {code for recipe in instance['Processes'][ProcessCode]['Recipes'] for code in recipe['MachineUnitCodes']}
             if recipe_machine_codes != {MachineUnitCode}:
                 self.issues.append({'kind': 'SMT 라인', 'message': f'{line_code}: {ProcessCode} 레시피 설비 {recipe_machine_codes}, 지정 설비 {MachineUnitCode}'})
             if step_index > 0 and (target['ProcessCodes'][step_index - 1], ProcessCode) not in flows:
@@ -1354,7 +1344,7 @@ class BaseLoadGenerator(SimulationGenerator):
         }
         instance['CarbonBoundaries'][BASE_LOAD_CODE] = {
             'mcf_submodel_id': None, 'ResourceType': None, 'resource_aas_id': None,
-            'MachineUnitCode': None, 'recipe_indexes': [], 'ProcessCodes': [],
+            'MachineUnitCode': None, 'ProcessCodes': [],
             'activity_basis': 'work_time',
             'carbon_elements': [{
                 'category': 'Electricity', 'ClassificationType': 'Grid electricity', 'AmountUnit': 'kWh',
