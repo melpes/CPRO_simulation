@@ -1,814 +1,770 @@
-from __future__ import annotations
-
+import glob
 import json
-from dataclasses import dataclass, field
-from enum import Enum
-from typing import Any, ClassVar, Dict, List, Tuple
-
-
-__all__ = ['ProvisionofSimulationModelsAAS', 'load']
-
-
-class EntityType(str, Enum):
-    SelfManagedEntity = 'SelfManagedEntity'
-    CoManagedEntity = 'CoManagedEntity'
-
-
-class semanticId(str):
-    pass
-
-
-def _reference_keys(raw_reference: dict | None) -> List[semanticId]:
-    if not raw_reference:
-        return []
-    return [semanticId(key.get('value', '')) for key in raw_reference.get('keys', [])]
-
-
-class Qualifier(dict):
-    pass
-
-
-@dataclass(kw_only=True)
-class SubmodelElement:
-    idShort: str = ''
-    semanticId: semanticId
-    Qualifier: Qualifier = field(default_factory=Qualifier)
-    value: (Dict[str, SubmodelElement]
-            | List[SubmodelElement]
-            | List[semanticId]
-            | str | int | float | bool
-            | None) = None
-
-    def __getattr__(self, name: str):
-        return self.__dict__.get('value')[name]
-
-    def __getitem__(self, key): return self.value[key]
-    def __len__(self): return len(self.value)
-    def __contains__(self, key): return key in self.value
-    def items(self): return self.value.items()
-    def keys(self):  return self.value.keys()
-    def values(self):return self.value.values()
-
-    def _traverse_entities(self):
-        if isinstance(self, Entity):
-            yield self
-        for children_attr in ('value', 'statements'):
-            children = self.__dict__.get(children_attr)
-            if isinstance(children, dict):
-                for child in children.values():
-                    if isinstance(child, SubmodelElement):
-                        yield from child._traverse_entities()
-            elif isinstance(children, list):
-                for child in children:
-                    if isinstance(child, SubmodelElement):
-                        yield from child._traverse_entities()
-
-
-@dataclass(kw_only=True)
-class Submodel(SubmodelElement):
-    id: str = ''
-    value: Dict[str, SubmodelElement] = field(default_factory=dict)
-
-
-@dataclass(kw_only=True)
-class ManufacturingProcess(Submodel):
-    _positions: ClassVar[List[Tuple[str, ...]]] = [('ManufacturingProcess',)]
-
-    @property
-    def groups(self) -> Dict[str, 'ProcessGroup']:
-        return {k: v for k, v in self.value.items() if isinstance(v, ProcessGroup)}
-
-    @property
-    def model_id(self) -> str:
-        for entry in _aas_registry.values():
-            aas_list = entry if isinstance(entry, list) else [entry]
-            for aas in aas_list:
-                if self in aas.submodels.values():
-                    return aas.idShort
-        return ''
-
-
-@dataclass(kw_only=True)
-class SubmodelElementCollection(SubmodelElement):
-    value: Dict[str, SubmodelElement] = field(default_factory=dict)
-
-
-@dataclass(kw_only=True)
-class ProcessGroup(SubmodelElementCollection):
-    _positions:          ClassVar[List[Tuple[str, ...]]] = [('ManufacturingProcess', '*')]
-    _positions_excluded: ClassVar[List[Tuple[str, ...]]] = [('ManufacturingProcess', 'ProcessType')]
-
-
-@dataclass(kw_only=True)
-class ProcessNode(SubmodelElementCollection):
-    _positions: ClassVar[List[Tuple[str, ...]]] = [
-        ('ManufacturingProcess', '*', '*'),
-        ('SimulationModels', 'SimulationModel', 'KnowledgeGraph', 'Node', '*', '*'),
-    ]
-
-    def _resolve(self, name: str):
-        child = self.value[name]
-        return child.target if isinstance(child, ReferenceElement) else child
-
-    @property
-    def CycleTimeSec(self) -> 'Property':  return self._resolve('CycleTimeSec')
-    @property
-    def DefectRate(self)   -> 'Property':  return self._resolve('DefectRate')
-    @property
-    def RatedPowerKw(self) -> 'Property':  return self._resolve('RatedPowerKw')
-    @property
-    def DepPrev(self)      -> 'Property':  return self._resolve('DepPrev')
-    @property
-    def DepType(self)      -> 'Property':  return self._resolve('DepType')
-    @property
-    def DepNext(self)      -> 'Property | None':
-        return self._resolve('DepNext') if 'DepNext' in self.value else None
-    @property
-    def InputBOM(self)     -> 'InputBOM':
-        return self._resolve('InputBOM') if 'InputBOM' in self.value else None
-    @property
-    def DepWaitSec(self)   -> 'DepWaitSec | None':
-        for child in self.value.values():
-            if isinstance(child, DepWaitSec):
-                return child
-        return None
-    @property
-    def SamplingRate(self) -> 'SamplingRate | None':
-        for child in self.value.values():
-            if isinstance(child, SamplingRate):
-                return child
-        return None
-
-
-@dataclass(kw_only=True)
-class SMTEquipmentProcess(SubmodelElementCollection):
-    _positions: ClassVar[List[Tuple[str, ...]]] = [
-        ('SimulationModels', 'SimulationModel', 'SMTProcess', 'SMTLines', '*', '*'),
-    ]
-
-    def _catalog_property(self, child_idShort: str) -> 'Property | None':
-        reference = self.value[child_idShort]
-        equipment = _find_aas_by_id(self.semanticId)
-        if equipment is None:
-            return None
-        for submodel in equipment.submodels.values():
-            found = _traverse_for_match(submodel, reference.semanticId)
-            if found is not None:
-                return found
-        return None
-
-    @property
-    def CycleTimeSec(self) -> 'Property | None':  return self._catalog_property('CycleTimeSec')
-    @property
-    def RatedPowerKw(self) -> 'Property | None':  return self._catalog_property('RatedPowerKw')
-    @property
-    def DepPrev(self) -> 'Property':              return self.value['DepPrev']
-    @property
-    def DepType(self) -> 'Property':              return self.value['DepType']
-
-
-@dataclass(kw_only=True)
-class BOMCategory(SubmodelElementCollection):
-    _positions: ClassVar[List[Tuple[str, ...]]] = [('HierarchicalStructures', 'BOMCategory')]
-
-
-@dataclass(kw_only=True)
-class BOMCategoryEntry(SubmodelElementCollection):
-    _positions: ClassVar[List[Tuple[str, ...]]] = [('HierarchicalStructures', 'BOMCategory', '*')]
-
-    @property
-    def MinStock(self)   -> int:   return self.value['MinStock'].value
-    @property
-    def MaxStock(self)   -> int:   return self.value['MaxStock'].value
-    @property
-    def OrderRatio(self) -> float: return self.value['OrderRatio'].value
-
-
-@dataclass(kw_only=True)
-class RuntimeVariables(SubmodelElementCollection):
-    _positions: ClassVar[List[Tuple[str, ...]]] = [
-        ('SimulationModels', 'SimulationModel', 'RuntimeVariables'),
-    ]
-
-    def _expected_makespan_sec(self, KnowledgeGraph, target_qty, workers,
-                               margin_factor=1.5) -> float:
-        total = sum(target_qty.values())
-        bottleneck = 0.0
-        for info in workers.values():
-            slots = info['worker_count'] * info.get('UnitsPerWorker', 1)
-            if slots <= 0:
-                continue
-            load = sum(target_qty.get(node.model_id, total) * node.CycleTimeSec
-                       for pc in info.get('ProcessCode', [])
-                       if (node := KnowledgeGraph.nodes.get(pc)) is not None)
-            bottleneck = max(bottleneck, load / slots)
-        return margin_factor * bottleneck
-
-    def MaxEpisodeEnergyKwh(self, KnowledgeGraph, target_qty, workers, work_day_sec,
-                            DefaultProcessConsumedPowerKw, smt_power_kw=0.0,
-                            horizon_mode='bottleneck') -> float:
-        total = sum(target_qty.values())
-        horizon_sec = (self._expected_makespan_sec(KnowledgeGraph, target_qty, workers)
-                       if horizon_mode == 'bottleneck' else 0.0)
-        if horizon_sec <= 0:
-            horizon_sec = work_day_sec * total
-        active_max = sum(
-            target_qty.get(node.model_id, total)
-            * node.CycleTimeSec
-            * node.RatedPowerKw
-            for node in KnowledgeGraph.nodes.values()
-        ) / 3600
-        baseline_max = horizon_sec * DefaultProcessConsumedPowerKw / 3600
-        smt_max = smt_power_kw * horizon_sec / 3600
-        return max(1e-6, active_max + baseline_max + smt_max)
-
-    def EpisodeEnergyKwh(self, graph_node, EpisodeEnergyKwh, WeightedActiveSec=None) -> float:
-        active_sec = graph_node.CycleTimeSec if WeightedActiveSec is None else WeightedActiveSec
-        return EpisodeEnergyKwh + active_sec * graph_node.RatedPowerKw / 3600
-
-    def CycleCompleted(self, ProcessCode, KnowledgeGraph) -> bool:
-        return (ProcessCode in KnowledgeGraph.nodes
-                and ProcessCode not in KnowledgeGraph.edges)
-
-    def Throughput(self, ProcessCode, KnowledgeGraph, Throughput) -> dict:
-        if self.CycleCompleted(ProcessCode, KnowledgeGraph):
-            Throughput[KnowledgeGraph.nodes[ProcessCode].model_id] += 1
-        return Throughput
-
-    def StockShortageCount(self, warehouse, StockShortageCount) -> int:
-        return StockShortageCount + sum(
-            1
-            for Category in warehouse.inventory
-            for item in warehouse.inventory[Category].values()
-            if item.present_stock < item.MinStock
-        )
-
-    def StockOverflowCount(self, warehouse, StockOverflowCount) -> int:
-        return StockOverflowCount + sum(
-            1
-            for Category in warehouse.inventory
-            for item in warehouse.inventory[Category].values()
-            if item.present_stock > item.MaxStock
-        )
-
-    def IdleViolationCount(self, workers, in_progress, idle_time, now,
-                           IdleWorkerThreshold, IdleViolationCount) -> int:
-        for WorkstationId in workers:
-            idle_slots = (workers[WorkstationId]['worker_count']
-                          - in_progress.get(WorkstationId, 0))
-            if idle_slots > 0:
-                if WorkstationId not in idle_time:
-                    idle_time[WorkstationId] = now
-                elif now - idle_time[WorkstationId] > IdleWorkerThreshold:
-                    IdleViolationCount += idle_slots
-            else:
-                idle_time.pop(WorkstationId, None)
-        return IdleViolationCount
-
-    def DuePaceDeficit(self, Throughput, target_qty, DueDay, now, DuePaceDeficit) -> float:
-        deficit = 0.0
-        for model_id in target_qty:
-            if not target_qty[model_id]:          # 주문 0 인 모델 — 페이스 요구 없음
-                continue
-            required = min(now / DueDay[model_id], 1.0)
-            progress = Throughput[model_id] / target_qty[model_id]
-            deficit += max(0.0, required - progress)
-        return DuePaceDeficit + deficit
-
-    def EpisodeReturns(self, rewards, Gamma) -> list:
-        EpisodeReturns, G = [], 0.0
-        for reward in reversed(rewards):
-            G = reward + Gamma * G
-            EpisodeReturns.insert(0, G)
-        return EpisodeReturns
-
-    def Advantages(self, EpisodeReturns, values) -> list:
-        Advantages = [r - v for r, v in zip(EpisodeReturns, values)]
-        mean = sum(Advantages) / len(Advantages)
-        std = (sum((a - mean) ** 2 for a in Advantages) / len(Advantages)) ** 0.5
-        return [(a - mean) / (std + 1e-8) for a in Advantages]
-
-
-@dataclass(kw_only=True)
-class SubmodelElementList(SubmodelElement):
-    value: List[SubmodelElement] = field(default_factory=list)
-
-    def __getitem__(self, index: int): return self.value[index]
-    def __iter__(self):                return iter(self.value)
-    def __len__(self):                 return len(self.value)
-
-
-@dataclass(kw_only=True)
-class InputBOM(SubmodelElementList):
-    _positions: ClassVar[List[Tuple[str, ...]]] = [('ManufacturingProcess', '*', '*', 'InputBOM')]
-
-    def items(self):
-        for ref in self.value:
-            yield _idShort_from_cd(ref.value[0]), ref.Qualifier['Quantity']
-    def keys(self):
-        for ref in self.value:
-            yield _idShort_from_cd(ref.value[0])
-    def __getitem__(self, item_code: str):
-        for ref in self.value:
-            if _idShort_from_cd(ref.value[0]) == item_code:
-                return ref.Qualifier['Quantity']
-        raise KeyError(item_code)
-    def __contains__(self, item_code: str):
-        return any(_idShort_from_cd(ref.value[0]) == item_code for ref in self.value)
-    def __iter__(self):
-        return self.keys()
-    def __len__(self):
-        return len(self.value)
-    def __bool__(self):
-        return bool(self.value)
-
-
-@dataclass(kw_only=True)
-class ObservationNodeFeatures(SubmodelElementList):
-    _positions: ClassVar[List[Tuple[str, ...]]] = [
-        ('SimulationModels', 'SimulationModel', 'ModelArchitecture', 'Observation', 'ObservationNodeFeatures')]
-
-    def attrs(self) -> List[str]:
-        return [_idShort_from_cd(ref.value[0]) for ref in self.value]
-
-
-@dataclass(kw_only=True)
-class PurchaseOrder(SubmodelElementCollection):
-    _positions: ClassVar[List[Tuple[str, ...]]] = [
-        ('SimulationModels', 'SimulationModel', 'PurchaseOrder')]
-
-    def items(self):
-        for model_id, order in self.value.items():
-            yield model_id, (order.value, order.Qualifier['DueDay'], order.Qualifier['RegisteredDay'])
-    def __getitem__(self, model_id: str):
-        order = self.value[model_id]
-        return (order.value, order.Qualifier['DueDay'], order.Qualifier['RegisteredDay'])
-
-
-@dataclass(kw_only=True)
-class Property(SubmodelElement):
-    value: Any = None
-
-
-@dataclass(kw_only=True)
-class DepWaitSec(Property):
-    _positions: ClassVar[List[Tuple[str, ...]]] = [
-        ('ManufacturingProcess', '*', '*', 'CuringTimeSec'),
-    ]
-
-
-@dataclass(kw_only=True)
-class SamplingRate(Property):
-    _positions: ClassVar[List[Tuple[str, ...]]] = [
-        ('SimulationModels', 'SimulationModel', 'KnowledgeGraph', 'Node', '*', '*', 'SamplingRate'),
-    ]
-
-
-@dataclass(kw_only=True)
-class Range(SubmodelElement):
-    min: Any = None
-    max: Any = None
-
-
-@dataclass(kw_only=True)
-class Entity(SubmodelElement):
-    entityType: EntityType
-    statements: Dict[str, SubmodelElement] = field(default_factory=dict)
-
-    def __getattr__(self, name: str):
-        statements = self.__dict__.get('statements')
-        if isinstance(statements, dict) and name in statements:
-            return statements[name]
-        raise AttributeError(name)
-
-
-@dataclass(kw_only=True)
-class RelationshipElement(SubmodelElement):
-    first: List[semanticId]
-    second: List[semanticId]
-
-
-def _is_identifier(key: str) -> bool:
-    return '://' in key or '#' in key
-
-
-def _resolve_identifier(identifier: str):
-    for entry in _aas_registry.values():
-        aas_list = entry if isinstance(entry, list) else [entry]
-        for aas in aas_list:
-            for submodel in aas.submodels.values():
-                if submodel.id == identifier:
-                    return submodel
-                found = _traverse_for_match(submodel, identifier)
-                if found is not None:
-                    return found
-    return None
-
-
-def _traverse_for_match(node, target_identifier: str):
-    if node.semanticId == target_identifier:
-        return node
-    for children_attr in ('value', 'statements'):
-        children = node.__dict__.get(children_attr)
-        if isinstance(children, dict):
-            for child in children.values():
-                found = _traverse_for_match(child, target_identifier)
-                if found is not None:
-                    return found
-        elif isinstance(children, list):
-            for child in children:
-                if isinstance(child, SubmodelElement):
-                    found = _traverse_for_match(child, target_identifier)
-                    if found is not None:
-                        return found
-    return None
-
-
-@dataclass(kw_only=True)
-class ReferenceElement(SubmodelElement):
-    value: List[semanticId]
-
-    def __getitem__(self, key):
-        return self.target[key]
-
-    @property
-    def target(self):
-        keys = self.value
-        if not keys:
-            return None
-        first = _resolve_identifier(keys[0])
-        if first is None:
-            return None
-        if len(keys) == 1:
-            return first
-        if all(_is_identifier(key) for key in keys[1:]):
-            node = first
-            for key in keys[1:]:
-                found = _traverse_for_match(node, key)
-                if found is None:
-                    return [_resolve_identifier(key) for key in keys]
-                node = found
-            return node
-        node = first
-        for key in keys[1:]:
-            node = node.value[key]
-        return node
-
-
-@dataclass(kw_only=True)
-class ProcessNodePropertyRef(ReferenceElement):
-    _positions: ClassVar[List[Tuple[str, ...]]] = [
-        ('SimulationModels', 'SimulationModel', 'Node', '*', '*', 'CycleTimeSec'),
-        ('SimulationModels', 'SimulationModel', 'Node', '*', '*', 'DefectRate'),
-        ('SimulationModels', 'SimulationModel', 'Node', '*', '*', 'RatedPowerKw'),
-    ]
-    value: List[semanticId]
-
-    @property
-    def target(self) -> Property:
-        keys = self.value
-        node = _find_submodel_by_id(keys[0])
-        for key in keys[1:]:
-            node = node.value[key]
-        return node
-
-
-@dataclass(kw_only=True)
-class ProcessNodeListRef(ReferenceElement):
-    _positions: ClassVar[List[Tuple[str, ...]]] = [
-        ('SimulationModels', 'SimulationModel', 'KnowledgeGraph', 'Action', 'IndependentSequence', '*'),
-        ('SimulationModels', 'SimulationModel', 'KnowledgeGraph', 'Action', 'DependentSequence', '*'),
-        ('SimulationModels', 'SimulationModel', 'KnowledgeGraph', 'Action', 'DependentJoin', '*'),
-        ('SimulationModels', 'SimulationModel', 'KnowledgeGraph', 'Action', 'AssignedProcessGroups', '*'),
-    ]
-    value: List[semanticId]
-    @property
-    def target(self) -> List[ProcessNode]:
-        return [_find_typed_by_semantic(url, ProcessNode) for url in self.value]
-
-
-@dataclass(kw_only=True)
-class AssignedProcessGroupsRef(ReferenceElement):
-    _positions: ClassVar[List[Tuple[str, ...]]] = [
-        ('WorkstationWorkerMatchingData', 'GeneralWorkstationData', 'WorkstationInformation', '*', 'AssignedProcessGroups', '*'),
-    ]
-    value: List[semanticId]
-    @property
-    def target(self) -> List[ProcessNode]:
-        return [node for url in self.value
-                if (node := _find_typed_by_semantic(url, ProcessNode)) is not None]
-
-
-@dataclass(kw_only=True)
-class MPSubmodelListRef(ReferenceElement):
-    _positions: ClassVar[List[Tuple[str, ...]]] = [
-        ('SimulationModels', 'SimulationModel', 'Warehouse', 'InputBOM'),
-    ]
-    value: List[semanticId]
-    @property
-    def target(self) -> List[ManufacturingProcess]:
-        return [_find_submodel_by_id(url) for url in self.value]
-
-
-@dataclass(kw_only=True)
-class BOMCategoryRef(ReferenceElement):
-    _positions: ClassVar[List[Tuple[str, ...]]] = [
-        ('SimulationModels', 'SimulationModel', 'Warehouse', 'MinStock'),
-        ('SimulationModels', 'SimulationModel', 'Warehouse', 'MaxStock'),
-        ('SimulationModels', 'SimulationModel', 'Warehouse', 'OrderRatio'),
-    ]
-    value: List[semanticId]
-    @property
-    def target(self) -> BOMCategory:
-        return _find_typed_by_semantic(self.value[0], BOMCategory)
-
-
-@dataclass(kw_only=True)
-class WWMPropertyRef(ReferenceElement):
-    _positions: ClassVar[List[Tuple[str, ...]]] = [
-        ('SimulationModels', 'SimulationModel', 'DefaultParameters', 'WorkStartTime'),
-        ('SimulationModels', 'SimulationModel', 'DefaultParameters', 'WorkEndTime'),
-        ('SimulationModels', 'SimulationModel', 'DefaultParameters', 'BreakDurationMin'),
-    ]
-    value: List[semanticId]
-
-    @property
-    def target(self) -> Property:
-        wwm_submodel = _find_submodel_by_id(self.value[0])
-        return _traverse_for_match(wwm_submodel, self.value[1])
-
-
-def _find_submodel_by_id(url: str):
-    for entry in _aas_registry.values():
-        aas_list = entry if isinstance(entry, list) else [entry]
-        for aas in aas_list:
-            for submodel in aas.submodels.values():
-                if submodel.id == url:
-                    return submodel
-    return None
-
-
-def _find_aas_by_id(url: str):
-    for entry in _aas_registry.values():
-        aas_list = entry if isinstance(entry, list) else [entry]
-        for aas in aas_list:
-            if aas.id == url:
-                return aas
-    return None
-
-
-def _find_submodel_by_semantic(url: str):
-    for entry in _aas_registry.values():
-        aas_list = entry if isinstance(entry, list) else [entry]
-        for aas in aas_list:
-            for submodel in aas.submodels.values():
-                if submodel.semanticId == url:
-                    return submodel
-    return None
-
-
-def _find_typed_by_semantic(url: str, target_type: type):
-    for entry in _aas_registry.values():
-        aas_list = entry if isinstance(entry, list) else [entry]
-        for aas in aas_list:
-            for submodel in aas.submodels.values():
-                found = _traverse_for_typed(submodel, url, target_type)
-                if found is not None:
-                    return found
-    return None
-
-
-def _traverse_for_typed(node, target_url: str, target_type: type):
-    if isinstance(node, target_type) and node.semanticId == target_url:
-        return node
-    for children_attr in ('value', 'statements'):
-        children = node.__dict__.get(children_attr)
-        if isinstance(children, dict):
-            for child in children.values():
-                found = _traverse_for_typed(child, target_url, target_type)
-                if found is not None: return found
-        elif isinstance(children, list):
-            for child in children:
-                if isinstance(child, SubmodelElement):
-                    found = _traverse_for_typed(child, target_url, target_type)
-                    if found is not None: return found
-    return None
-
-
-def _idShort_from_cd(identifier: str) -> str:
-    if '/ids/cd/' in identifier:
-        return identifier.split('/ids/cd/')[1].split('/')[0]
-    return identifier
-
-
-@dataclass(kw_only=True)
-class AssetAdministrationShell:
-    idShort: str = ''
-    id: str = ''
-    submodels: Dict[str, Submodel] = field(default_factory=dict)
-
-    def __getattr__(self, name: str) -> Submodel:
-        return self.__dict__.get('submodels')[name]
-
-    @property
-    def workers(self) -> Dict[str, Dict[str, Any]]:
-        wwm = _aas_registry['AssemblyByWorker']
-        if not wwm.submodels:
-            return {}
-        workstation_info = (wwm.submodels['WorkstationWorkerMatchingData']
-                            .value['GeneralWorkstationData']
-                            .value['WorkstationInformation'])
-        return {
-            ws.idShort: {
-                'worker_count': len(ws.WorkstationConfigurationRecords),
-                'UnitsPerWorker': (ws.value['UnitsPerWorker'].value
-                                   if 'UnitsPerWorker' in ws.value else 1),
-                'ProcessCode': [node.idShort
-                                for ref in ws.AssignedProcessGroups
-                                for node in ref.target]
-            }
-            for ws in workstation_info.values()
-        }
-
-    def _grouped_bom(self, self_managed: bool | None) -> Dict[str, List[str]]:
-        result: Dict[str, List[str]] = {}
-        for aas in ProductAAS:
-            hierarchical_structures = aas.submodels.get('HierarchicalStructures')
-            if hierarchical_structures is None:
-                continue
-            for entity in hierarchical_structures._traverse_entities():
-                category = entity.Qualifier.get('Category')
-                if not category:
-                    continue
-                is_self = entity.entityType == EntityType.SelfManagedEntity
-                if self_managed is not None and is_self != self_managed:
-                    continue
-                bucket = result.setdefault(category, [])
-                if entity.idShort not in bucket:
-                    bucket.append(entity.idShort)
-        return result
-
-    @property
-    def WarehouseManagedBOM(self) -> Dict[str, List[str]]:
-        return self._grouped_bom(None)
-
-    @property
-    def CoManagedBOM(self) -> Dict[str, List[str]]:
-        return self._grouped_bom(False)
-
-    @property
-    def SelfManagedBOM(self) -> Dict[str, List[str]]:
-        return self._grouped_bom(True)
-
-
-ProvisionofSimulationModelsAAS = AssetAdministrationShell()
-AssemblyByWorker = AssetAdministrationShell()
-ProductAAS: List[AssetAdministrationShell] = []
-EquipmentAAS: List[AssetAdministrationShell] = []
-
-
-_aas_registry: Dict[str, AssetAdministrationShell | List[AssetAdministrationShell]] = {
-    'ProductAAS': ProductAAS,
-    'EquipmentAAS': EquipmentAAS,
-    'AssemblyByWorker': AssemblyByWorker,
-    'ProvisionofSimulationModelsAAS': ProvisionofSimulationModelsAAS,
+import os
+import re
+from dataclasses import dataclass, field, fields
+from typing import ClassVar
+
+
+# ================================================ 템플릿 정의: Submodel 역할, 템플릿이 단위를 정한 요소(위치는 Submodel 역할 + idShortPath, 목록 순번은 []) ================================================
+SUBMODEL_MAPPING = {
+    "SEMANTIC_ID": {
+        'https://admin-shell.io/idta/HierarchicalStructures/1/1/Submodel': 'HierarchicalStructures',
+        'https://www.smart-factory.kr/ids/sm/Resource/1/0': 'Resource',
+        'https://www.smart-factory.kr/ids/sm/Process/1/0': 'Process',
+        'https://www.smart-factory.kr/ids/cd/Warehouse/1/0': 'Warehouse',
+        'https://www.smart-factory.kr/ids/sm/MCF/MCF/1/0': 'MCF',
+        '0173-1#01-AHX837#002': 'TechnicalData',
+        'https://www.smart-factory.kr/ids/sm/OperationalData/1/0': 'OperationalData',
+    },
+    "ID": {
+        'https://www.smart-factory.kr/ids/sm/Simulation/1/0': 'Simulation',
+    }
+}
+
+# 대상(템플릿 위치, 목록 순번은 [], **는 idShort 하나 이상): (대상의 단위, 변환할 단위)
+# 단위 자리는 단위 글자 또는 단위가 적힌 요소 위치(….value). 변환할 단위 None은 단위만 붙이고 값은 그대로. 위에서부터 처음 맞는 줄을 씀
+# MCF Amount는 계수(RefEmissionFactor)를 곱할 수 있게 계수의 기준 단위(RefImpactUnitforCalculation)로 바꿈
+SME_UNIT_MAPPING = {
+    'SimulationConfiguration.Run.RunLength': ('SimulationConfiguration.BaseUnits.TimeUnit.value', 's'),
+    'RuntimeStatus.Segments[].SamplingInterval': ('SimulationConfiguration.BaseUnits.TimeUnit.value', 's'),
+    'RuntimeStatus.Segments[].StartTime': ('SimulationConfiguration.BaseUnits.TimeUnit.value', 's'),
+    'RuntimeStatus.Segments[].EndTime': ('SimulationConfiguration.BaseUnits.TimeUnit.value', 's'),
+    'SimConnector.Relations.Recipes[].CycleTime': ('SimulationConfiguration.BaseUnits.TimeUnit.value', 's'),
+    'SimConnector.Relations.TransportFlows[].TransportTime': ('SimulationConfiguration.BaseUnits.TimeUnit.value', 's'),
+    'SimConnector.Relations.TransportFlows[].Distance': ('SimulationConfiguration.BaseUnits.DistanceUnit.value', 'm'),
+
+    'AncillaryInputs.**[].Amount': ('AncillaryInputs.**[].AmountUnit.value', 'AncillaryInputs.**[].RefImpactUnitforCalculation.value'),
+    'Residuals.Waste[].Amount': ('Residuals.Waste[].AmountUnit.value', 'Residuals.Waste[].RefImpactUnitforCalculation.value'),
+    'Residuals.Releases.**[].Amount': ('Residuals.Releases.**[].AmountUnit.value', 'Residuals.Releases.**[].RefImpactUnitforCalculation.value'),
 }
 
 
-def load(json_path: str) -> None:
-    with open(json_path, encoding='utf-8') as file:
-        raw_data = json.load(file)
+# ================================================ 값·단위 변환: valueType별 변환, 단위 크기(가장 작은 단위 몇 개인지), 기준 단위(시간·거리는 Simulation BaseUnits, 없으면 아래 값) ================================================
+VALUE_TYPE_BY_UNIT = {
+    "INTEGER": ['xs:int', 'xs:integer', 'xs:long', 'xs:short', 'xs:byte',
+                'xs:unsignedInt', 'xs:unsignedLong', 'xs:nonNegativeInteger'],
+    "REAL_NUMBER": ['xs:float', 'xs:double', 'xs:decimal'],
+    "BOOLEAN": ['xs:boolean'],
+    "TIME": ['xs:time'],
+    "DURATION": ['xs:duration'],
+}
 
-    shell = raw_data['assetAdministrationShells'][0]
-    aas_idShort = shell['idShort']
+SECONDS_PER_DURATION_DATE_MARK = {'Y': 365 * 86400, 'M': 30 * 86400, 'W': 7 * 86400, 'D': 86400}
+SECONDS_PER_DURATION_TIME_MARK = {'H': 3600, 'M': 60, 'S': 1}
 
-    if aas_idShort == 'ProvisionofSimulationModelsAAS':
-        target_aas = ProvisionofSimulationModelsAAS
-    elif aas_idShort == 'AssemblyByWorker':
-        target_aas = AssemblyByWorker
-    else:
-        target_aas = AssetAdministrationShell()
-        if any(submodel.get('idShort') == 'HierarchicalStructures' for submodel in raw_data.get('submodels', [])):
-            ProductAAS.append(target_aas)
+UNIT_SIZE_BY_QUANTITY = {
+    'time': {'s': 1, 'min': 60, 'h': 3600, 'd': 86400},
+    'distance': {'mm': 1, 'cm': 10, 'm': 1000, 'km': 1000000},
+    'power': {'W': 1, 'kW': 1000, 'kW-h': 1000, 'MW': 1000000},
+    'energy': {'Wh': 1, 'kWh': 1000, 'MWh': 1000000},
+}
+UNITS_KEPT_WITHOUT_CONVERSION = ['%', '°C', 'A', 'V', 'Hz', 'kg', 'lot', 'kgCO2eq']
+COMPOUND_UNIT_SEPARATOR = '/'
+# SME_UNIT_MAPPING에 없는 요소(CD unit·시각·기간)를 바꿀 단위
+BASE_UNIT_BY_QUANTITY = {
+    'time': 's',
+    'distance': 'm',
+    'power': 'kW',
+    'energy': 'kWh',
+}
+
+
+# 시각(09:00:00) → 0시부터 초
+def time_of_day_text_to_seconds(time_text):
+    time_parts = time_text[:len('00:00:00')].split(':')
+    total_seconds = 0
+    for time_part, seconds_per_part in zip(time_parts, [3600, 60, 1]):
+        total_seconds += float(time_part) * seconds_per_part
+    return total_seconds
+
+
+# 기간(PT1H30M) → 초
+def duration_text_to_seconds(duration_text):
+    date_part, time_mark, time_part = duration_text.removeprefix('P').partition('T')
+    date_seconds = sum_duration_part_seconds(date_part, SECONDS_PER_DURATION_DATE_MARK)
+    time_seconds = sum_duration_part_seconds(time_part, SECONDS_PER_DURATION_TIME_MARK)
+    return date_seconds + time_seconds
+
+
+def sum_duration_part_seconds(duration_part, seconds_per_mark):
+    total_seconds = 0
+    number_text = ''
+    for character in duration_part:
+        if character in seconds_per_mark:
+            total_seconds += float(number_text) * seconds_per_mark[character]
+            number_text = ''
         else:
-            EquipmentAAS.append(target_aas)
-
-    target_aas.idShort = aas_idShort
-    target_aas.id = shell.get('id', '')
-    target_aas.submodels = {
-        raw_submodel['idShort']: _build_sme(raw_submodel, (raw_submodel['idShort'],))
-        for raw_submodel in raw_data.get('submodels', [])
-    }
+            number_text += character
+    if number_text:
+        raise ValueError(duration_part)
+    return total_seconds
 
 
-def _build_sme(raw_sme: dict, position: tuple) -> SubmodelElement:
-
-    semantic_keys = (raw_sme.get('semanticId') or {}).get('keys') or []
-    semantic_value = semantic_keys[0].get('value', '') if semantic_keys else ''
-    base_fields = {
-        'idShort': raw_sme.get('idShort', ''),
-        'semanticId': semanticId(semantic_value),
-        'Qualifier': Qualifier(
-            (qualifier['type'], _cast_value(qualifier.get('value'), qualifier.get('valueType')))
-            for qualifier in raw_sme.get('qualifiers', [])
-        ),
-    }
-
-    modelType = raw_sme['modelType']
-    domain_cls = _match_domain(position)
-
-    if modelType == 'Property':
-        cls = domain_cls if (domain_cls and issubclass(domain_cls, Property)) else Property
-        return cls(**base_fields,
-                   value=_cast_value(raw_sme.get('value'), raw_sme.get('valueType')))
-    if modelType == 'Range':
-        cls = domain_cls if (domain_cls and issubclass(domain_cls, Range)) else Range
-        valueType = raw_sme.get('valueType')
-        return cls(**base_fields,
-                   min=_cast_value(raw_sme.get('min'), valueType),
-                   max=_cast_value(raw_sme.get('max'), valueType))
-    if modelType == 'SubmodelElementCollection':
-        cls = domain_cls if (domain_cls and issubclass(domain_cls, SubmodelElementCollection)) else SubmodelElementCollection
-        children = {child['idShort']: _build_sme(child, position + (child['idShort'],))
-                    for child in raw_sme.get('value', [])}
-        return cls(**base_fields, value=children)
-    if modelType == 'SubmodelElementList':
-        cls = domain_cls if (domain_cls and issubclass(domain_cls, SubmodelElementList)) else SubmodelElementList
-        return cls(
-            **base_fields,
-            value=[_build_sme(child, position + ('*',)) for child in raw_sme.get('value', [])],
-        )
-    if modelType == 'Submodel':
-        cls = domain_cls if (domain_cls and issubclass(domain_cls, Submodel)) else Submodel
-        children = {child['idShort']: _build_sme(child, position + (child['idShort'],))
-                    for child in raw_sme.get('submodelElements', [])}
-        return cls(**base_fields, id=raw_sme.get('id', ''), value=children)
-    if modelType == 'Entity':
-        cls = domain_cls if (domain_cls and issubclass(domain_cls, Entity)) else Entity
-        return cls(
-            **base_fields,
-            entityType=EntityType(raw_sme['entityType']),
-            statements={child['idShort']: _build_sme(child, position + (child['idShort'],))
-                        for child in raw_sme.get('statements', [])},
-        )
-    if modelType == 'ReferenceElement':
-        cls = domain_cls if (domain_cls and issubclass(domain_cls, ReferenceElement)) else ReferenceElement
-        return cls(**base_fields, value=_reference_keys(raw_sme.get('value')))
-    if modelType == 'RelationshipElement':
-        cls = domain_cls if (domain_cls and issubclass(domain_cls, RelationshipElement)) else RelationshipElement
-        return cls(
-            **base_fields,
-            first=_reference_keys(raw_sme.get('first')),
-            second=_reference_keys(raw_sme.get('second')),
-        )
-    return SubmodelElement(**base_fields)
+def boolean_text_to_value(boolean_text):
+    lowered_text = str(boolean_text).strip().lower()
+    if lowered_text not in ['true', '1', 'false', '0']:
+        raise ValueError(boolean_text)
+    return lowered_text in ['true', '1']
 
 
-def _match_domain(position: tuple):
-    best_cls = None
-    best_specificity = -1
-    for cls in _traverse_subclasses(SubmodelElement):
-        for pattern in getattr(cls, '_positions_excluded', ()):
-            if _position_matches(position, pattern):
-                return None
-        for pattern in getattr(cls, '_positions', ()):
-            if _position_matches(position, pattern):
-                specificity = sum(1 for slot in pattern if slot != '*')
-                if specificity > best_specificity:
-                    best_cls = cls
-                    best_specificity = specificity
-    return best_cls
+# 글자 값 → valueType에 맞춘 값과 그 값의 단위(시각·기간은 초)
+def converted_value_by_value_type(value_text, valueType):
+    if value_text is None or value_text == '':
+        return {'value': None, 'unit': None}
+    if valueType in VALUE_TYPE_BY_UNIT['INTEGER']:
+        return {'value': int(value_text), 'unit': None}
+    if valueType in VALUE_TYPE_BY_UNIT['REAL_NUMBER']:
+        return {'value': float(value_text), 'unit': None}
+    if valueType in VALUE_TYPE_BY_UNIT['BOOLEAN']:
+        return {'value': boolean_text_to_value(value_text), 'unit': None}
+    if valueType in VALUE_TYPE_BY_UNIT['TIME']:
+        return {'value': time_of_day_text_to_seconds(value_text), 'unit': 's'}
+    if valueType in VALUE_TYPE_BY_UNIT['DURATION']:
+        return {'value': duration_text_to_seconds(value_text), 'unit': 's'}
+    return {'value': value_text, 'unit': None}
 
 
-def _position_matches(position: tuple, pattern: tuple) -> bool:
-    if len(pattern) != len(position):
+def is_number(value):
+    return isinstance(value, (int, float)) and not isinstance(value, bool)
+
+
+# 템플릿 위치(SME_UNIT_MAPPING의 키, **는 idShort 하나 이상)와 맞는지
+def matches_template_path(path_pattern, template_path):
+    path_expression = re.escape(path_pattern).replace(re.escape('**'), '.+')
+    return re.fullmatch(path_expression, template_path) is not None
+
+
+def quantity_of_unit(unit):
+    for quantity, unit_sizes in UNIT_SIZE_BY_QUANTITY.items():
+        if unit in unit_sizes:
+            return quantity
+    return None
+
+
+# 단위의 양(m/s → distance/time). 표에 없는 단위가 섞이면 None
+def quantities_of_unit(unit):
+    quantities = []
+    for unit_part in unit.split(COMPOUND_UNIT_SEPARATOR):
+        quantity = quantity_of_unit(unit_part)
+        if quantity is None:
+            return None
+        quantities.append(quantity)
+    return COMPOUND_UNIT_SEPARATOR.join(quantities)
+
+
+# 단위 → BASE_UNIT_BY_QUANTITY의 단위(m/s처럼 나눈 단위는 분자·분모 각각). 표에 없으면 None
+def base_unit_of(unit):
+    quantities = quantities_of_unit(unit)
+    if quantities is None:
+        return None
+    base_units = [BASE_UNIT_BY_QUANTITY[quantity] for quantity in quantities.split(COMPOUND_UNIT_SEPARATOR)]
+    return COMPOUND_UNIT_SEPARATOR.join(base_units)
+
+
+# 표에 있는 단위나 환산하지 않는 단위로만 이뤄졌는지(kgCO2eq/kWh 등)
+def is_known_unit(unit):
+    for unit_part in unit.split(COMPOUND_UNIT_SEPARATOR):
+        is_kept_unit = unit_part in UNITS_KEPT_WITHOUT_CONVERSION
+        if not is_kept_unit and quantity_of_unit(unit_part) is None:
+            return False
+    return True
+
+
+def unit_size_in_smallest_unit(unit):
+    unit_parts = unit.split(COMPOUND_UNIT_SEPARATOR)
+    numerator_size = UNIT_SIZE_BY_QUANTITY[quantity_of_unit(unit_parts[0])][unit_parts[0]]
+    denominator_size = 1
+    for denominator_unit in unit_parts[1:]:
+        denominator_unit_sizes = UNIT_SIZE_BY_QUANTITY[quantity_of_unit(denominator_unit)]
+        denominator_size *= denominator_unit_sizes[denominator_unit]
+    return {'numerator': numerator_size, 'denominator': denominator_size}
+
+
+def value_in_base_unit(value, unit, base_unit):
+    if unit == base_unit or not is_number(value):
+        return value
+    unit_size = unit_size_in_smallest_unit(unit)
+    base_unit_size = unit_size_in_smallest_unit(base_unit)
+    multiplier = unit_size['numerator'] * base_unit_size['denominator']
+    divisor = base_unit_size['numerator'] * unit_size['denominator']
+    return value * multiplier / divisor
+
+
+# ================================================ AAS 자료형: Referable(공통 최소 속성) → Identifiable·하위 요소를 가진 자료형 → 모델 타입별 클래스. 필드 이름은 AAS JSON 그대로 ================================================
+# 같은 객체도 서로 다른 요소로 다루고(eq=False), 출력은 Referable의 짧은 형식(repr=False)
+aas_type = dataclass(eq=False, repr=False, kw_only=True)
+
+
+@aas_type
+class Reference:
+    type: str = None
+    keys: list = field(default_factory=list)
+    jump: object = None
+
+    @classmethod
+    def from_json(cls, reference_json):
+        if not reference_json:
+            return None
+        return cls(type=reference_json.get('type'), keys=reference_json.get('keys', []))
+
+    def first_key_value(self):
+        if not self.keys:
+            return None
+        return self.keys[0].get('value')
+
+    def __repr__(self):
+        key_values = [str(key.get('value')) for key in self.keys]
+        return f"Reference({' / '.join(key_values)})"
+
+
+# 없는 요소·따라갈 수 없는 참조 자리: 경로를 이어 써도 오류 없이 값은 None, 반복은 빈 목록, 참·거짓은 거짓
+class MissingElement:
+    value = None
+    id = None
+    idShort = None
+    entityType = None
+    children = ()
+    children_by_idShort = {}
+
+    def __init__(self, path):
+        self.path = path
+
+    def __getattr__(self, name):
+        if name.startswith('_'):
+            raise AttributeError(name)
+        return MissingElement(f'{self.path}.{name}')
+
+    def __getitem__(self, index):
+        return MissingElement(f'{self.path}[{index}]')
+
+    def __iter__(self):
+        return iter(())
+
+    def __len__(self):
+        return 0
+
+    def __bool__(self):
         return False
-    return all(p == '*' or p == s for s, p in zip(position, pattern))
+
+    def __repr__(self):
+        return f'MissingElement({self.path})'
 
 
-def _traverse_subclasses(root: type):
-    for sub in root.__subclasses__():
-        yield sub
-        yield from _traverse_subclasses(sub)
+# 모든 AAS 객체 공통: idShort, semanticId, 상위 요소, 역참조. 있는 요소는 하위 요소가 없어도 참
+@aas_type
+class Referable:
+    CONNECTED_REFERENCE_KEYS: ClassVar[list] = []
+    idShort: str = None
+    modelType: str = None
+    semanticId: Reference = None
+    parent: object = None
+    source_file: str = None
+    index_in_parent: int = None
+    referenced_by: list = field(default_factory=list)
+
+    # JSON에 같은 이름의 키가 있는 필드만 JSON 값으로 채움. Reference 필드는 Reference로
+    @classmethod
+    def from_json(cls, element_json, parent, source_file):
+        json_values = {}
+        for aas_field in fields(cls):
+            if aas_field.name not in element_json:
+                continue
+            json_value = element_json[aas_field.name]
+            if aas_field.type is Reference:
+                json_value = Reference.from_json(json_value)
+            json_values[aas_field.name] = json_value
+        return cls(**json_values, parent=parent, source_file=source_file)
+
+    def __repr__(self):
+        return f'{self.modelType or type(self).__name__}({self.idShort})'
+
+    def __bool__(self):
+        return True
+
+    @property
+    def submodel(self):
+        current = self
+        while current is not None and not isinstance(current, Submodel):
+            current = current.parent
+        return current
+
+    # AAS 표준 idShortPath(Recipes[0].CycleTime)
+    @property
+    def id_short_path(self):
+        return self.path_from_submodel(True)
+
+    # 템플릿에서의 위치(Recipes[].CycleTime)
+    @property
+    def template_path(self):
+        return self.path_from_submodel(False)
+
+    def path_from_submodel(self, shows_list_index):
+        if self.parent is None or isinstance(self, Submodel):
+            return ''
+        parent_path = self.parent.path_from_submodel(shows_list_index)
+        if isinstance(self.parent, SubmodelElementList):
+            if shows_list_index:
+                return f'{parent_path}[{self.index_in_parent}]'
+            return f'{parent_path}[]'
+        if parent_path:
+            return f'{parent_path}.{self.idShort}'
+        return self.idShort
+
+    def semantic_id_value(self):
+        if self.semanticId is None:
+            return None
+        return self.semanticId.first_key_value()
 
 
-def _cast_value(raw_value, valueType: str | None):
-    if raw_value is None or raw_value == '' or not valueType:
-        return raw_value
-    type_name = valueType.split(':')[-1]
-    try:
-        if type_name in ('int', 'integer', 'long', 'short', 'byte'):
-            return int(raw_value)
-        if type_name in ('float', 'double', 'decimal'):
-            return float(raw_value)
-        if type_name == 'boolean':
-            return raw_value in (True, 'true', 'True', 'TRUE', 1, '1')
-        if type_name == 'time':
-            parts = raw_value.split(':')
-            hours = int(parts[0])
-            minutes = int(parts[1]) if len(parts) > 1 else 0
-            seconds = int(parts[2]) if len(parts) > 2 else 0
-            return hours * 3600 + minutes * 60 + seconds
-    except (ValueError, TypeError):
-        return raw_value
-    return raw_value
+@aas_type
+class Identifiable(Referable):
+    id: str = None
+
+
+# 하위 요소를 가진 자료형: idShort(obj.Child)·순번(obj[0])으로 내려가기. 없는 하위 요소는 MissingElement
+@aas_type
+class ElementContainer(Referable):
+    CHILD_KEYS: ClassVar[list] = []
+    children: list = field(default_factory=list)
+    children_by_idShort: dict = field(default_factory=dict)
+
+    def child_jsons(self, element_json):
+        child_jsons = []
+        for child_key in self.CHILD_KEYS:
+            child_jsons += element_json.get(child_key) or []
+        return child_jsons
+
+    def add_child(self, child):
+        child.index_in_parent = len(self.children)
+        self.children.append(child)
+        if child.idShort not in self.children_by_idShort:
+            self.children_by_idShort[child.idShort] = child
+
+    def __getattr__(self, name):
+        children_by_idShort = self.__dict__.get('children_by_idShort', {})
+        if name in children_by_idShort:
+            return children_by_idShort[name]
+        if name.startswith('_'):
+            raise AttributeError(name)
+        return MissingElement(f"{self.__dict__.get('idShort')}.{name}")
+
+    def __getitem__(self, index):
+        return self.children[index]
+
+    def __iter__(self):
+        return iter(self.children)
+
+    def __len__(self):
+        return len(self.children)
+
+
+# JSON submodels(Submodel 참조 목록)는 submodel_references로 옮기고, submodels에는 연결된 Submodel을 담음
+@aas_type
+class AssetAdministrationShell(Identifiable, ElementContainer):
+    assetInformation: dict = None
+    submodels: list = field(default_factory=list)
+    submodel_references: list = field(default_factory=list)
+
+    def __post_init__(self):
+        self.submodel_references = [Reference.from_json(reference_json)
+                                    for reference_json in self.submodels or []]
+        self.submodels = []
+
+
+@aas_type
+class Submodel(Identifiable, ElementContainer):
+    CHILD_KEYS: ClassVar[list] = ['submodelElements']
+    qualifiers: list = field(default_factory=list)
+    role: str = None
+
+
+@aas_type
+class ConceptDescription(Identifiable):
+    embeddedDataSpecifications: list = field(default_factory=list)
+    unit: str = None
+
+    def __post_init__(self):
+        for data_specification in self.embeddedDataSpecifications or []:
+            unit = data_specification.get('dataSpecificationContent', {}).get('unit')
+            if unit and self.unit is None:
+                self.unit = unit
+
+
+@aas_type
+class SubmodelElement(Referable):
+    qualifiers: list = field(default_factory=list)
+
+
+# value는 valueType·단위를 바꾼 값, value_text는 원래 글자. unit은 원래 단위, base_unit은 바꾼 단위
+@aas_type
+class Property(SubmodelElement):
+    valueType: str = None
+    value: object = None
+    valueId: Reference = None
+    value_text: str = None
+    unit: str = None
+    base_unit: str = None
+
+    def __post_init__(self):
+        self.value_text = self.value
+
+
+@aas_type
+class Range(SubmodelElement):
+    valueType: str = None
+    min: object = None
+    max: object = None
+    min_text: str = None
+    max_text: str = None
+    unit: str = None
+    base_unit: str = None
+
+    def __post_init__(self):
+        self.min_text = self.min
+        self.max_text = self.max
+
+
+@aas_type
+class MultiLanguageProperty(SubmodelElement):
+    value: list = field(default_factory=list)
+    valueId: Reference = None
+
+
+@aas_type
+class File(SubmodelElement):
+    contentType: str = None
+    value: str = None
+
+
+@aas_type
+class Blob(File):
+    pass
+
+
+# jump: 참조가 가리키는 AAS·Submodel·요소·CD. 비었거나 따라갈 수 없으면 MissingElement
+@aas_type
+class ReferenceElement(SubmodelElement):
+    CONNECTED_REFERENCE_KEYS: ClassVar[list] = ['value']
+    value: Reference = None
+
+    @property
+    def jump(self):
+        if self.value is None or self.value.jump is None:
+            return MissingElement(f'{self.idShort}.jump')
+        return self.value.jump
+
+
+@aas_type
+class RelationshipElement(SubmodelElement):
+    CONNECTED_REFERENCE_KEYS: ClassVar[list] = ['first', 'second']
+    first: Reference = None
+    second: Reference = None
+
+
+@aas_type
+class Entity(SubmodelElement, ElementContainer):
+    CHILD_KEYS: ClassVar[list] = ['statements']
+    entityType: str = None
+    globalAssetId: str = None
+    specificAssetIds: list = field(default_factory=list)
+
+
+@aas_type
+class SubmodelElementCollection(SubmodelElement, ElementContainer):
+    CHILD_KEYS: ClassVar[list] = ['value']
+
+
+@aas_type
+class SubmodelElementList(SubmodelElement, ElementContainer):
+    CHILD_KEYS: ClassVar[list] = ['value']
+    typeValueListElement: str = None
+    valueTypeListElement: str = None
+    orderRelevant: bool = None
+
+
+# 변수는 JSON에서 {'value': 요소}로 한 겹 싸여 있음
+@aas_type
+class Operation(SubmodelElement, ElementContainer):
+    CHILD_KEYS: ClassVar[list] = ['inputVariables', 'outputVariables', 'inoutputVariables']
+
+    def child_jsons(self, element_json):
+        return [variable_json.get('value', {}) for variable_json in super().child_jsons(element_json)]
+
+
+@aas_type
+class Capability(SubmodelElement):
+    pass
+
+
+# modelType 이름과 같은 이름의 클래스. 없으면 SubmodelElement
+def element_class_of_model_type(model_type):
+    element_class = globals().get(model_type)
+    if isinstance(element_class, type) and issubclass(element_class, SubmodelElement):
+        return element_class
+    return SubmodelElement
+
+
+def iterate_all_elements(container):
+    for child in container.children:
+        yield child
+        if isinstance(child, ElementContainer):
+            yield from iterate_all_elements(child)
+
+
+def child_at_id_short_path(container, id_short_path):
+    for idShort in id_short_path.split('.'):
+        if not isinstance(container, ElementContainer):
+            return None
+        container = container.children_by_idShort.get(idShort)
+    return container
+
+
+# ================================================ 경로 파싱: 파일 읽기 → 참조 연결·역참조 → Submodel 역할 → 기준 단위 → 값 변환(valueType·단위) → semanticId 색인 ================================================
+AAS_JSON_TOP_LEVEL_KEYS = ['assetAdministrationShells', 'submodels', 'conceptDescriptions']
+AAS_FILE_EXTENSIONS = ['.json', '.aasx', '.xml']
+RATED_POWER_SEMANTIC_ID = '0173-1#02-AAC970#009'
+
+@dataclass
+class ExtractionIssue:
+    kind: str
+    message: str
+    source_file: str = None
+    id_short_path: str = None
+
+
+@dataclass
+class ExtractedAAS:
+    source_files: list = field(default_factory=list)
+    asset_administration_shells: list = field(default_factory=list)
+    submodels: list = field(default_factory=list)
+    submodels_by_role: dict = field(default_factory=dict)
+    concept_descriptions: dict = field(default_factory=dict)
+    identifiables_by_id: dict = field(default_factory=dict)
+    elements_by_semantic_id: dict = field(default_factory=dict)
+    base_units: dict = field(default_factory=dict)
+    issues: list = field(default_factory=list)
+
+    def submodels_with_role(self, role):
+        return self.submodels_by_role.get(role, [])
+
+    def elements_with_semantic_id(self, semantic_id):
+        return self.elements_by_semantic_id.get(semantic_id, [])
+
+    # AAS 하나(설비)의 Submodel 안에서 정격전력 요소
+    def rated_power_elements_of_aas(self, asset_administration_shell):
+        rated_power_elements = []
+        for element in self.elements_with_semantic_id(RATED_POWER_SEMANTIC_ID):
+            if element.submodel in asset_administration_shell.submodels:
+                rated_power_elements.append(element)
+        return rated_power_elements
+
+
+class PathExtractor:
+    def __init__(self):
+        self.extracted = ExtractedAAS()
+        self.all_elements = []
+
+    def extract(self, file_paths):
+        for file_path in file_paths:
+            self.read_file(file_path)
+        self.connect_references()
+        self.assign_submodel_roles()
+        self.extracted.base_units = dict(BASE_UNIT_BY_QUANTITY)
+        self.convert_values()
+        self.index_semantic_ids()
+        return self.extracted
+
+    def record_issue(self, kind, message, element=None, source_file=None):
+        issue = ExtractionIssue(kind=kind, message=message, source_file=source_file)
+        if element is not None:
+            issue.source_file = element.source_file
+            issue.id_short_path = element.id_short_path
+        self.extracted.issues.append(issue)
+
+    # 지금은 json만 읽고 aasx·xml은 자리만 둠
+    def read_file(self, file_path):
+        extension = os.path.splitext(file_path)[1].lower()
+        if extension == '.json':
+            self.read_json_file(file_path)
+        if extension == '.aasx':
+            self.record_issue('읽지 않음', 'aasx 읽기는 아직 없음', source_file=file_path)
+        if extension == '.xml':
+            self.record_issue('읽지 않음', 'xml 읽기는 아직 없음', source_file=file_path)
+
+    # AAS 최상위 키가 없는 json(config.json 등)은 건너뜀
+    def read_json_file(self, file_path):
+        with open(file_path, encoding='utf-8') as json_file:
+            environment_json = json.load(json_file)
+        is_aas_json = isinstance(environment_json, dict)
+        is_aas_json = is_aas_json and set(AAS_JSON_TOP_LEVEL_KEYS) & set(environment_json)
+        if not is_aas_json:
+            return
+        self.extracted.source_files.append(file_path)
+        for shell_json in environment_json.get('assetAdministrationShells', []):
+            shell = self.build_identifiable(AssetAdministrationShell, shell_json, file_path)
+            self.extracted.asset_administration_shells.append(shell)
+        for submodel_json in environment_json.get('submodels', []):
+            submodel = self.build_identifiable(Submodel, submodel_json, file_path)
+            self.add_child_elements(submodel, submodel_json)
+            self.extracted.submodels.append(submodel)
+        for concept_description_json in environment_json.get('conceptDescriptions', []):
+            concept_description = self.build_identifiable(
+                ConceptDescription, concept_description_json, file_path)
+            self.extracted.concept_descriptions.setdefault(
+                concept_description.id, concept_description)
+
+    # 같은 id가 또 나오면 처음 것을 남김(CD는 파일마다 겹쳐 확인 필요에 안 적음)
+    def build_identifiable(self, identifiable_class, identifiable_json, file_path):
+        identifiable = identifiable_class.from_json(identifiable_json, None, file_path)
+        identifiables_by_id = self.extracted.identifiables_by_id
+        if identifiable.id not in identifiables_by_id:
+            identifiables_by_id[identifiable.id] = identifiable
+        elif identifiable_class is not ConceptDescription:
+            self.record_issue('중복 id', identifiable.id, source_file=file_path)
+        return identifiable
+
+    def add_child_elements(self, container, container_json):
+        for child_json in container.child_jsons(container_json):
+            model_type = child_json.get('modelType')
+            child_class = element_class_of_model_type(model_type)
+            child = child_class.from_json(child_json, container, container.source_file)
+            container.add_child(child)
+            self.all_elements.append(child)
+            if isinstance(child, ElementContainer):
+                self.add_child_elements(child, child_json)
+
+    # AAS의 Submodel 참조와 요소의 참조를 따라가 jump·referenced_by 채움
+    def connect_references(self):
+        for shell in self.extracted.asset_administration_shells:
+            for submodel_reference in shell.submodel_references:
+                submodel = self.connect_reference(shell, submodel_reference, 'submodels')
+                if submodel is None:
+                    continue
+                shell.submodels.append(submodel)
+                shell.add_child(submodel)
+                if submodel.parent is None:
+                    submodel.parent = shell
+        for element in self.all_elements:
+            for reference_key in element.CONNECTED_REFERENCE_KEYS:
+                reference = getattr(element, reference_key)
+                if reference is not None:
+                    self.connect_reference(element, reference, reference_key)
+
+    # 첫 key의 id로 AAS·Submodel·CD를 찾고, 다음 key부터 SML이면 순번, 아니면 idShort
+    def connect_reference(self, referring_element, reference, reference_name):
+        target = self.extracted.identifiables_by_id.get(reference.first_key_value())
+        for key in reference.keys[1:]:
+            if not isinstance(target, ElementContainer):
+                target = None
+                break
+            target = self.child_of_key(target, key.get('value'))
+        reference.jump = target
+        if target is None and reference.type == 'ModelReference':
+            self.record_issue('참조', f'따라갈 수 없음: {reference}', element=referring_element)
+        if target is not None:
+            reverse_reference = {'referring_element': referring_element,
+                                 'reference_name': reference_name}
+            target.referenced_by.append(reverse_reference)
+        return target
+
+    def child_of_key(self, container, key_value):
+        if not isinstance(container, SubmodelElementList):
+            return container.children_by_idShort.get(key_value)
+        if not str(key_value).isdigit() or int(key_value) >= len(container.children):
+            return None
+        return container.children[int(key_value)]
+
+    # semanticId로, semanticId가 없으면 Submodel id로
+    def assign_submodel_roles(self):
+        for submodel in self.extracted.submodels:
+            role = SUBMODEL_MAPPING['SEMANTIC_ID'].get(submodel.semantic_id_value())
+            if role is None:
+                role = SUBMODEL_MAPPING['ID'].get(submodel.id)
+            submodel.role = role
+            if role is not None:
+                self.extracted.submodels_by_role.setdefault(role, []).append(submodel)
+
+    def convert_values(self):
+        for element in self.all_elements:
+            if isinstance(element, Property):
+                element.value = self.converted_value(element, element.value_text)
+            if isinstance(element, Range):
+                element.min = self.converted_value(element, element.min_text)
+                element.max = self.converted_value(element, element.max_text, False)
+
+    # valueType에 맞추고 변환할 단위로 바꿈. 못 바꾸는 값은 그대로 두고 확인 필요에 적음
+    def converted_value(self, element, value_text, records_unit_issue=True):
+        try:
+            converted = converted_value_by_value_type(value_text, element.valueType)
+        except ValueError:
+            message = f'{element.valueType}로 바꿀 수 없어 글자 그대로 둠: {value_text}'
+            self.record_issue('값 형식', message, element=element)
+            return value_text
+        unit, target_unit = self.units_of_element(element, converted['unit'])
+        element.unit = unit
+        if unit is None:
+            return converted['value']
+        if target_unit is None:
+            if not is_known_unit(unit) and records_unit_issue:
+                self.record_issue('단위', f'단위 표에 없는 단위: {unit}', element=element)
+            return converted['value']
+        unit_quantities = quantities_of_unit(unit)
+        if unit_quantities is None or unit_quantities != quantities_of_unit(target_unit):
+            if records_unit_issue:
+                self.record_issue('단위', f'{unit}을 {target_unit}로 바꿀 수 없음', element=element)
+            return converted['value']
+        element.base_unit = target_unit
+        return value_in_base_unit(converted['value'], unit, target_unit)
+
+    # (대상의 단위, 변환할 단위). 찾는 순서: 시각·기간은 초 → SME_UNIT_MAPPING → CD unit
+    def units_of_element(self, element, unit_from_value_type):
+        if unit_from_value_type is not None:
+            return unit_from_value_type, base_unit_of(unit_from_value_type)
+        for path_pattern, (unit_source, target_unit) in SME_UNIT_MAPPING.items():
+            if matches_template_path(path_pattern, element.template_path):
+                unit = self.unit_from_mapping(element, unit_source)
+                return unit, self.unit_from_mapping(element, target_unit)
+        concept_description = self.extracted.concept_descriptions.get(element.semantic_id_value())
+        if concept_description is None or concept_description.unit is None:
+            return None, None
+        return concept_description.unit, base_unit_of(concept_description.unit)
+
+    # 단위 자리가 위치면 그 요소 속성 값(같은 묶음 안에서, 없으면 Submodel 맨 위부터 idShort로), 아니면 단위 글자 그대로
+    def unit_from_mapping(self, element, unit_source):
+        if unit_source is None or '.' not in unit_source:
+            return unit_source
+        unit_element_pattern, attribute_name = unit_source.rsplit('.', 1)
+        for sibling in element.parent.children:
+            if matches_template_path(unit_element_pattern, sibling.template_path):
+                return getattr(sibling, attribute_name)
+        unit_element = child_at_id_short_path(element.submodel, unit_element_pattern)
+        if unit_element is None:
+            self.record_issue('단위', f'단위 요소가 없음: {unit_element_pattern}', element=element)
+            return None
+        return getattr(unit_element, attribute_name)
+
+    def index_semantic_ids(self):
+        for element in self.all_elements:
+            semantic_id = element.semantic_id_value()
+            if semantic_id is not None:
+                self.extracted.elements_by_semantic_id.setdefault(semantic_id, []).append(element)
+
+
+# ================================================ 진입점: AAS 폴더(하위 폴더까지)·파일을 읽어 추출 결과를 돌려줌 ================================================
+def collect_aas_file_paths(aas_paths):
+    if isinstance(aas_paths, (str, os.PathLike)):
+        aas_paths = [aas_paths]
+    file_paths = []
+    for aas_path in aas_paths:
+        if not os.path.isdir(aas_path):
+            file_paths.append(str(aas_path))
+            continue
+        for extension in AAS_FILE_EXTENSIONS:
+            pattern = os.path.join(aas_path, '**', f'*{extension}')
+            file_paths += sorted(glob.glob(pattern, recursive=True))
+    return file_paths
+
+
+def extract(aas_paths):
+    return PathExtractor().extract(collect_aas_file_paths(aas_paths))
